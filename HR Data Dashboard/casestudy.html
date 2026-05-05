@@ -558,10 +558,16 @@
             </div>
         </div>
 
-        <!-- Back links -->
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="index.html" class="dash-link" target="_blank">🖥️ Open Dashboard</a>
-            <a href="resources.html" class="dash-link" style="background: linear-gradient(135deg, var(--purple), #7c3aed); box-shadow: 0 4px 20px rgba(167,139,250,0.3); margin-left: 12px;">📚 Learn More Tutorials</a>
+        <!-- Back links and Download -->
+        <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <h3 style="margin-bottom: 20px; color: var(--text);">Ready to submit your work?</h3>
+            <button onclick="downloadSubmission()" class="dash-link" style="background: linear-gradient(135deg, var(--teal), #0f766e); box-shadow: 0 4px 20px rgba(45,212,191,0.3); font-size: 16px; padding: 14px 32px;">
+                📥 Download Answers for Grading
+            </button>
+            <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px;">
+                <a href="index.html" class="dash-link" target="_blank" style="margin: 0; background: rgba(255,255,255,0.1); box-shadow: none;">🖥️ Open Dashboard</a>
+                <a href="resources.html" class="dash-link" style="margin: 0; background: rgba(255,255,255,0.1); box-shadow: none;">📚 Learn More Tutorials</a>
+            </div>
         </div>
 
     </div>
@@ -570,7 +576,8 @@
     <div class="progress-tracker">
         <div class="progress-label">Case Progress</div>
         <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
-        <div class="progress-count" id="progressCount">0 / 18 answered</div>
+        <div class="progress-count" id="progressCount" style="margin-bottom: 12px;">0 / 18 answered</div>
+        <button onclick="downloadSubmission()" class="dash-link" style="width: 100%; padding: 8px 12px; font-size: 12px; justify-content: center; margin: 0; box-shadow: none;">📥 Download Answers</button>
     </div>
 
 <script>
@@ -833,9 +840,14 @@ function submitAnswer(qNum) {
 
     const fbBtn = document.getElementById(`fb-btn-${qNum}`);
     fbBtn.classList.add('visible');
+    fbBtn.textContent = '🔽 Hide Key Points'; // Update button text
 
     const badge = document.getElementById(`saved-${qNum}`);
     badge.classList.add('visible');
+
+    // Automatically reveal the answers/feedback
+    const panel = document.getElementById(`fb-${qNum}`);
+    if (panel) panel.classList.add('visible');
 
     updateProgress();
 }
@@ -851,6 +863,38 @@ function updateProgress() {
     const pct = Math.round((submitted.size / TOTAL) * 100);
     document.getElementById('progressFill').style.width = pct + '%';
     document.getElementById('progressCount').textContent = `${submitted.size} / ${TOTAL} answered`;
+}
+
+function downloadSubmission() {
+    const studentName = prompt("Please enter your full name for grading:");
+    if (!studentName) return;
+
+    let content = "Mr. Macky's HR Analytics - Case Study Submission\n";
+    content += "================================================\n\n";
+    content += "Student Name: " + studentName + "\n";
+    content += "Date: " + new Date().toLocaleString() + "\n\n";
+    
+    let answeredCount = 0;
+    for (let i = 1; i <= TOTAL; i++) {
+        const ans = localStorage.getItem(`macky_case_q${i}`) || "No answer provided.";
+        if (ans !== "No answer provided.") answeredCount++;
+        
+        content += `--- Question ${i} ${i === 18 ? '(Executive Memo)' : ''} ---\n`;
+        content += ans + "\n\n";
+    }
+    
+    content += "================================================\n";
+    content += `Total Answered: ${answeredCount} / ${TOTAL}\n`;
+    
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `HR_Case_Study_${studentName.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 </script>
 
