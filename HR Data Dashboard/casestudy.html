@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Study — Mr. Macky's Cajun Cuisine HR Analytics</title>
+    <meta name="description" content="A data-driven case study requiring students to use the HR Analytics Dashboard to solve real workforce challenges at Mr. Macky's Cajun Cuisine.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1221;
+            --bg2: #161a2e;
+            --bg3: #1c2140;
+            --surface: rgba(30, 36, 66, 0.7);
+            --border: rgba(255,255,255,0.08);
+            --text: #e2e8f0;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --orange: #f97316;
+            --orange-glow: rgba(249,115,22,0.15);
+            --purple: #a78bfa;
+            --teal: #2dd4bf;
+            --rose: #fb7185;
+            --green: #34d399;
+            --blue: #60a5fa;
+            --amber: #fbbf24;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* --- Top Bar --- */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 32px;
+            background: rgba(15, 18, 33, 0.92);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .topbar-brand img { width: 36px; height: 36px; border-radius: 8px; }
+        .topbar-brand span { font-weight: 700; color: var(--text); font-size: 15px; }
+        .topbar-title { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .topbar-title::before { content: '📋'; font-size: 18px; }
+        .topbar-links { display: flex; gap: 10px; }
+        .topbar-links a {
+            color: var(--text2); font-size: 13px; font-weight: 500;
+            text-decoration: none; padding: 6px 14px; border-radius: 6px;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .topbar-links a:hover { color: var(--orange); border-color: var(--orange); background: var(--orange-glow); }
+
+        /* --- Hero --- */
+        .hero {
+            text-align: center; padding: 60px 32px 40px;
+            background: linear-gradient(180deg, rgba(249,115,22,0.06) 0%, transparent 100%);
+        }
+        .hero-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+            background: var(--orange-glow); color: var(--orange); border: 1px solid rgba(249,115,22,0.3);
+            margin-bottom: 20px;
+        }
+        .hero h1 {
+            font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700;
+            line-height: 1.2; margin-bottom: 14px;
+            background: linear-gradient(135deg, var(--text), var(--orange));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 16px; color: var(--text2); max-width: 700px; margin: 0 auto; }
+
+        /* --- Container --- */
+        .container { max-width: 900px; margin: 0 auto; padding: 0 32px 80px; }
+
+        /* --- Section --- */
+        .case-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px 32px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(8px);
+            transition: border-color 0.3s;
+        }
+        .case-section:hover { border-color: rgba(255,255,255,0.14); }
+
+        .section-label {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            padding: 4px 12px; border-radius: 4px; margin-bottom: 16px;
+        }
+        .label-background { background: rgba(96,165,250,0.15); color: var(--blue); }
+        .label-challenge { background: rgba(249,115,22,0.15); color: var(--orange); }
+        .label-data { background: rgba(45,212,191,0.15); color: var(--teal); }
+        .label-question { background: rgba(167,139,250,0.15); color: var(--purple); }
+        .label-memo { background: rgba(251,113,133,0.15); color: var(--rose); }
+
+        .case-section h2 {
+            font-size: 22px; font-weight: 700; margin-bottom: 14px; color: var(--text);
+        }
+        .case-section h3 {
+            font-size: 17px; font-weight: 600; margin: 24px 0 10px; color: var(--text);
+        }
+        .case-section p, .case-section li {
+            font-size: 14px; color: var(--text2); margin-bottom: 10px;
+        }
+        .case-section ul, .case-section ol {
+            padding-left: 22px;
+        }
+        .case-section li { margin-bottom: 8px; }
+
+        /* --- Data Highlight --- */
+        .data-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px; margin: 20px 0;
+        }
+        .data-card {
+            background: rgba(15, 18, 33, 0.6); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; text-align: center;
+        }
+        .data-val { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+        .data-val.orange { color: var(--orange); }
+        .data-val.teal { color: var(--teal); }
+        .data-val.rose { color: var(--rose); }
+        .data-val.purple { color: var(--purple); }
+        .data-val.blue { color: var(--blue); }
+        .data-val.green { color: var(--green); }
+        .data-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* --- Discussion Questions --- */
+        .dq {
+            background: rgba(15, 18, 33, 0.5); border: 1px solid var(--border);
+            border-left: 3px solid var(--purple); border-radius: 10px;
+            padding: 20px 22px; margin-bottom: 18px;
+            counter-increment: dq-counter;
+        }
+        .dq-num {
+            display: inline-block; background: rgba(167,139,250,0.15);
+            color: var(--purple); font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 4px; margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .dq-text { font-size: 15px; color: var(--text); font-weight: 500; margin-bottom: 10px; line-height: 1.6; }
+        .dq-hint { font-size: 12px; color: var(--text3); font-style: italic; }
+        .dq-hint strong { color: var(--teal); font-style: normal; }
+
+        /* --- Quote / Memo --- */
+        .exec-quote {
+            background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(167,139,250,0.08));
+            border: 1px solid rgba(249,115,22,0.2); border-radius: 12px;
+            padding: 24px 28px; margin: 20px 0; position: relative;
+        }
+        .exec-quote::before {
+            content: '"'; position: absolute; top: -8px; left: 18px;
+            font-size: 48px; color: var(--orange); opacity: 0.4;
+            font-family: 'Playfair Display', serif;
+        }
+        .exec-quote p { font-size: 15px; color: var(--text); font-style: italic; padding-left: 8px; }
+        .exec-quote .attribution {
+            font-size: 12px; color: var(--text3); font-style: normal;
+            margin-top: 10px; padding-left: 8px;
+        }
+
+        /* --- Dashboard Link --- */
+        .dash-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--orange), #ea580c);
+            color: white; font-weight: 600; font-size: 14px;
+            padding: 12px 24px; border-radius: 10px; text-decoration: none;
+            margin: 24px 0 10px; transition: all 0.3s; box-shadow: 0 4px 20px rgba(249,115,22,0.3);
+        }
+        .dash-link:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(249,115,22,0.4); }
+
+        /* --- Instructions box --- */
+        .instructions {
+            background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px; padding: 20px 24px; margin: 20px 0;
+        }
+        .instructions h4 { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .instructions li { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+
+        /* --- Deliverable box --- */
+        .deliverable {
+            background: rgba(251,113,133,0.08); border: 1px solid rgba(251,113,133,0.2);
+            border-radius: 10px; padding: 20px 24px; margin: 20px 0;
+        }
+        .deliverable h4 { font-size: 13px; font-weight: 700; color: var(--rose); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .deliverable li { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+
+        /* --- Answer Area --- */
+        .answer-area { margin-top: 16px; }
+        .answer-area textarea {
+            width: 100%; min-height: 120px; padding: 14px 16px;
+            background: rgba(15, 18, 33, 0.8); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif;
+            font-size: 13px; line-height: 1.6; resize: vertical;
+            transition: border-color 0.3s;
+        }
+        .answer-area textarea:focus { outline: none; border-color: var(--purple); }
+        .answer-area textarea::placeholder { color: var(--text3); }
+        .answer-area textarea.submitted { border-color: var(--green); background: rgba(52,211,153,0.05); }
+        .answer-btns { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .btn-submit, .btn-feedback {
+            padding: 8px 20px; border-radius: 8px; font-size: 13px;
+            font-weight: 600; cursor: pointer; border: none;
+            transition: all 0.25s; font-family: 'Inter', sans-serif;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white; box-shadow: 0 2px 12px rgba(167,139,250,0.25);
+        }
+        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(167,139,250,0.35); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-feedback {
+            background: transparent; color: var(--teal);
+            border: 1px solid rgba(45,212,191,0.3); display: none;
+        }
+        .btn-feedback:hover { background: rgba(45,212,191,0.1); border-color: var(--teal); }
+        .btn-feedback.visible { display: inline-flex; align-items: center; gap: 6px; }
+        .saved-badge {
+            display: none; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--green); font-weight: 500; padding: 8px 0;
+        }
+        .saved-badge.visible { display: inline-flex; }
+
+        /* --- Feedback Panel --- */
+        .feedback-panel {
+            display: none; margin-top: 14px; padding: 20px;
+            background: rgba(45, 212, 191, 0.06); border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px; animation: fadeIn 0.3s ease;
+        }
+        .feedback-panel.visible { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .feedback-title {
+            font-size: 12px; font-weight: 700; color: var(--teal);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .feedback-panel ul { padding-left: 18px; margin: 0; }
+        .feedback-panel li { font-size: 13px; color: var(--text2); margin-bottom: 8px; line-height: 1.5; }
+        .feedback-panel li strong { color: var(--text); }
+        .feedback-note {
+            font-size: 12px; color: var(--text3); font-style: italic;
+            margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+        }
+
+        /* --- Progress Tracker --- */
+        .progress-tracker {
+            position: fixed; bottom: 24px; right: 24px; z-index: 99;
+            background: var(--bg3); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 20px;
+            backdrop-filter: blur(14px); box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            min-width: 180px;
+        }
+        .progress-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .progress-bar-bg { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--teal)); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+        .progress-count { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 6px; }
+
+        /* --- Responsive --- */
+        @media (max-width: 700px) {
+            .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+            .topbar-title { display: none; }
+            .hero h1 { font-size: 28px; }
+            .container { padding: 0 16px 60px; }
+            .case-section { padding: 24px 18px; }
+            .data-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <a href="index.html" class="topbar-brand">
+            <img src="https://api.dicebear.com/7.x/shapes/svg?seed=cajun&backgroundColor=f97316" alt="Logo">
+            <span>Mr. Macky's</span>
+        </a>
+        <div class="topbar-title">Case Study</div>
+        <div class="topbar-links">
+            <a href="index.html">← Dashboard</a>
+            <a href="resources.html">Learn More</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="hero-badge">Interactive Case Study</div>
+        <h1>The Macky's Dilemma:<br>Data, Decisions & Dollars</h1>
+        <p>You've just been named VP of Human Resources at Mr. Macky's Cajun Cuisine. The CEO hands you the HR Analytics Dashboard and says: <em>"Fix this. I need a plan by Friday."</em> Use the dashboard to answer every question below.</p>
+    </div>
+
+    <div class="container">
+
+        <!-- OPENING THE DASHBOARD -->
+        <div style="text-align: center; margin-bottom: 36px;">
+            <a href="index.html" class="dash-link" target="_blank">🖥️ Open the Dashboard in a New Tab</a>
+            <p style="font-size: 12px; color: var(--text3); margin-top: 8px;">Keep it open — you'll reference it throughout this case.</p>
+        </div>
+
+        <div class="instructions">
+            <h4>📌 How to Use This Case Study</h4>
+            <ol>
+                <li>Open the <strong>HR Analytics Dashboard</strong> in a separate browser tab.</li>
+                <li>Read each section of the case narrative below.</li>
+                <li>Use the dashboard's modules (Executive Overview, Modules 1–4, Anomalies) to find the data needed to answer each discussion question.</li>
+                <li>Support every answer with <strong>specific numbers and chart references</strong> from the dashboard.</li>
+                <li>Where indicated, write your response as a memo, recommendation, or analysis.</li>
+            </ol>
+        </div>
+
+        <!-- ===== PART 1: THE COMPANY ===== -->
+        <div class="case-section">
+            <span class="section-label label-background">Part 1 — Company Background</span>
+            <h2>Welcome to Mr. Macky's Cajun Cuisine</h2>
+            <p>Mr. Macky's is a fast-casual restaurant chain operating <strong>148 units</strong> across two market types — Large and Medium. The company employs over <strong>6,500 current employees</strong> across 13 job classifications, from Wait staff and Bartenders to Managers and Assistant Managers.</p>
+
+            <p>The company has been growing steadily, but the executive team is concerned about rising labor costs, inconsistent unit performance, and questions about workforce equity. They've invested in building an HR analytics dashboard — the one you're now reviewing — to move from gut-feeling decisions to <strong>evidence-based decision making (EBDM)</strong>.</p>
+
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="data-val orange">6,559</div>
+                    <div class="data-label">Current Employees</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-val teal">148</div>
+                    <div class="data-label">Restaurant Units</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-val purple">13</div>
+                    <div class="data-label">Job Classifications</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-val rose">~5,700</div>
+                    <div class="data-label">Separations / Year</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PART 2: THE WORKFORCE ===== -->
+        <div class="case-section">
+            <span class="section-label label-challenge">Part 2 — The Workforce Challenge</span>
+            <h2>Understanding Who Works Here</h2>
+
+            <p>Your first task as VP of HR is to understand the current workforce composition. The CEO has heard that the company is "too young" and "doesn't reflect the communities we serve." She wants data, not opinions.</p>
+
+            <div class="exec-quote">
+                <p>I've been hearing complaints from our community partners that our management team doesn't look like our customers. I also worry that we're too dependent on one age group. What does the data actually say?</p>
+                <div class="attribution">— Denise Macky, CEO</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 1</span>
+                <div class="dq-text">Navigate to Module 1 (Workforce Summary). What is the age distribution of Mr. Macky's workforce? What percentage of employees fall in the 18–25 bracket? What operational risks does this concentration create?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 1 → Age Distribution chart</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 2</span>
+                <div class="dq-text">Examine the racial composition of the workforce. What is the White-to-URM ratio for the overall company? Now drill into the management ranks — is the ratio different for Managers vs. Wait staff? What are the implications of any disparity?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 1 → Race breakdown</strong> and <strong>Module 3 → Current Diversity by Job</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 3</span>
+                <div class="dq-text">The company recruits managers from 9 different university and college sources. Using the dashboard, which recruitment source produces the highest-performing managers? Which produces the lowest? If you could only fund recruitment relationships with 3 schools, which would you choose and why?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 1 → Avg Performance by Recruitment Source (Managers)</strong></div>
+            </div>
+        </div>
+
+        <!-- ===== PART 3: TURNOVER CRISIS ===== -->
+        <div class="case-section">
+            <span class="section-label label-challenge">Part 3 — The Turnover Crisis</span>
+            <h2>"We're Hemorrhaging People"</h2>
+
+            <p>The CFO drops a bombshell in the weekly leadership meeting: the company processes approximately <strong>5,700 separations per year</strong>. At an estimated $4,000 per hourly separation, that's potentially <strong>$22+ million per year</strong> in turnover costs. But not all turnover is equal — and not all units suffer the same.</p>
+
+            <div class="exec-quote">
+                <p>I don't care about company-wide averages anymore. Show me which units are bleeding people and which are retaining them. And tell me whether it's people quitting or us firing them — because those are two very different problems.</p>
+                <div class="attribution">— Robert Chen, CFO</div>
+            </div>
+
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="data-val rose">29,661</div>
+                    <div class="data-label">Total Quits (all years)</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-val orange">10,151</div>
+                    <div class="data-label">Total Discharges (all years)</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-val blue">3.83</div>
+                    <div class="data-label">Avg Perf Rating (Employed)</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-val purple">2.67</div>
+                    <div class="data-label">Avg Perf Rating (Quit)</div>
+                </div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 4</span>
+                <div class="dq-text">Using Module 2, examine the turnover trend from 2020–2026. Is turnover getting better or worse? Are quits and discharges moving in the same direction? What does the trend suggest about the effectiveness of any retention initiatives?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 2 → Turnover by Year chart</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 5</span>
+                <div class="dq-text">Identify the 3 units with the highest turnover rates and the 3 units with the lowest. What separates them? Compare their market type, quit-vs-discharge ratios, and engagement scores (if available on the Overview). What patterns emerge?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 2 → Turnover by Unit table & heatmap</strong>, and <strong>Executive Overview → Engagement Radar</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 6</span>
+                <div class="dq-text">Look at turnover by job classification. Which job has the highest quit rate? Which has the highest discharge rate? Wait staff account for the largest share of both quits and discharges — but does that automatically make them the most important group to focus retention efforts on? Consider the turnover rate (not just volume) and cost-to-replace in your analysis.</div>
+                <div class="dq-hint">Dashboard: <strong>Module 2 → Turnover by Job</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 7</span>
+                <div class="dq-text">The average performance rating for currently employed workers is 3.83, while employees who quit averaged 2.67 and those discharged averaged 2.98. Paradoxically, discharged employees had <em>higher</em> performance than those who quit. What might explain this counterintuitive finding? What does it suggest about why employees are leaving versus being let go?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 2 → Avg Performance by Employment Status</strong></div>
+            </div>
+        </div>
+
+        <!-- ===== PART 4: DIVERSITY & ADVERSE IMPACT ===== -->
+        <div class="case-section">
+            <span class="section-label label-data">Part 4 — Diversity & Legal Exposure</span>
+            <h2>The 4/5ths Rule Problem</h2>
+
+            <p>The Chief Legal Officer has flagged a potential issue. A recent OFCCP (Office of Federal Contract Compliance Programs) audit notice arrived, and the company needs to demonstrate that its hiring practices don't create adverse impact against underrepresented minorities (URMs).</p>
+
+            <div class="exec-quote">
+                <p>If we're below the 4/5ths threshold, we have a legal obligation to justify our selection procedures as job-related. I need you to run the numbers — company-wide and year-by-year — and tell me if we have a problem.</p>
+                <div class="attribution">— Maria Santos, Chief Legal Officer</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 8</span>
+                <div class="dq-text">Navigate to Module 3. Calculate the selection rate for White applicants and URM applicants. What is the impact ratio? Does hiring at Mr. Macky's pass or fail the 4/5ths rule? Show your calculation.</div>
+                <div class="dq-hint">Dashboard: <strong>Module 3 → Hiring by Race (Selection Rates)</strong>. Formula: Impact Ratio = URM hire rate ÷ White hire rate</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 9</span>
+                <div class="dq-text">Examine the year-by-year hiring data in Module 3. Has the adverse impact ratio improved, worsened, or stayed consistent from 2020 to 2026? Are there any years where the company came close to passing the 4/5ths threshold?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 3 → Hiring by Year chart</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 10</span>
+                <div class="dq-text">Module 3 shows average interview scores for hired vs. not-hired candidates, broken down by race. Do URM candidates who are hired have comparable interview scores to White candidates who are hired? What about those not hired? What do these patterns suggest about the fairness of the interview process itself?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 3 → Average Interview Scores</strong></div>
+            </div>
+        </div>
+
+        <!-- ===== PART 5: COMPENSATION & THE EXPERIENCE PARADOX ===== -->
+        <div class="case-section">
+            <span class="section-label label-data">Part 5 — Compensation & the Experience Paradox</span>
+            <h2>"We're Paying for Experience — But Is It Worth It?"</h2>
+
+            <p>The compensation committee has raised a provocative question: the company has traditionally valued experience in its pay structure and hiring criteria. But a junior analyst noticed something strange in the data — experience doesn't seem to predict performance.</p>
+
+            <div class="exec-quote">
+                <p>We're paying a premium for experienced managers, but are we actually getting better performance? Or are we just paying more for the same results — and potentially screening out capable but less-experienced candidates in the process?</p>
+                <div class="attribution">— Anil Gupta, Compensation Committee Chair</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 11</span>
+                <div class="dq-text">Using Module 4, examine the relationship between prior experience and wages, and between prior experience and performance. Does more experience lead to higher pay? Does more experience lead to higher performance? What does the scatter plot reveal about the experience-performance relationship?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 4 → Avg Wage by Experience, Avg Performance by Experience, Manager Scatter Plot</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 12</span>
+                <div class="dq-text">Look at the scatter plot of managers by experience vs. wage, colored by performance rating. Find examples of high-experience, low-performance managers AND low-experience, high-performance managers. What are the implications for the company's hiring criteria and pay structure?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 4 → Experience vs. Wage scatter plot</strong>. Hover over individual dots for details.</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 13</span>
+                <div class="dq-text">Compare average wages by gender and by race in Module 4. Are there statistically meaningful differences? Consider: are the differences driven by discrimination, or could they be explained by differences in job mix, experience levels, or performance? What additional data would you need to make a definitive determination?</div>
+                <div class="dq-hint">Dashboard: <strong>Module 4 → Avg Wage by Demographics</strong></div>
+            </div>
+        </div>
+
+        <!-- ===== PART 6: ENGAGEMENT & UNIT PERFORMANCE ===== -->
+        <div class="case-section">
+            <span class="section-label label-challenge">Part 6 — Engagement & the Bottom Line</span>
+            <h2>Connecting People Metrics to Profit</h2>
+
+            <p>The board of directors wants to know: does employee engagement actually affect restaurant performance? They're skeptical. "Happy employees are nice," the board chair quips, "but do they make us money?"</p>
+
+            <p>You have engagement survey data across 9 dimensions (Job Satisfaction, Collaboration, Communication, Support, Customer Focus, Personal Growth, Inclusion, Empowerment, Accountability) for every unit, plus financial data (Sales, COGS, Payroll, Profit) for all 148 restaurants.</p>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 14</span>
+                <div class="dq-text">On the Executive Overview, compare the engagement radar charts for Large Market vs. Medium Market units. Which dimensions show the biggest gap between the two? Which dimensions are consistent across market types? What might explain the differences?</div>
+                <div class="dq-hint">Dashboard: <strong>Executive Overview → Engagement Radar Chart</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 15</span>
+                <div class="dq-text">Identify 2–3 units with notably high engagement scores and 2–3 with notably low scores. Then look up the same units in the Restaurant Performance data (available in the Executive Overview). Is there a visible relationship between engagement and financial performance? What confounding variables might explain any patterns you see?</div>
+                <div class="dq-hint">Dashboard: <strong>Executive Overview → Unit Engagement Table & Restaurant Performance</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 16</span>
+                <div class="dq-text">The engagement data shows that Exempt employees (managers) consistently score higher than Non-Exempt employees on every dimension. Similarly, Men score higher than Women, and White employees score higher than URM employees. As the VP of HR, how would you interpret these gaps? What questions would you investigate further before drawing conclusions?</div>
+                <div class="dq-hint">Dashboard: <strong>Executive Overview → Engagement by Category</strong></div>
+            </div>
+        </div>
+
+        <!-- ===== PART 7: ANOMALIES ===== -->
+        <div class="case-section">
+            <span class="section-label label-question">Part 7 — Data Anomalies & Critical Thinking</span>
+            <h2>When the Data Doesn't Add Up</h2>
+
+            <p>Good analysts don't just read data — they question it. The dashboard's Anomalies section highlights several counterintuitive findings in the data. These aren't "errors" — they're patterns that challenge conventional HR wisdom.</p>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 17</span>
+                <div class="dq-text">Navigate to the Data Anomalies section. Choose TWO anomalies and for each: (a) state the finding, (b) explain why it's counterintuitive, (c) propose at least two possible explanations, and (d) describe what additional data you'd need to determine which explanation is correct.</div>
+                <div class="dq-hint">Dashboard: <strong>Data Anomalies section</strong></div>
+            </div>
+        </div>
+
+        <!-- ===== FINAL DELIVERABLE ===== -->
+        <div class="case-section">
+            <span class="section-label label-memo">Final Deliverable</span>
+            <h2>The CEO Memo</h2>
+
+            <p>The CEO needs your strategic recommendations by end of week. Drawing on your analysis of <strong>all four modules</strong>, write a 1–2 page executive memo that addresses the following:</p>
+
+            <div class="deliverable">
+                <h4>📝 Your memo should include:</h4>
+                <ol>
+                    <li><strong>Top 3 Workforce Risks</strong> — Identify the most critical HR issues facing Mr. Macky's, supported by specific dashboard data.</li>
+                    <li><strong>Turnover Reduction Strategy</strong> — Recommend targeted interventions for the highest-turnover units. Explain why a one-size-fits-all approach won't work.</li>
+                    <li><strong>Adverse Impact Action Plan</strong> — Outline steps to address the 4/5ths rule failure, including both short-term compliance measures and long-term systemic changes.</li>
+                    <li><strong>The Experience-Pay Paradox</strong> — Advise the compensation committee on whether to continue valuing prior experience in hiring and pay decisions. Support your recommendation with data.</li>
+                    <li><strong>One Data-Driven "Quick Win"</strong> — Identify one insight from the dashboard that could be acted on immediately with minimal cost but meaningful impact.</li>
+                </ol>
+            </div>
+
+            <div class="exec-quote">
+                <p>I don't want gut feelings. I want evidence. Show me the data, tell me what it means, and give me a plan I can take to the board.</p>
+                <div class="attribution">— Denise Macky, CEO</div>
+            </div>
+        </div>
+
+        <!-- Back links -->
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="index.html" class="dash-link" target="_blank">🖥️ Open Dashboard</a>
+            <a href="resources.html" class="dash-link" style="background: linear-gradient(135deg, var(--purple), #7c3aed); box-shadow: 0 4px 20px rgba(167,139,250,0.3); margin-left: 12px;">📚 Learn More Tutorials</a>
+        </div>
+
+    </div>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-label">Case Progress</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="progress-count" id="progressCount">0 / 18 answered</div>
+    </div>
+
+<script>
+// Feedback data for all questions
+const FB = {
+    1: {
+        placeholder: 'Reference specific age brackets and percentages from Module 1...',
+        points: [
+            '<strong>56.3% of employees</strong> are in the 18–25 bracket (3,694 of 6,559).',
+            'The 18–35 range accounts for <strong>95%+ of the total workforce</strong>.',
+            'Only 320 employees (4.9%) are age 36 or older.',
+            '<strong>Operational risks</strong>: Higher turnover typical of younger workers, less institutional knowledge, scheduling conflicts around academic calendars, and a thin management pipeline from within.'
+        ],
+        note: 'Strong answers connect the age data to turnover patterns in Part 3.'
+    },
+    2: {
+        placeholder: 'Compare workforce-wide ratios to management ratios...',
+        points: [
+            'Company-wide: <strong>76.1% White</strong> (4,994) vs <strong>23.9% URM</strong> (1,565).',
+            'Managers: <strong>77.2% White</strong> (112/145) vs <strong>22.8% URM</strong> (33). Slightly less diverse than overall.',
+            'Wait staff: <strong>71.4% White</strong> (1,949) vs <strong>28.6% URM</strong> (780). More diverse than management.',
+            '<strong>Implication</strong>: URM representation decreases moving up the hierarchy — suggesting potential barriers to advancement.'
+        ],
+        note: 'This connects directly to the adverse impact analysis in Part 4.'
+    },
+    3: {
+        placeholder: 'Name specific schools and their avg performance ratings...',
+        points: [
+            '<strong>Highest</strong>: Marquis University (4.50), University of the North (4.41).',
+            '<strong>Lowest</strong>: National University (3.36), Hitherdale Community College (3.54).',
+            '<strong>Best 3 picks</strong>: Marquis (4.50), U of North (4.41), and State U at Alberdale (4.29) or Georgias City / Southwestern State (both 4.25).',
+            'Consider <strong>volume vs. quality</strong>: Hitherdale and Sung Urban Camp supply the most managers (26 and 36) but not the best performance.'
+        ],
+        note: 'A strong answer weighs both quality (avg rating) and volume (number of hires).'
+    },
+    4: {
+        placeholder: 'Note the year-over-year trends in quits and discharges...',
+        points: [
+            'Quits <strong>slowly declined</strong> from 4,357 (2020) to 4,067 (2026) — a modest ~7% drop.',
+            'Discharges remained <strong>relatively flat</strong> (~1,410–1,505 range).',
+            'Combined separations stay stubbornly high at <strong>~5,400–5,800 per year</strong>.',
+            '<strong>Interpretation</strong>: Any retention initiatives have had only marginal impact.'
+        ]
+    },
+    5: {
+        placeholder: 'Name specific units and compare their turnover data...',
+        points: [
+            '<strong>Highest turnover</strong>: Units like #32 (426 total), #33 (420), #14 (417) — all Large market.',
+            '<strong>Lowest turnover</strong>: Units like #95 (215), #89 (220), #80 (230) — all Medium market.',
+            'High-turnover units tend to have <strong>higher quit proportions</strong>, suggesting employee dissatisfaction.',
+            'Cross-reference with engagement: <strong>low-engagement units likely correlate with higher voluntary turnover</strong>.'
+        ]
+    },
+    6: {
+        placeholder: 'Distinguish between turnover volume and turnover rate...',
+        points: [
+            '<strong>Wait staff</strong> dominate in volume (14,564 quits) because they\'re the largest group (2,729 current).',
+            'But <strong>Hosts</strong> and <strong>Food runners</strong> may have higher turnover <em>rates</em> relative to their headcount.',
+            'Bartenders have <strong>disproportionately high discharges</strong> (989 discharged / 443 current).',
+            '<strong>Key insight</strong>: Volume ≠ rate. Focusing only on Wait staff ignores high-rate roles where targeted interventions may be more cost-effective.'
+        ]
+    },
+    7: {
+        placeholder: 'Explain the paradox of discharged workers having higher performance...',
+        points: [
+            '<strong>The paradox</strong>: Discharged employees (2.98 avg) had higher performance than quitters (2.67).',
+            '<strong>Possible explanations</strong>: Discharges may be for behavioral/attendance issues, not job performance; lowest performers self-select out via quitting.',
+            'The company may be losing its <em>worst</em> performers through quits while discharging people for <strong>non-performance reasons</strong>.',
+            'This raises questions about <strong>discharge criteria consistency</strong> across managers.'
+        ]
+    },
+    8: {
+        placeholder: 'Show your calculation: hire rates for White and URM, then the impact ratio...',
+        points: [
+            'White hire rate: 444/7,565 = <strong>5.87%</strong>.',
+            'URM hire rate: 90/3,239 = <strong>2.78%</strong>.',
+            'Impact ratio: 2.78 / 5.87 = <strong>0.47 (47%)</strong>.',
+            '4/5ths threshold = 0.80. At 0.47, Mr. Macky\'s <strong>clearly fails</strong> — URM candidates are hired at less than half the rate of White candidates.'
+        ],
+        note: 'This is a significant legal exposure requiring immediate attention.'
+    },
+    9: {
+        placeholder: 'Calculate or estimate the impact ratio for each year...',
+        points: [
+            'The adverse impact ratio has been <strong>consistently below 0.80</strong> every year from 2020–2026.',
+            'Some years show slight improvement (e.g., 2024 with 18 URM hires / 442 applicants vs. 59/1,044 White), but never reaching the threshold.',
+            'The <strong>persistence</strong> of the pattern across 7 years suggests a systemic issue, not a one-time anomaly.',
+            'No year comes close to passing — the best years still fall well short of the 4/5ths rule.'
+        ]
+    },
+    10: {
+        placeholder: 'Compare interview scores for hired vs. not-hired by race...',
+        points: [
+            '<strong>Hired URM</strong> avg interview: 5.59 (Interview 1), 5.58 (Interview 2).',
+            '<strong>Hired White</strong> avg interview: 5.91 (Interview 1), 5.87 (Interview 2).',
+            '<strong>Not-hired URM</strong>: 3.68 / 3.69 vs <strong>Not-hired White</strong>: 4.17 / 4.18.',
+            'URM candidates receive <strong>systematically lower interview scores</strong> than White candidates in both hired and not-hired categories — raising concerns about potential interviewer bias.'
+        ],
+        note: 'The gap in "not-hired" scores is particularly telling — URM candidates who don\'t get hired score meaningfully lower than White candidates who also don\'t get hired.'
+    },
+    11: {
+        placeholder: 'Describe the experience-wage and experience-performance relationships...',
+        points: [
+            '<strong>Experience → Wage</strong>: Yes, more experience generally leads to higher pay (0 yrs: $61,735 vs 3-5 yrs: $56,983 — though this shows an inverse pattern worth noting).',
+            '<strong>Experience → Performance</strong>: No clear relationship. Avg performance is ~3.84 for both 1-2 yrs and 3-5 yrs experience.',
+            'The scatter plot reveals <strong>high variance</strong> — managers with 0 years experience can score 5 while those with 4 years can score 1.',
+            '<strong>Key insight</strong>: The company pays more for experience but doesn\'t get reliably better performance in return.'
+        ]
+    },
+    12: {
+        placeholder: 'Identify specific managers from the scatter plot...',
+        points: [
+            '<strong>High-exp, low-perf</strong>: e.g., Unit 29 manager (2 yrs exp, perf=1, wage=$67,673); Unit 61 manager (3 yrs, perf=1, $58,305).',
+            '<strong>Low-exp, high-perf</strong>: e.g., Unit 60 manager (0 yrs exp, perf=5, wage=$63,176); Unit 18 manager (0 yrs, perf=5, $78,220).',
+            'Some <strong>highest-paid managers perform poorly</strong>: Unit 42 (0 yrs exp, perf=2, wage=$80,984).',
+            '<strong>Implication</strong>: Experience-based pay creates equity issues and may discourage hiring high-potential candidates without traditional credentials.'
+        ]
+    },
+    13: {
+        placeholder: 'Compare wages by gender and race with an analytical lens...',
+        points: [
+            'Gender: <strong>Male avg $59,887</strong> vs <strong>Female avg $57,515</strong> — a ~$2,372 gap.',
+            'Race: <strong>URM avg $58,934</strong> vs <strong>White avg $58,235</strong> — URM managers actually earn slightly more.',
+            'The gender gap could reflect <strong>experience differences, unit assignment, or performance</strong> — not necessarily discrimination.',
+            '<strong>Additional data needed</strong>: Tenure, hours worked, unit profitability, educational background, and whether the gap persists after controlling for these factors.'
+        ],
+        note: 'This is a correlation vs. causation question — a central theme of the dashboard\'s tutorials.'
+    },
+    14: {
+        placeholder: 'Compare the radar charts for Large vs. Medium markets...',
+        points: [
+            'Large Market units score higher on most dimensions, particularly <strong>Collaboration</strong> (3.85 vs 3.51), <strong>Empowerment</strong> (3.87 vs 3.62), and <strong>Personal Growth</strong> (3.82 vs 3.57).',
+            '<strong>Job Satisfaction</strong> is identical across markets (4.32 vs 4.32) — an interesting outlier.',
+            'The gap is smallest on <strong>Accountability</strong> (3.79 vs 3.63).',
+            '<strong>Possible explanations</strong>: Larger units may have more resources, better training infrastructure, or more experienced managers.'
+        ]
+    },
+    15: {
+        placeholder: 'Name specific units with high/low engagement and compare their financials...',
+        points: [
+            '<strong>High engagement examples</strong>: Units like #6 (job sat 6.36), #66 (6.08), #16 (5.33) — check their profit performance.',
+            '<strong>Low engagement examples</strong>: Units like #10 (job sat 3.17), #33 (2.96), #26 (3.47).',
+            'There appears to be a <strong>general positive relationship</strong>, but it\'s not perfectly linear — some high-engagement units have average profits.',
+            '<strong>Confounding variables</strong>: Market location, manager quality, local competition, unit age, and customer demographics all affect profitability independent of engagement.'
+        ]
+    },
+    16: {
+        placeholder: 'Interpret the engagement gaps by category critically...',
+        points: [
+            '<strong>Exempt > Non-Exempt</strong>: Managers have more autonomy, involvement, and investment in outcomes — naturally scoring higher.',
+            '<strong>Men > Women</strong> and <strong>White > URM</strong>: Could reflect workplace climate issues, different treatment, or compositional effects (if more women/URMs are in lower-engagement roles).',
+            '<strong>Before concluding discrimination</strong>: Investigate whether the gaps persist after controlling for job level, unit, and manager.',
+            'A good next step would be <strong>focus groups or pulse surveys</strong> to understand the lived experience behind the numbers.'
+        ],
+        note: 'Quantitative data tells you WHAT is happening. Qualitative methods help you understand WHY.'
+    },
+    17: {
+        placeholder: 'Choose TWO anomalies. For each: state finding, explain why counterintuitive, give 2 explanations, describe needed data...',
+        points: [
+            'Strong answers follow the <strong>four-part framework</strong>: (a) finding, (b) why counterintuitive, (c) explanations, (d) data needed.',
+            'Common anomalies include: <strong>experience not predicting performance</strong>, <strong>discharged > quit performance</strong>, <strong>high-paying low-performers</strong>.',
+            'Each anomaly should generate <strong>at least two competing explanations</strong> — demonstrating critical thinking.',
+            'The "data needed" component shows analytical maturity — recognizing what you <strong>can\'t</strong> conclude from the current dashboard.'
+        ]
+    },
+    18: {
+        placeholder: 'Write your executive memo here. Include: Top 3 Risks, Turnover Strategy, Adverse Impact Plan, Experience-Pay recommendation, and one Quick Win...',
+        points: [
+            '<strong>Top 3 Risks</strong>: (1) Legal exposure from adverse impact, (2) Unsustainable turnover costs ($22M+/yr), (3) Engagement gaps that threaten long-term performance.',
+            '<strong>Turnover Strategy</strong>: Target highest-turnover units individually — investigate whether the driver is poor management, low engagement, or market-specific factors.',
+            '<strong>Adverse Impact</strong>: Short-term: standardize interview rubrics, add structured scoring. Long-term: diversify recruitment channels, audit interviewer patterns.',
+            '<strong>Experience-Pay</strong>: De-emphasize experience as a pay determinant; adopt performance-based progression since experience doesn\'t predict outcomes.',
+            '<strong>Quick Win</strong>: Redirect recruitment budget from low-performing sources (National Univ, Hitherdale) to high-performing ones (Marquis, U of North).'
+        ],
+        note: 'The best memos cite specific dashboard data points to support every recommendation.'
+    }
+};
+
+const TOTAL = Object.keys(FB).length;
+const submitted = new Set();
+
+// Inject answer areas into all .dq elements
+document.addEventListener('DOMContentLoaded', () => {
+    const dqs = document.querySelectorAll('.dq');
+    dqs.forEach((dq, i) => {
+        const qNum = i + 1;
+        const fb = FB[qNum];
+        if (!fb) return;
+
+        const area = document.createElement('div');
+        area.className = 'answer-area';
+        area.innerHTML = `
+            <textarea id="q${qNum}" placeholder="${fb.placeholder}"></textarea>
+            <div class="answer-btns">
+                <button class="btn-submit" id="sub-${qNum}" onclick="submitAnswer(${qNum})">Submit Answer</button>
+                <button class="btn-feedback" id="fb-btn-${qNum}" onclick="toggleFeedback(${qNum})">💡 View Key Points</button>
+                <span class="saved-badge" id="saved-${qNum}">✓ Saved</span>
+            </div>
+            <div class="feedback-panel" id="fb-${qNum}">
+                <div class="feedback-title">💡 Key Points to Consider</div>
+                <ul>${fb.points.map(p => `<li>${p}</li>`).join('')}</ul>
+                ${fb.note ? `<div class="feedback-note">${fb.note}</div>` : ''}
+            </div>
+        `;
+        dq.appendChild(area);
+    });
+
+    // Also add answer area for the final memo deliverable
+    const delivSection = document.querySelector('.deliverable');
+    if (delivSection) {
+        const memoArea = document.createElement('div');
+        memoArea.className = 'answer-area';
+        memoArea.style.marginTop = '20px';
+        const fb = FB[18];
+        memoArea.innerHTML = `
+            <textarea id="q18" placeholder="${fb.placeholder}" style="min-height:240px"></textarea>
+            <div class="answer-btns">
+                <button class="btn-submit" id="sub-18" onclick="submitAnswer(18)">Submit Memo</button>
+                <button class="btn-feedback" id="fb-btn-18" onclick="toggleFeedback(18)">💡 View Key Points</button>
+                <span class="saved-badge" id="saved-18">✓ Saved</span>
+            </div>
+            <div class="feedback-panel" id="fb-18">
+                <div class="feedback-title">💡 Key Points for a Strong Memo</div>
+                <ul>${fb.points.map(p => `<li>${p}</li>`).join('')}</ul>
+                ${fb.note ? `<div class="feedback-note">${fb.note}</div>` : ''}
+            </div>
+        `;
+        delivSection.parentNode.insertBefore(memoArea, delivSection.nextSibling);
+    }
+
+    // Load any saved answers from localStorage
+    for (let i = 1; i <= TOTAL; i++) {
+        const saved = localStorage.getItem(`macky_case_q${i}`);
+        if (saved) {
+            const ta = document.getElementById(`q${i}`);
+            if (ta) { ta.value = saved; ta.classList.add('submitted'); }
+            submitted.add(i);
+            const btn = document.getElementById(`sub-${i}`);
+            if (btn) { btn.textContent = '✓ Submitted'; btn.disabled = true; }
+            const fbBtn = document.getElementById(`fb-btn-${i}`);
+            if (fbBtn) fbBtn.classList.add('visible');
+            const badge = document.getElementById(`saved-${i}`);
+            if (badge) badge.classList.add('visible');
+        }
+    }
+    updateProgress();
+});
+
+function submitAnswer(qNum) {
+    const ta = document.getElementById(`q${qNum}`);
+    if (!ta || !ta.value.trim()) { ta.style.borderColor = '#f43f5e'; setTimeout(() => ta.style.borderColor = '', 1500); return; }
+
+    ta.classList.add('submitted');
+    localStorage.setItem(`macky_case_q${qNum}`, ta.value);
+    submitted.add(qNum);
+
+    const btn = document.getElementById(`sub-${qNum}`);
+    btn.textContent = '✓ Submitted';
+    btn.disabled = true;
+
+    const fbBtn = document.getElementById(`fb-btn-${qNum}`);
+    fbBtn.classList.add('visible');
+
+    const badge = document.getElementById(`saved-${qNum}`);
+    badge.classList.add('visible');
+
+    updateProgress();
+}
+
+function toggleFeedback(qNum) {
+    const panel = document.getElementById(`fb-${qNum}`);
+    panel.classList.toggle('visible');
+    const btn = document.getElementById(`fb-btn-${qNum}`);
+    btn.textContent = panel.classList.contains('visible') ? '🔽 Hide Key Points' : '💡 View Key Points';
+}
+
+function updateProgress() {
+    const pct = Math.round((submitted.size / TOTAL) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = `${submitted.size} / ${TOTAL} answered`;
+}
+</script>
+
+</body>
+</html>

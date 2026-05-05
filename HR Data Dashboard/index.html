@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Macky's Cajun Cuisine — HR Analytics Dashboard</title>
+    <meta name="description" content="Interactive HR Analytics Dashboard for Mr. Macky's Cajun Cuisine — workforce metrics, flight risk, diversity & inclusion, and compensation analysis.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">🦐</div>
+                <div class="logo-text">
+                    <span class="logo-title">Mr. Macky's</span>
+                    <span class="logo-subtitle">Cajun Cuisine</span>
+                </div>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link active" data-module="overview" onclick="switchModule('overview', this)">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Overview</span>
+            </a>
+            <a href="#" class="nav-link" data-module="module1" onclick="switchModule('module1', this)">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">Workforce Summary</span>
+                <span class="nav-badge">M1</span>
+            </a>
+            <a href="#" class="nav-link" data-module="module2" onclick="switchModule('module2', this)">
+                <span class="nav-icon">⚠️</span>
+                <span class="nav-label">Flight Risk</span>
+                <span class="nav-badge">M2</span>
+            </a>
+            <a href="#" class="nav-link" data-module="module3" onclick="switchModule('module3', this)">
+                <span class="nav-icon">🌍</span>
+                <span class="nav-label">Diversity & Inclusion</span>
+                <span class="nav-badge">M3</span>
+            </a>
+            <a href="#" class="nav-link" data-module="module4" onclick="switchModule('module4', this)">
+                <span class="nav-icon">💰</span>
+                <span class="nav-label">Compensation</span>
+                <span class="nav-badge">M4</span>
+            </a>
+            <a href="#" class="nav-link" data-module="anomalies" onclick="switchModule('anomalies', this)">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-label">Data Anomalies</span>
+            </a>
+            <a href="#" class="nav-link" data-module="exercises" onclick="switchModule('exercises', this)">
+                <span class="nav-icon">📝</span>
+                <span class="nav-label">Student Exercises</span>
+            </a>
+            <a href="#" class="nav-link" data-module="chartbuilder" onclick="switchModule('chartbuilder', this)">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">Chart Builder</span>
+            </a>
+            <a href="#" class="nav-link" data-module="explore" onclick="switchModule('explore', this)">
+                <span class="nav-icon">🔎</span>
+                <span class="nav-label">Explore Data</span>
+            </a>
+            <a href="#" class="nav-link" data-module="stats" onclick="switchModule('stats', this)">
+                <span class="nav-icon">📏</span>
+                <span class="nav-label">Statistical Analysis</span>
+            </a>
+            <a href="#" class="nav-link" data-module="datadict" onclick="switchModule('datadict', this)">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">Data Dictionary</span>
+            </a>
+            <div class="nav-divider"></div>
+            <a href="resources.html" class="nav-link nav-link-external">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">Learn More</span>
+                <span class="nav-external-icon">↗</span>
+            </a>
+            <a href="casestudy.html" class="nav-link nav-link-external">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Case Study</span>
+                <span class="nav-external-icon">↗</span>
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-text">HR Analytics Platform</div>
+            <div class="sidebar-footer-version">v2026</div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">☰</button>
+            <h1 class="page-title" id="pageTitle">Executive Overview</h1>
+            <div class="topbar-right">
+                <span class="data-badge">Live Data · 2026</span>
+            </div>
+        </header>
+
+        <!-- ===== OVERVIEW ===== -->
+        <section class="module-section active" id="section-overview">
+            <div class="hero-banner">
+                <div class="hero-content">
+                    <h2 class="hero-title">HR Analytics Dashboard</h2>
+                    <p class="hero-subtitle">Data-Driven · Evidence-Based · Mr. Macky's Cajun Cuisine</p>
+                    <a href="presentation.html" class="hero-video-btn" id="heroVideoBtn">
+                        <span class="hero-play-icon">▶</span>
+                        <span class="hero-video-text">
+                            <span class="hero-video-label">Watch Introduction</span>
+                            <span class="hero-video-detail">8-slide presentation · ~3 min</span>
+                        </span>
+                    </a>
+                </div>
+                <div class="hero-particles" id="heroParticles"></div>
+            </div>
+
+            <div class="kpi-grid" id="overviewKPIs"></div>
+
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h3>📈 Turnover Trend (Quits vs. Discharges)</h3>
+                    </div>
+                    <div class="chart-container"><canvas id="overviewTurnoverChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h3>🌡️ Company-Wide Engagement (2026)</h3>
+                    </div>
+                    <div class="chart-container"><canvas id="overviewEngagementChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== MODULE 1: WORKFORCE SUMMARY ===== -->
+        <section class="module-section" id="section-module1">
+            <div class="section-header">
+                <div class="section-icon">👥</div>
+                <div>
+                    <h2>Module 1: Workforce Summary</h2>
+                    <p>Headcount, demographics, market distribution, and recruitment sources</p>
+                </div>
+            </div>
+            <div class="kpi-grid" id="module1KPIs"></div>
+
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Age Distribution</h3></div>
+                    <div class="chart-container"><canvas id="m1AgeChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Gender Breakdown</h3></div>
+                    <div class="chart-container"><canvas id="m1GenderChart"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Job Title Distribution</h3></div>
+                    <div class="chart-container"><canvas id="m1JobChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Market Type Distribution</h3></div>
+                    <div class="chart-container"><canvas id="m1MarketChart"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card full-width">
+                    <div class="chart-card-header"><h3>Top Recruitment Sources</h3></div>
+                    <div class="chart-container"><canvas id="m1RecruitChart"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card full-width">
+                    <div class="chart-card-header"><h3>Avg Manager Performance by Recruitment Source</h3></div>
+                    <div class="chart-container"><canvas id="m1PerfByRecruitChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== MODULE 2: FLIGHT RISK ===== -->
+        <section class="module-section" id="section-module2">
+            <div class="section-header">
+                <div class="section-icon">⚠️</div>
+                <div>
+                    <h2>Module 2: Flight Risk & Turnover Analysis</h2>
+                    <p>Turnover patterns, quit vs. discharge rates, performance-based flight risk</p>
+                </div>
+            </div>
+            <div class="kpi-grid" id="module2KPIs"></div>
+
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Turnover by Year</h3></div>
+                    <div class="chart-container"><canvas id="m2YearChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Avg Performance by Employee Status</h3></div>
+                    <div class="chart-container"><canvas id="m2PerfStatusChart"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Turnover by Job Title</h3></div>
+                    <div class="chart-container"><canvas id="m2JobChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Employee Status Breakdown</h3></div>
+                    <div class="chart-container"><canvas id="m2StatusPie"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card full-width">
+                    <div class="chart-card-header">
+                        <h3>Unit-Level Flight Risk Map</h3>
+                        <div class="filter-group">
+                            <label>Filter by Market:</label>
+                            <select id="m2MarketFilter" onchange="renderFlightRiskMap()">
+                                <option value="all">All Markets</option>
+                                <option value="Large">Large</option>
+                                <option value="Medium">Medium</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="heatmap-container" id="flightRiskMap"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== MODULE 3: DIVERSITY & INCLUSION ===== -->
+        <section class="module-section" id="section-module3">
+            <div class="section-header">
+                <div class="section-icon">🌍</div>
+                <div>
+                    <h2>Module 3: Diversity & Inclusion Audit</h2>
+                    <p>Hiring decisions by race, gender, and intersectional analysis</p>
+                </div>
+            </div>
+            <div class="kpi-grid" id="module3KPIs"></div>
+
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Hiring Rate by Race</h3></div>
+                    <div class="chart-container"><canvas id="m3RaceChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Hiring Rate by Gender</h3></div>
+                    <div class="chart-container"><canvas id="m3GenderChart"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Intersectional Hiring Rates (Race × Gender)</h3></div>
+                    <div class="chart-container"><canvas id="m3CrossChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Avg Interview Scores by Race & Decision</h3></div>
+                    <div class="chart-container"><canvas id="m3InterviewChart"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Hiring Trend by Year</h3></div>
+                    <div class="chart-container"><canvas id="m3YearChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Current Workforce Diversity by Role</h3></div>
+                    <div class="chart-container"><canvas id="m3DiversityChart"></canvas></div>
+                </div>
+            </div>
+            <div class="adverse-impact-box" id="adverseImpactBox"></div>
+        </section>
+
+        <!-- ===== MODULE 4: COMPENSATION ===== -->
+        <section class="module-section" id="section-module4">
+            <div class="section-header">
+                <div class="section-icon">💰</div>
+                <div>
+                    <h2>Module 4: Compensation & Value Tracker</h2>
+                    <p>Experience, wage rate, and performance correlation</p>
+                </div>
+            </div>
+            <div class="kpi-grid" id="module4KPIs"></div>
+
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Avg Wage by Performance Rating</h3></div>
+                    <div class="chart-container"><canvas id="m4WagePerfChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Avg Wage by Prior Experience</h3></div>
+                    <div class="chart-container"><canvas id="m4WageExpChart"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Avg Performance by Prior Experience</h3></div>
+                    <div class="chart-container"><canvas id="m4PerfExpChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-card-header"><h3>Wage by Demographics</h3></div>
+                    <div class="chart-container"><canvas id="m4DemoChart"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card full-width">
+                    <div class="chart-card-header"><h3>Manager Scatter: Experience vs. Wage (color = Performance)</h3></div>
+                    <div class="chart-container chart-container-tall"><canvas id="m4ScatterChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== DATA ANOMALIES ===== -->
+        <section class="module-section" id="section-anomalies">
+            <div class="section-header">
+                <div class="section-icon">🔍</div>
+                <div>
+                    <h2>Data Anomalies for Classroom Discussion</h2>
+                    <p>Five evidence-based observations that challenge assumptions and spark analysis</p>
+                </div>
+            </div>
+            <div class="anomalies-grid" id="anomaliesGrid"></div>
+        </section>
+
+        <!-- ===== EXERCISES ===== -->
+        <section class="module-section" id="section-exercises">
+            <div class="section-header">
+                <div class="section-icon">📝</div>
+                <div>
+                    <h2>Student Exercises</h2>
+                    <p>Progressive exercises aligned with the workbook's simple-to-complex approach</p>
+                </div>
+            </div>
+            <div class="exercises-grid" id="exercisesGrid"></div>
+        </section>
+
+        <!-- ===== CHART BUILDER ===== -->
+        <section class="module-section" id="section-explore">
+            <div class="section-header">
+                <div class="section-icon">🔎</div>
+                <div>
+                    <h2>Explore Data</h2>
+                    <p>Query and filter the HR dataset — find managers in large markets, compare unit metrics, and more</p>
+                </div>
+            </div>
+            <div id="exploreContent"></div>
+        </section>
+
+        <section class="module-section" id="section-stats">
+            <div class="section-header">
+                <div class="section-icon">📏</div>
+                <div>
+                    <h2>Statistical Analysis</h2>
+                    <p>Compare group means with t-tests and predict turnover likelihood using HR metrics</p>
+                </div>
+            </div>
+            <div class="stats-tabs">
+                <button class="stats-tab active" onclick="switchStatsTab('compare', this)">Compare Means</button>
+                <button class="stats-tab" onclick="switchStatsTab('predict', this)">Turnover Prediction</button>
+                <button class="stats-tab" onclick="switchStatsTab('engagement', this)">Engagement</button>
+            </div>
+            <div id="statsCompare"></div>
+            <div id="statsPredict" style="display:none"></div>
+            <div id="statsEngagement" style="display:none"></div>
+        </section>
+
+        <section class="module-section" id="section-datadict">
+            <div class="section-header">
+                <div class="section-icon">📖</div>
+                <div>
+                    <h2>Data Dictionary</h2>
+                    <p>Variable definitions, sources, and data types used throughout the HR Analytics Dashboard</p>
+                </div>
+            </div>
+            <div id="dataDictContent"></div>
+        </section>
+
+        <section class="module-section" id="section-chartbuilder">
+            <div class="section-header">
+                <div class="section-icon">📈</div>
+                <div>
+                    <h2>Chart Builder</h2>
+                    <p>Create custom charts from the HR dataset — select a dataset, variables, and chart type</p>
+                </div>
+            </div>
+            <div class="cb-controls" id="cbControls">
+                <div class="cb-control-group">
+                    <label class="cb-label">📊 Chart Type</label>
+                    <select id="cbChartType" class="cb-select" onchange="updateChartBuilder()">
+                        <option value="bar">Bar Chart</option>
+                        <option value="horizontalBar">Horizontal Bar</option>
+                        <option value="line">Line Chart</option>
+                        <option value="pie">Pie Chart</option>
+                        <option value="doughnut">Doughnut Chart</option>
+                        <option value="radar">Radar Chart</option>
+                        <option value="scatter">Scatter Plot</option>
+                    </select>
+                </div>
+                <div class="cb-control-group">
+                    <label class="cb-label">📂 Dataset</label>
+                    <select id="cbDataset" class="cb-select" onchange="onDatasetChange()">
+                        <option value="" disabled selected>Choose a dataset…</option>
+                        <option value="headcount_by_job">Headcount by Job Role</option>
+                        <option value="headcount_by_age">Headcount by Age Bracket</option>
+                        <option value="gender_breakdown">Gender Breakdown</option>
+                        <option value="race_breakdown">Race Breakdown</option>
+                        <option value="market_breakdown">Market Breakdown (Large vs. Medium)</option>
+                        <option value="recruit_by_source">Recruitment by Source (All Roles)</option>
+                        <option value="mgr_perf_by_recruit">Avg Manager Performance by Recruitment Source</option>
+                        <option value="turnover_by_year">Turnover by Year (Quit vs. Discharged)</option>
+                        <option value="turnover_by_job">Turnover by Job Role</option>
+                        <option value="hire_rate_by_race">Hire Rate by Race (Adverse Impact)</option>
+                        <option value="interview_scores">Interview Scores by Group</option>
+                        <option value="diversity_by_job">Current Workforce Diversity by Job</option>
+                        <option value="wage_by_performance">Avg Wage by Performance Rating</option>
+                        <option value="wage_by_experience">Avg Wage by Prior Experience</option>
+                        <option value="perf_by_experience">Avg Performance by Prior Experience</option>
+                        <option value="engagement_company">Company Avg Engagement (All Dimensions)</option>
+                        <option value="engagement_by_market">Engagement by Market Type</option>
+                        <option value="engagement_exempt">Engagement: Exempt vs. Non-Exempt</option>
+                        <option value="profit_by_unit">Restaurant Profit by Unit (2026)</option>
+                        <option value="sales_vs_profit">Sales vs. Profit by Unit (2026, Scatter)</option>
+                        <option value="unit_financial_breakdown">Unit Financial Breakdown (2026)</option>
+                        <option value="scatter_exp_wage">Manager Scatter: Experience vs. Wage</option>
+                    </select>
+                </div>
+                <div class="cb-control-group" id="cbFilterGroup" style="display:none">
+                    <label class="cb-label">🔽 Filter</label>
+                    <select id="cbFilter" class="cb-select" onchange="updateChartBuilder()">
+                    </select>
+                </div>
+            </div>
+            <div class="cb-chart-wrap" id="cbChartWrap" style="display:none">
+                <div class="cb-chart-header">
+                    <h3 class="cb-chart-title" id="cbChartTitle">Select a dataset to begin</h3>
+                    <div class="cb-chart-meta" id="cbChartMeta"></div>
+                </div>
+                <div class="cb-canvas-container">
+                    <canvas id="cbCanvas"></canvas>
+                </div>
+                <div class="cb-insight" id="cbInsight"></div>
+            </div>
+            <div class="cb-empty" id="cbEmpty">
+                <div class="cb-empty-icon">📈</div>
+                <div class="cb-empty-title">Build your own chart</div>
+                <div class="cb-empty-text">Select a dataset from the dropdown above to visualize data from the HR analytics system</div>
+            </div>
+        </section>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
