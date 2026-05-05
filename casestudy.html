@@ -564,9 +564,17 @@
             <button onclick="downloadSubmission()" class="dash-link" style="background: linear-gradient(135deg, var(--teal), #0f766e); box-shadow: 0 4px 20px rgba(45,212,191,0.3); font-size: 16px; padding: 14px 32px;">
                 📥 Download Answers for Grading
             </button>
-            <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px;">
+            <div id="unlock-section" style="display: none; margin-top: 24px; padding: 20px; background: rgba(45,212,191,0.05); border: 1px solid rgba(45,212,191,0.2); border-radius: 8px; text-align: center;">
+                <p style="margin-bottom: 12px; font-weight: 500; color: var(--text);">Enter Professor's Key to Review Answers:</p>
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                    <input type="text" id="prof-key" placeholder="Enter key..." style="padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg2); color: var(--text);">
+                    <button onclick="unlockAnswers()" class="dash-link" style="margin: 0; background: rgba(45,212,191,0.1); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); box-shadow: none;">Unlock</button>
+                </div>
+            </div>
+            <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; align-items: center; flex-wrap: wrap;">
                 <a href="index.html" class="dash-link" target="_blank" style="margin: 0; background: rgba(255,255,255,0.1); box-shadow: none;">🖥️ Open Dashboard</a>
                 <a href="resources.html" class="dash-link" style="margin: 0; background: rgba(255,255,255,0.1); box-shadow: none;">📚 Learn More Tutorials</a>
+                <button onclick="resetProgress()" class="dash-link" style="margin: 0; background: rgba(244, 63, 94, 0.1); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.3); box-shadow: none;">🔄 Start Over</button>
             </div>
         </div>
 
@@ -577,7 +585,8 @@
         <div class="progress-label">Case Progress</div>
         <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
         <div class="progress-count" id="progressCount" style="margin-bottom: 12px;">0 / 18 answered</div>
-        <button onclick="downloadSubmission()" class="dash-link" style="width: 100%; padding: 8px 12px; font-size: 12px; justify-content: center; margin: 0; box-shadow: none;">📥 Download Answers</button>
+        <button onclick="downloadSubmission()" class="dash-link" style="width: 100%; padding: 8px 12px; font-size: 12px; justify-content: center; margin: 0; margin-bottom: 6px; box-shadow: none;">📥 Download</button>
+        <button onclick="resetProgress()" class="dash-link" style="width: 100%; padding: 6px 12px; font-size: 11px; justify-content: center; margin: 0; background: rgba(244,63,94,0.05); color: var(--rose); box-shadow: none;">🔄 Start Over</button>
     </div>
 
 <script>
@@ -773,7 +782,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <textarea id="q${qNum}" placeholder="${fb.placeholder}"></textarea>
             <div class="answer-btns">
                 <button class="btn-submit" id="sub-${qNum}" onclick="submitAnswer(${qNum})">Submit Answer</button>
-                <button class="btn-feedback" id="fb-btn-${qNum}" onclick="toggleFeedback(${qNum})">💡 View Key Points</button>
                 <span class="saved-badge" id="saved-${qNum}">✓ Saved</span>
             </div>
             <div class="feedback-panel" id="fb-${qNum}">
@@ -796,7 +804,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <textarea id="q18" placeholder="${fb.placeholder}" style="min-height:240px"></textarea>
             <div class="answer-btns">
                 <button class="btn-submit" id="sub-18" onclick="submitAnswer(18)">Submit Memo</button>
-                <button class="btn-feedback" id="fb-btn-18" onclick="toggleFeedback(18)">💡 View Key Points</button>
                 <span class="saved-badge" id="saved-18">✓ Saved</span>
             </div>
             <div class="feedback-panel" id="fb-18">
@@ -808,6 +815,8 @@ document.addEventListener('DOMContentLoaded', () => {
         delivSection.parentNode.insertBefore(memoArea, delivSection.nextSibling);
     }
 
+    const isUnlocked = localStorage.getItem('macky_case_unlocked') === 'true';
+
     // Load any saved answers from localStorage
     for (let i = 1; i <= TOTAL; i++) {
         const saved = localStorage.getItem(`macky_case_q${i}`);
@@ -817,12 +826,22 @@ document.addEventListener('DOMContentLoaded', () => {
             submitted.add(i);
             const btn = document.getElementById(`sub-${i}`);
             if (btn) { btn.textContent = '✓ Submitted'; btn.disabled = true; }
-            const fbBtn = document.getElementById(`fb-btn-${i}`);
-            if (fbBtn) fbBtn.classList.add('visible');
             const badge = document.getElementById(`saved-${i}`);
             if (badge) badge.classList.add('visible');
+            
+            // Only auto-reveal Question 1 or if globally unlocked
+            if (i === 1 || isUnlocked) {
+                const panel = document.getElementById(`fb-${i}`);
+                if (panel) panel.classList.add('visible');
+            }
         }
     }
+    
+    if (isUnlocked) {
+        document.getElementById('unlock-section').style.display = 'block';
+        document.getElementById('unlock-section').innerHTML = '<p style="color: var(--teal); font-weight: bold; margin: 0;">✓ All answers unlocked for review.</p>';
+    }
+
     updateProgress();
 });
 
@@ -838,31 +857,45 @@ function submitAnswer(qNum) {
     btn.textContent = '✓ Submitted';
     btn.disabled = true;
 
-    const fbBtn = document.getElementById(`fb-btn-${qNum}`);
-    fbBtn.classList.add('visible');
-    fbBtn.textContent = '🔽 Hide Key Points'; // Update button text
-
     const badge = document.getElementById(`saved-${qNum}`);
     badge.classList.add('visible');
 
-    // Automatically reveal the answers/feedback
-    const panel = document.getElementById(`fb-${qNum}`);
-    if (panel) panel.classList.add('visible');
+    // Only auto-reveal Question 1
+    if (qNum === 1) {
+        const panel = document.getElementById(`fb-${qNum}`);
+        if (panel) panel.classList.add('visible');
+    }
 
     updateProgress();
 }
 
-function toggleFeedback(qNum) {
-    const panel = document.getElementById(`fb-${qNum}`);
-    panel.classList.toggle('visible');
-    const btn = document.getElementById(`fb-btn-${qNum}`);
-    btn.textContent = panel.classList.contains('visible') ? '🔽 Hide Key Points' : '💡 View Key Points';
+function unlockAnswers() {
+    const key = document.getElementById('prof-key').value.trim();
+    if (key === "99") {
+        for (let i = 1; i <= TOTAL; i++) {
+            const panel = document.getElementById(`fb-${i}`);
+            if (panel) panel.classList.add('visible');
+        }
+        document.getElementById('unlock-section').innerHTML = '<p style="color: var(--teal); font-weight: bold; margin: 0;">✓ All answers unlocked for review.</p>';
+        localStorage.setItem('macky_case_unlocked', 'true');
+    } else {
+        alert("Incorrect key. Please ask your professor for the review key.");
+    }
 }
 
 function updateProgress() {
     const pct = Math.round((submitted.size / TOTAL) * 100);
     document.getElementById('progressFill').style.width = pct + '%';
     document.getElementById('progressCount').textContent = `${submitted.size} / ${TOTAL} answered`;
+}
+
+function resetProgress() {
+    if (confirm("Are you sure you want to clear all your answers and start over? This cannot be undone.")) {
+        for (let i = 1; i <= TOTAL; i++) {
+            localStorage.removeItem(`macky_case_q${i}`);
+        }
+        location.reload();
+    }
 }
 
 function downloadSubmission() {
@@ -895,6 +928,9 @@ function downloadSubmission() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // Reveal the secret key unlock section after they download!
+    document.getElementById('unlock-section').style.display = 'block';
 }
 </script>
 
