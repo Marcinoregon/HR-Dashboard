@@ -1607,6 +1607,22 @@ function renderExercises() {
     const exerciseCards = exerciseCardsHtml;
 
     const downloadBarBottom = `
+        <div class="exercises-summary-panel" id="exercises-summary-panel">
+            <div class="exercises-summary-scores">
+                <div class="exercises-summary-score-block">
+                    <div class="exercises-summary-score-value" id="summary-mcq-score">—</div>
+                    <div class="exercises-summary-score-label">Knowledge Check Score</div>
+                </div>
+                <div class="exercises-summary-score-block">
+                    <div class="exercises-summary-score-value" id="summary-open-score">—</div>
+                    <div class="exercises-summary-score-label">Open-Ended Responses</div>
+                </div>
+            </div>
+            <div class="exercises-summary-note">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                The open-ended answers will be scored by your instructor later.
+            </div>
+        </div>
         <div class="exercises-download-bar" id="exercises-download-bar-bottom">
             <div class="exercises-download-bar-text">
                 <div class="exercises-download-bar-title">📄 Download Your Submission</div>
@@ -1674,6 +1690,7 @@ function submitExercise(num) {
 
     const badge = document.getElementById(`ex-saved-${num}`);
     badge.classList.add('visible');
+    updateTotalMCQSummary();
 }
 
 function toggleExerciseFeedback(num) {
@@ -1969,7 +1986,6 @@ function updateMCQScore(exNum) {
     cards.forEach(card => {
         if (card.querySelector('.mcq-option.correct.mcq-option:not(.incorrect)') || 
             (card.querySelector('.mcq-option.correct') && !card.querySelector('.mcq-option.incorrect'))) {
-            // Check if the selected option is the correct one
             const selectedCorrect = card.querySelector('.mcq-option.correct:not(.disabled)') ||
                                      card.querySelector('.mcq-option.correct');
             const hasIncorrect = card.querySelector('.mcq-option.incorrect');
@@ -1982,6 +1998,48 @@ function updateMCQScore(exNum) {
         scoreEl.textContent = `${correct} / ${total}`;
         scoreEl.classList.add('updated');
         setTimeout(() => scoreEl.classList.remove('updated'), 600);
+    }
+    // Update the global summary panel
+    updateTotalMCQSummary();
+}
+
+function updateTotalMCQSummary() {
+    let totalCorrect = 0, totalAnswered = 0, totalQuestions = 0;
+    let openSubmitted = 0;
+
+    for (let n = 1; n <= 5; n++) {
+        // MCQ totals
+        const scoreEl = document.getElementById(`mcq-score-${n}`);
+        if (scoreEl && scoreEl.textContent.includes('/')) {
+            const parts = scoreEl.textContent.split('/').map(s => parseInt(s.trim()));
+            if (!isNaN(parts[0]) && !isNaN(parts[1])) {
+                totalCorrect   += parts[0];
+                totalQuestions += parts[1];
+            }
+        }
+        // Count answered MCQ cards
+        totalAnswered += document.querySelectorAll(`[id^="mcq-${n}-"].answered`).length;
+        // Open-ended submissions
+        const subBtn = document.getElementById(`ex-sub-${n}`);
+        if (subBtn && subBtn.disabled) openSubmitted++;
+    }
+
+    const mcqEl = document.getElementById('summary-mcq-score');
+    const openEl = document.getElementById('summary-open-score');
+
+    if (mcqEl) {
+        if (totalQuestions > 0) {
+            const pct = Math.round(totalCorrect / totalQuestions * 100);
+            mcqEl.textContent = `${totalCorrect} / ${totalQuestions} (${pct}%)`;
+            mcqEl.style.color = pct >= 70 ? 'var(--accent-green)' : pct >= 50 ? 'var(--accent-amber)' : 'var(--accent-rose)';
+        } else {
+            mcqEl.textContent = 'Not started';
+            mcqEl.style.color = 'var(--text-muted)';
+        }
+    }
+    if (openEl) {
+        openEl.textContent = `${openSubmitted} / 5 submitted`;
+        openEl.style.color = openSubmitted === 5 ? 'var(--accent-green)' : openSubmitted > 0 ? 'var(--accent-amber)' : 'var(--text-muted)';
     }
 }
 
