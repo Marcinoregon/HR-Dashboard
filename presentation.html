@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to HR Analytics — Mr. Macky's Cajun Cuisine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #060a14;
+            --card: #111827;
+            --accent: #f97316;
+            --accent2: #fb923c;
+            --purple: #a78bfa;
+            --teal: #2dd4bf;
+            --rose: #fb7185;
+            --blue: #60a5fa;
+            --green: #34d399;
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --text3: #64748b;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ===== Video Player Shell ===== */
+        .player-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .player-viewport {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== Slides ===== */
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            opacity: 0;
+            transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- Slide Layouts --- */
+        .slide-title {
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            background: radial-gradient(ellipse at 50% 40%, #1a1040 0%, #0b0e1a 60%, #000 100%);
+        }
+
+        .slide-title::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(249,115,22,0.12) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 60%, rgba(167,139,250,0.08) 0%, transparent 50%);
+        }
+
+        .slide-split {
+            flex-direction: row;
+            background: linear-gradient(135deg, #0a0e1a, #111827);
+        }
+
+        .slide-split .slide-image-panel {
+            width: 55%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .slide-split .slide-image-panel img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+
+        .slide-split .slide-text-panel {
+            width: 45%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 50px 40px;
+        }
+
+        .slide-fullscreen {
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            background: radial-gradient(ellipse at 50% 50%, #1a1040 0%, #060a14 70%);
+        }
+
+        /* --- Slide Content Styles --- */
+        .slide-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+        .badge-orange { background: rgba(249,115,22,0.15); color: var(--accent); border: 1px solid rgba(249,115,22,0.3); }
+        .badge-purple { background: rgba(167,139,250,0.15); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+        .badge-teal { background: rgba(45,212,191,0.15); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+        .badge-rose { background: rgba(251,113,133,0.15); color: var(--rose); border: 1px solid rgba(251,113,133,0.3); }
+        .badge-blue { background: rgba(96,165,250,0.15); color: var(--blue); border: 1px solid rgba(96,165,250,0.3); }
+        .badge-green { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+
+        .slide-heading {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(28px, 4vw, 52px);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .slide-heading.gradient {
+            background: linear-gradient(135deg, var(--accent), var(--accent2), #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-subheading {
+            font-size: clamp(14px, 1.5vw, 18px);
+            color: var(--text2);
+            line-height: 1.7;
+            max-width: 600px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .slide-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .slide-stat {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: left;
+        }
+        .slide-stat-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 2px;
+        }
+        .slide-stat-label {
+            font-size: 11px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .slide-key-finding {
+            background: rgba(249,115,22,0.06);
+            border-left: 3px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 0 10px 10px 0;
+            text-align: left;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--accent2);
+            line-height: 1.6;
+            position: relative;
+            z-index: 2;
+        }
+
+        .slide-bullet-list {
+            list-style: none;
+            text-align: left;
+            position: relative;
+            z-index: 2;
+        }
+        .slide-bullet-list li {
+            font-size: 15px;
+            color: var(--text2);
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            line-height: 1.6;
+        }
+        .slide-bullet-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .thumbnail-img {
+            width: min(300px, 40vw);
+            height: auto;
+            border-radius: 16px;
+            margin-bottom: 28px;
+            box-shadow: 0 20px 60px rgba(249,115,22,0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* --- Animated elements --- */
+        .slide.active .animate-up {
+            animation: animUp 0.8s ease forwards;
+        }
+        .slide.active .animate-up-d1 { animation-delay: 0.2s; }
+        .slide.active .animate-up-d2 { animation-delay: 0.4s; }
+        .slide.active .animate-up-d3 { animation-delay: 0.6s; }
+        .slide.active .animate-up-d4 { animation-delay: 0.8s; }
+
+        .animate-up { opacity: 0; transform: translateY(20px); }
+
+        @keyframes animUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide.active .animate-fade { animation: animFade 1.2s ease forwards; }
+        .animate-fade { opacity: 0; }
+        @keyframes animFade { to { opacity: 1; } }
+
+        /* ===== Controls Bar ===== */
+        .controls-bar {
+            height: 72px;
+            background: #111;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 16px;
+        }
+
+        .ctrl-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.15s ease;
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.12); }
+        .ctrl-btn.play-btn {
+            background: var(--accent);
+            color: #000;
+            width: 48px;
+            height: 48px;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(249,115,22,0.3);
+        }
+        .ctrl-btn.play-btn:hover { background: var(--accent2); }
+
+        .progress-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 5px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(249,115,22,0.5);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .progress-bar:hover .progress-fill::after { opacity: 1; }
+
+        .progress-time {
+            font-size: 12px;
+            color: var(--text3);
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            min-width: 70px;
+        }
+
+        .slide-dots {
+            display: flex;
+            gap: 6px;
+            margin-left: 8px;
+        }
+        .slide-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .slide-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 8px rgba(249,115,22,0.4);
+        }
+        .slide-dot:hover { background: rgba(255,255,255,0.3); }
+
+        .ctrl-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-link {
+            font-size: 12px;
+            color: var(--text3);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .back-link:hover {
+            color: var(--text);
+            border-color: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.04);
+        }
+
+
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .slide-split { flex-direction: column; }
+            .slide-split .slide-image-panel { width: 100%; height: 50%; padding: 16px; }
+            .slide-split .slide-text-panel { width: 100%; height: 50%; padding: 24px; }
+            .slide-stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .controls-bar { height: 60px; padding: 0 12px; gap: 8px; }
+            .narration-indicator { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="player-viewport" id="viewport">
+
+            <!-- SLIDE 0: Title Card -->
+            <div class="slide slide-title active" data-duration="14" data-narration="Welcome to the HR Analytics Dashboard for Mr. Macky's Cajun Cuisine. This presentation will walk you through the tools you'll use to become a data-driven HR professional. Over the next few minutes, we'll explore four analytical modules built from real workforce data spanning over 46,000 employee records.">
+                <img src="video-thumbnail.png" class="thumbnail-img animate-up" alt="HR Analytics">
+                <h1 class="slide-heading gradient animate-up animate-up-d1">Welcome to HR Analytics</h1>
+                <p class="slide-subheading animate-up animate-up-d2">
+                    An interactive data dashboard for <strong style="color: var(--text);">Mr. Macky's Cajun Cuisine</strong>. 
+                    This presentation will walk you through the tools you'll use to become a data-driven HR professional.
+                </p>
+                <span class="slide-badge badge-orange animate-up animate-up-d3">▶ Presentation · 8 slides · ~3 min</span>
+            </div>
+
+            <!-- SLIDE 1: Why Data-Driven? -->
+            <div class="slide slide-fullscreen" data-duration="18" data-narration="Why data-driven HR? Mr. Macky's Cajun Cuisine operates 148 restaurant units with over 6,500 employees. Managing this workforce by instinct alone isn't enough. We need evidence. Turnover costs money — over 39,000 employees have left the company. What's driving it? Hiring must be fair — are our selection processes equitable for all candidates? Pay should reward value — does experience actually predict performance? And engagement matters — but does higher engagement actually translate into higher profit?">
+                <span class="slide-badge badge-purple animate-up">The Big Idea</span>
+                <h1 class="slide-heading animate-up animate-up-d1" style="color: var(--text);">Why Data-Driven HR?</h1>
+                <p class="slide-subheading animate-up animate-up-d2">
+                    Mr. Macky's Cajun Cuisine operates <strong style="color: var(--accent);">148 restaurant units</strong> with 
+                    <strong style="color: var(--accent);">6,559 employees</strong>. Managing this workforce by instinct alone 
+                    isn't enough — we need evidence.
+                </p>
+                <ul class="slide-bullet-list animate-up animate-up-d3" style="max-width: 560px;">
+                    <li><strong style="color: var(--text);">Turnover costs money.</strong> Over 39,000 employees have left. What's driving it?</li>
+                    <li><strong style="color: var(--text);">Hiring must be fair.</strong> Are our selection processes equitable for all candidates?</li>
+                    <li><strong style="color: var(--text);">Pay should reward value.</strong> Does experience actually predict performance?</li>
+                    <li><strong style="color: var(--text);">Engagement matters.</strong> But does it translate to profit?</li>
+                </ul>
+            </div>
+
+            <!-- SLIDE 2: Executive Overview -->
+            <div class="slide slide-split" data-duration="16" data-narration="The Executive Overview is your command center. It provides a snapshot of the entire organization at a glance. You'll see 6,559 active employees across 148 restaurant units, with an average unit profit of $650,000. The company-wide engagement score is 3.75 out of 7. The turnover trend chart shows quit and discharge patterns from 2020 through 2026, and the engagement radar compares Large and Medium market performance.">
+                <div class="slide-image-panel">
+                    <img src="slides/overview.png" class="animate-fade" alt="Executive Overview">
+                </div>
+                <div class="slide-text-panel">
+                    <span class="slide-badge badge-orange animate-up">Executive Overview</span>
+                    <h2 class="slide-heading animate-up animate-up-d1" style="font-size: 30px; color: var(--text);">Your Command Center</h2>
+                    <p class="slide-subheading animate-up animate-up-d2" style="max-width: 100%;">
+                        The overview page gives you a snapshot of the entire organization at a glance — headcount, financials, turnover trends, and engagement scores.
+                    </p>
+                    <div class="slide-stat-grid animate-up animate-up-d3">
+                        <div class="slide-stat"><div class="slide-stat-value">6,559</div><div class="slide-stat-label">Active Employees</div></div>
+                        <div class="slide-stat"><div class="slide-stat-value">148</div><div class="slide-stat-label">Restaurant Units</div></div>
+                        <div class="slide-stat"><div class="slide-stat-value" style="color: var(--green);">$650K</div><div class="slide-stat-label">Avg Unit Profit</div></div>
+                        <div class="slide-stat"><div class="slide-stat-value" style="color: var(--teal);">3.75</div><div class="slide-stat-label">Engagement /7</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: Module 1 -->
+            <div class="slide slide-split" data-duration="16" data-narration="Module 1 is the Workforce Summary. It answers the question: who works here? You'll explore age distributions, gender and race breakdowns, market types, and job role distributions. Most importantly, this module reveals which recruitment sources produce the best-performing managers. Your first exercise will ask you to identify the top 3 recruitment sources and evaluate whether they align with the company's Old Family Recipe culture.">
+                <div class="slide-image-panel">
+                    <img src="slides/workforce.png" class="animate-fade" alt="Workforce Summary">
+                </div>
+                <div class="slide-text-panel">
+                    <span class="slide-badge badge-blue animate-up">Module 1</span>
+                    <h2 class="slide-heading animate-up animate-up-d1" style="font-size: 30px; color: var(--text);">Workforce Summary</h2>
+                    <p class="slide-subheading animate-up animate-up-d2" style="max-width: 100%;">
+                        Understand <em>who</em> works here. Age distributions, gender mix, market types (Large vs. Medium), 
+                        job roles, and — critically — which <strong style="color: var(--text);">recruitment sources</strong> produce the best-performing managers.
+                    </p>
+                    <div class="slide-key-finding animate-up animate-up-d3">
+                        💡 <strong>Your Exercise:</strong> Identify the top 3 recruitment sources for high-performing managers. 
+                        Is our strategy consistent with the "Old Family Recipe" culture?
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: Module 2 -->
+            <div class="slide slide-split" data-duration="18" data-narration="Module 2 focuses on Flight Risk and Turnover. The numbers are striking — the historical turnover rate is 85.9%. That means nearly 40,000 employees have separated from the company, with about 29,600 quitting and 10,200 being discharged. Here's the critical finding: employees who quit actually have higher average performance ratings — 2.67 — than those who were discharged at 2.57. This suggests we may be losing our better people. The interactive heatmap lets you identify exactly which units have the highest turnover.">
+                <div class="slide-image-panel">
+                    <img src="slides/flightrisk.png" class="animate-fade" alt="Flight Risk">
+                </div>
+                <div class="slide-text-panel">
+                    <span class="slide-badge badge-rose animate-up">Module 2</span>
+                    <h2 class="slide-heading animate-up animate-up-d1" style="font-size: 30px; color: var(--text);">Flight Risk & Turnover</h2>
+                    <p class="slide-subheading animate-up animate-up-d2" style="max-width: 100%;">
+                        Our historical turnover rate is <strong style="color: var(--rose);">85.9%</strong>. 
+                        The interactive heatmap lets you pinpoint exactly which units are bleeding employees — and whether it's quits or discharges.
+                    </p>
+                    <div class="slide-stat-grid animate-up animate-up-d3">
+                        <div class="slide-stat"><div class="slide-stat-value" style="color: var(--rose);">29.6K</div><div class="slide-stat-label">Total Quits</div></div>
+                        <div class="slide-stat"><div class="slide-stat-value" style="color: #fbbf24;">10.2K</div><div class="slide-stat-label">Total Discharges</div></div>
+                    </div>
+                    <div class="slide-key-finding animate-up animate-up-d4">
+                        💡 Employees who quit average <strong>higher performance</strong> (2.67) than those discharged (2.57). 
+                        We may be losing our better people.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: Module 3 -->
+            <div class="slide slide-split" data-duration="20" data-narration="Module 3 is the Diversity and Inclusion Audit. This is a critical module. We examined over 10,800 applicants in our assistant manager hiring pipeline. The White hiring rate is 5.9%, while the underrepresented minority hiring rate is only 2.8%. Using the four-fifths rule from the Uniform Guidelines on Employee Selection Procedures, the impact ratio is 0.473. This is well below the 0.80 threshold, which means adverse impact has been detected. This signals potential bias in our selection process that warrants immediate investigation.">
+                <div class="slide-image-panel">
+                    <img src="slides/diversity.png" class="animate-fade" alt="Diversity & Inclusion">
+                </div>
+                <div class="slide-text-panel">
+                    <span class="slide-badge badge-purple animate-up">Module 3</span>
+                    <h2 class="slide-heading animate-up animate-up-d1" style="font-size: 30px; color: var(--text);">Diversity & Inclusion Audit</h2>
+                    <p class="slide-subheading animate-up animate-up-d2" style="max-width: 100%;">
+                        This module examines our AM hiring pipeline — over 10,800 applicants. 
+                        The 4/5ths rule analysis reveals something important.
+                    </p>
+                    <div class="slide-stat-grid animate-up animate-up-d3">
+                        <div class="slide-stat"><div class="slide-stat-value" style="color: var(--blue);">5.9%</div><div class="slide-stat-label">White Hire Rate</div></div>
+                        <div class="slide-stat"><div class="slide-stat-value" style="color: var(--purple);">2.8%</div><div class="slide-stat-label">URM Hire Rate</div></div>
+                    </div>
+                    <div class="slide-key-finding animate-up animate-up-d4" style="border-color: #ef4444; background: rgba(239,68,68,0.06);">
+                        ⚠️ <strong style="color: #ef4444;">Adverse Impact Detected.</strong> The 4/5ths impact ratio is 
+                        <strong>0.473</strong> — well below the 0.80 threshold. This signals potential bias in our selection process that warrants investigation.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: Module 4 -->
+            <div class="slide slide-split" data-duration="18" data-narration="Module 4 is Compensation and Value. This module asks a provocative question: does experience actually equal performance? We tracked the relationship between prior experience, wage rate, and job performance across 322 employees with complete data. The paradox is clear — employees with zero years of experience perform nearly as well as those with 10 or more years, but they earn significantly less. This raises an important question: should we rethink how we price experience in our compensation strategy?">
+                <div class="slide-image-panel">
+                    <img src="slides/compensation.png" class="animate-fade" alt="Compensation">
+                </div>
+                <div class="slide-text-panel">
+                    <span class="slide-badge badge-green animate-up">Module 4</span>
+                    <h2 class="slide-heading animate-up animate-up-d1" style="font-size: 30px; color: var(--text);">Compensation & Value</h2>
+                    <p class="slide-subheading animate-up animate-up-d2" style="max-width: 100%;">
+                        Does experience equal performance? This module tracks the relationship between prior experience, 
+                        wage rate, and actual job performance across 322 employees with complete data.
+                    </p>
+                    <div class="slide-key-finding animate-up animate-up-d3">
+                        💡 <strong>The Paradox:</strong> Employees with 0 years of experience perform nearly as well as those with 10+ years — 
+                        but earn significantly less. Should we rethink how we price experience?
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: Call to Action -->
+            <div class="slide slide-fullscreen" data-duration="20" data-narration="Now it's your turn to explore the dashboard. You have five progressive exercises to practice evidence-based decision making. Exercise 1: Audit recruitment sources to find the best-performing managers. Exercise 2: Study the financial cost of turnover on unit profitability. Exercise 3: Calculate adverse impact in the hiring process using the four-fifths rule. Exercise 4: Analyze the experience-performance paradox in compensation data. And Exercise 5: Solve the engagement-profit puzzle. Click the button below to open the dashboard and begin your analysis. Good luck!">
+                <span class="slide-badge badge-orange animate-up">Your Turn</span>
+                <h1 class="slide-heading gradient animate-up animate-up-d1">Explore the Dashboard</h1>
+                <p class="slide-subheading animate-up animate-up-d2">
+                    You now have the tools to conduct real HR analytics. Use the five exercises built into the dashboard 
+                    to practice evidence-based decision making.
+                </p>
+                <ul class="slide-bullet-list animate-up animate-up-d3" style="max-width: 580px; margin-bottom: 24px;">
+                    <li><strong style="color: var(--blue);">Exercise 1:</strong> Audit recruitment sources for high-performing managers</li>
+                    <li><strong style="color: var(--rose);">Exercise 2:</strong> Study the cost of turnover on unit profitability</li>
+                    <li><strong style="color: var(--purple);">Exercise 3:</strong> Calculate adverse impact in the hiring process</li>
+                    <li><strong style="color: var(--green);">Exercise 4:</strong> Analyze the experience-performance paradox</li>
+                    <li><strong style="color: var(--accent);">Exercise 5:</strong> Solve the engagement-profit puzzle</li>
+                </ul>
+                <a href="index.html" class="animate-up animate-up-d4" style="display: inline-block; background: linear-gradient(135deg, var(--accent), #ea580c); color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 8px 24px rgba(249,115,22,0.3); position: relative; z-index: 2; transition: transform 0.2s;">
+                    Open the Dashboard →
+                </a>
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <button class="ctrl-btn" onclick="prevSlide()" title="Previous">⏮</button>
+            <button class="ctrl-btn play-btn" id="playBtn" onclick="togglePlay()" title="Play / Pause">⏸</button>
+            <button class="ctrl-btn" onclick="nextSlide()" title="Next">⏭</button>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar" onclick="seekProgress(event)">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span class="progress-time" id="progressTime">0:00 / 0:00</span>
+            </div>
+
+
+
+            <div class="slide-dots" id="slideDots"></div>
+
+            <div class="ctrl-right">
+                <a href="index.html" class="back-link">← Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let currentSlide = 0;
+        let isPlaying = true;
+        let slideTimer = null;
+        let elapsed = 0;
+        let tickInterval = null;
+
+        // Calculate total duration
+        const durations = Array.from(slides).map(s => parseInt(s.dataset.duration) || 8);
+        const totalDuration = durations.reduce((a, b) => a + b, 0);
+
+        // Build dots
+        const dotsContainer = document.getElementById('slideDots');
+        durations.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
+            dot.onclick = () => goToSlide(i);
+            dotsContainer.appendChild(dot);
+        });
+
+        function goToSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+
+            slides[currentSlide].classList.remove('active');
+            slides[currentSlide].querySelectorAll('.animate-up, .animate-fade').forEach(el => {
+                el.style.animation = 'none';
+                el.offsetHeight;
+                el.style.animation = '';
+            });
+
+            currentSlide = index;
+            elapsed = 0;
+            slides[currentSlide].classList.add('active');
+
+            document.querySelectorAll('.slide-dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+            updateProgress();
+            if (isPlaying) scheduleNext();
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                goToSlide(currentSlide + 1);
+            } else {
+                isPlaying = false;
+                document.getElementById('playBtn').textContent = '⏵';
+                clearTimeout(slideTimer);
+                clearInterval(tickInterval);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) goToSlide(currentSlide - 1);
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '⏵';
+            if (isPlaying) {
+                scheduleNext();
+                startTick();
+            } else {
+                clearTimeout(slideTimer);
+                clearInterval(tickInterval);
+            }
+        }
+
+        function scheduleNext() {
+            clearTimeout(slideTimer);
+            const remaining = (durations[currentSlide] - elapsed) * 1000;
+            slideTimer = setTimeout(() => nextSlide(), remaining);
+        }
+
+        function startTick() {
+            clearInterval(tickInterval);
+            tickInterval = setInterval(() => {
+                elapsed += 0.25;
+                updateProgress();
+            }, 250);
+        }
+
+        function updateProgress() {
+            let totalElapsed = 0;
+            for (let i = 0; i < currentSlide; i++) totalElapsed += durations[i];
+            totalElapsed += elapsed;
+
+            const pct = Math.min((totalElapsed / totalDuration) * 100, 100);
+            document.getElementById('progressFill').style.width = pct + '%';
+
+            const mins = Math.floor(totalElapsed / 60);
+            const secs = Math.floor(totalElapsed % 60);
+            const tMins = Math.floor(totalDuration / 60);
+            const tSecs = totalDuration % 60;
+            document.getElementById('progressTime').textContent =
+                `${mins}:${secs.toString().padStart(2, '0')} / ${tMins}:${tSecs.toString().padStart(2, '0')}`;
+        }
+
+        function seekProgress(ev) {
+            const bar = document.getElementById('progressBar');
+            const rect = bar.getBoundingClientRect();
+            const pct = (ev.clientX - rect.left) / rect.width;
+            const targetTime = pct * totalDuration;
+
+            let cumulative = 0;
+            for (let i = 0; i < totalSlides; i++) {
+                if (cumulative + durations[i] > targetTime) {
+                    elapsed = targetTime - cumulative;
+                    goToSlide(i);
+                    return;
+                }
+                cumulative += durations[i];
+            }
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+            if (e.key === 'p' || e.key === 'k') togglePlay();
+        });
+
+        // Start
+        updateProgress();
+        scheduleNext();
+        startTick();
+    </script>
+</body>
+</html>

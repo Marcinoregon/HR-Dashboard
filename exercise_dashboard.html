@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Analytics Dashboard | Exercise 1</title>
+  <meta name="description" content="Interactive HR analytics dashboard for comparing employee groups on wages, demographics, and compensation trends across 2020–2026." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+  <link rel="stylesheet" href="exercise_dashboard.css" />
+</head>
+<body>
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="header-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="header-title">Employee Analytics</h1>
+          <p class="header-sub">Exercise 1 — Compensation &amp; Workforce Dashboard</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="meta-chip">
+          <span class="meta-dot"></span>
+          <span id="total-count">6,559</span> Employees
+        </div>
+        <div class="meta-chip meta-chip--secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          2020 – 2026
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+
+    <!-- ── FILTER BAR ── -->
+    <section class="filter-bar" id="filter-bar">
+      <div class="filter-bar-inner">
+
+        <div class="filter-top-row">
+          <div class="filter-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Filter Employees
+          </div>
+          <div id="filter-active-count" class="filter-active-count" style="display:none"></div>
+          <button class="btn-reset" onclick="resetFilters()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+            Reset All
+          </button>
+        </div>
+
+        <div class="filter-rows">
+
+          <div class="filter-row">
+            <div class="filter-row-label">Gender</div>
+            <div class="filter-chips" id="fc-Gender">
+              <button class="filter-chip" data-dim="Gender" data-val="Female" onclick="toggleFilterChip(this)">Female</button>
+              <button class="filter-chip" data-dim="Gender" data-val="Male" onclick="toggleFilterChip(this)">Male</button>
+            </div>
+          </div>
+
+          <div class="filter-row">
+            <div class="filter-row-label">Race</div>
+            <div class="filter-chips" id="fc-Race">
+              <button class="filter-chip" data-dim="Race" data-val="White" onclick="toggleFilterChip(this)">White</button>
+              <button class="filter-chip" data-dim="Race" data-val="URM" onclick="toggleFilterChip(this)">URM</button>
+            </div>
+          </div>
+
+          <div class="filter-row">
+            <div class="filter-row-label">Store Market</div>
+            <div class="filter-chips" id="fc-StoreMarket">
+              <button class="filter-chip" data-dim="StoreMarket" data-val="Large" onclick="toggleFilterChip(this)">Large</button>
+              <button class="filter-chip" data-dim="StoreMarket" data-val="Medium" onclick="toggleFilterChip(this)">Medium</button>
+            </div>
+          </div>
+
+          <div class="filter-row">
+            <div class="filter-row-label">Status</div>
+            <div class="filter-chips" id="fc-ExemptStatus">
+              <button class="filter-chip" data-dim="ExemptStatus" data-val="Exempt" onclick="toggleFilterChip(this)">Exempt</button>
+              <button class="filter-chip" data-dim="ExemptStatus" data-val="Non-Exempt" onclick="toggleFilterChip(this)">Non-Exempt</button>
+            </div>
+          </div>
+
+          <div class="filter-row filter-row--wrap">
+            <div class="filter-row-label">Job Title</div>
+            <div class="filter-chips" id="fc-JobTitle">
+              <!-- populated by JS -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ── KPI STRIP ── -->
+    <section class="kpi-strip">
+      <div class="kpi-card" id="kpi-n">
+        <div class="kpi-icon kpi-icon--blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kv-n">–</div>
+          <div class="kpi-label">Employees</div>
+        </div>
+      </div>
+
+      <div class="kpi-card" id="kpi-wage">
+        <div class="kpi-icon kpi-icon--green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kv-wage">–</div>
+          <div class="kpi-label">Avg Wage 2026</div>
+        </div>
+      </div>
+
+      <div class="kpi-card" id="kpi-age">
+        <div class="kpi-icon kpi-icon--purple">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kv-age">–</div>
+          <div class="kpi-label">Avg Age</div>
+        </div>
+      </div>
+
+      <div class="kpi-card" id="kpi-growth">
+        <div class="kpi-icon kpi-icon--orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kv-growth">–</div>
+          <div class="kpi-label">Wage Growth (6yr)</div>
+        </div>
+      </div>
+
+      <div class="kpi-card" id="kpi-exempt">
+        <div class="kpi-icon kpi-icon--teal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" id="kv-exempt">–</div>
+          <div class="kpi-label">% Exempt</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── COMPARE PANEL ── -->
+    <section class="section-card compare-panel">
+      <div class="section-header">
+        <div class="section-title-block">
+          <h2 class="section-title">Group Comparison</h2>
+          <p class="section-desc">Choose a category, then click the boxes to assign Group A and Group B</p>
+        </div>
+        <div class="compare-controls">
+          <!-- Single Split-By dropdown -->
+          <div class="cmp-split-block">
+            <label class="ctrl-label">Split By</label>
+            <select id="cmp-split-dim" class="select-pill" onchange="onSplitDimChange()">
+              <option value="Gender">Gender</option>
+              <option value="Race">Race</option>
+              <option value="ExemptStatus">Exempt Status</option>
+              <option value="StoreMarket">Store Market</option>
+              <option value="JobTitle">Job Title</option>
+            </select>
+          </div>
+
+          <!-- Clickable group chips -->
+          <div class="cmp-vals-block">
+            <label class="ctrl-label">Click to assign Group A &amp; B</label>
+            <div id="cmp-val-chips" class="cmp-val-chips"></div>
+          </div>
+
+          <!-- Metric -->
+          <div class="metric-selector">
+            <label class="ctrl-label">Metric</label>
+            <select id="cmp-metric" class="select-pill" onchange="renderComparison()">
+              <option value="wage">Average Wage</option>
+              <option value="age">Average Age</option>
+              <option value="count">Employee Count</option>
+              <option value="wageGrowth">Wage Growth %</option>
+            </select>
+          </div>
+
+          <!-- Time Span -->
+          <div class="timespan-selector">
+            <label class="ctrl-label">Time Span</label>
+            <select id="cmp-timespan" class="select-pill" onchange="renderComparison()">
+              <option value="2020-2026">2020–2026 (All)</option>
+              <option value="2021-2026">2021–2026</option>
+              <option value="2022-2026">2022–2026</option>
+              <option value="2023-2026">2023–2026</option>
+              <option value="2024-2026">2024–2026</option>
+              <option value="2025-2026">2025–2026</option>
+            </select>
+          </div>
+
+          <!-- Chart Type -->
+          <div class="chart-type-selector">
+            <label class="ctrl-label">Chart Type</label>
+            <div class="chart-type-btns" id="cmp-chart-type">
+              <button class="chart-type-btn active" data-type="line" onclick="setCmpChartType('line',this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Line
+              </button>
+              <button class="chart-type-btn" data-type="bar" onclick="setCmpChartType('bar',this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+                Bar
+              </button>
+              <button class="chart-type-btn" data-type="area" onclick="setCmpChartType('area',this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20 L7 12 L12 16 L16 8 L21 20 Z"/></svg>
+                Area
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary badges -->
+      <div class="compare-summary" id="compare-summary"></div>
+
+      <div class="chart-wrapper chart-wrapper--tall">
+        <canvas id="compare-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- ── ROW 2: Distribution + Breakdown ── -->
+    <div class="grid-2col">
+
+      <!-- Wage Distribution Histogram -->
+      <section class="section-card">
+        <div class="section-header section-header--compact">
+          <div class="section-title-block">
+            <h2 class="section-title">Wage Distribution</h2>
+            <p class="section-desc">Current employees by wage band</p>
+          </div>
+          <div class="compact-controls">
+            <select id="dist-year" class="select-pill select-sm" onchange="renderDistribution()">
+              <option value="Wage2026">2026</option>
+              <option value="Wage2025">2025</option>
+              <option value="Wage2024">2024</option>
+              <option value="Wage2023">2023</option>
+              <option value="Wage2022">2022</option>
+              <option value="Wage2021">2021</option>
+              <option value="Wage2020">2020</option>
+            </select>
+            <select id="dist-group" class="select-pill select-sm" onchange="renderDistribution()">
+              <option value="all">All Employees</option>
+              <option value="Gender">By Gender</option>
+              <option value="Race">By Race</option>
+              <option value="ExemptStatus">By Status</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="dist-chart"></canvas>
+        </div>
+      </section>
+
+      <!-- Job Title Breakdown -->
+      <section class="section-card">
+        <div class="section-header section-header--compact">
+          <div class="section-title-block">
+            <h2 class="section-title">Job Title Breakdown</h2>
+            <p class="section-desc">Avg wage by role</p>
+          </div>
+          <div class="compact-controls">
+            <select id="job-year" class="select-pill select-sm" onchange="renderJobBreakdown()">
+              <option value="Wage2026">2026</option>
+              <option value="Wage2025">2025</option>
+              <option value="Wage2024">2024</option>
+              <option value="Wage2023">2023</option>
+              <option value="Wage2022">2022</option>
+              <option value="Wage2021">2021</option>
+              <option value="Wage2020">2020</option>
+            </select>
+            <select id="job-group" class="select-pill select-sm" onchange="renderJobBreakdown()">
+              <option value="all">All</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="White">White</option>
+              <option value="URM">URM</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="job-chart"></canvas>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ── ROW 3: Trend + Demographics ── -->
+    <div class="grid-2col">
+
+      <!-- Multi-Group Wage Trend -->
+      <section class="section-card">
+        <div class="section-header section-header--compact">
+          <div class="section-title-block">
+            <h2 class="section-title">Wage Trend Over Time</h2>
+            <p class="section-desc">Track compensation trends by group</p>
+          </div>
+          <div class="compact-controls">
+            <select id="trend-dim" class="select-pill select-sm" onchange="renderTrend()">
+              <option value="Gender">By Gender</option>
+              <option value="Race">By Race</option>
+              <option value="StoreMarket">By Store Market</option>
+              <option value="ExemptStatus">By Exempt Status</option>
+              <option value="JobTitle">By Job Title</option>
+            </select>
+            <select id="trend-span" class="select-pill select-sm" onchange="renderTrend()">
+              <option value="2020-2026">2020–2026</option>
+              <option value="2022-2026">2022–2026</option>
+              <option value="2023-2026">2023–2026</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="trend-chart"></canvas>
+        </div>
+      </section>
+
+      <!-- Age & Demographic Breakdown (Donut) -->
+      <section class="section-card">
+        <div class="section-header section-header--compact">
+          <div class="section-title-block">
+            <h2 class="section-title">Workforce Demographics</h2>
+            <p class="section-desc">Composition of current workforce</p>
+          </div>
+          <div class="compact-controls">
+            <select id="demo-dim" class="select-pill select-sm" onchange="renderDemographics()">
+              <option value="Gender">Gender</option>
+              <option value="Race">Race</option>
+              <option value="StoreMarket">Store Market</option>
+              <option value="ExemptStatus">Exempt Status</option>
+              <option value="JobTitle">Job Title</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-wrapper chart-wrapper--donut">
+          <canvas id="demo-chart"></canvas>
+        </div>
+        <div id="demo-legend" class="donut-legend"></div>
+      </section>
+
+    </div>
+
+    <!-- ── ROW 4: Age Distribution ── -->
+    <section class="section-card">
+      <div class="section-header section-header--compact">
+        <div class="section-title-block">
+          <h2 class="section-title">Age Distribution by Group</h2>
+          <p class="section-desc">Workforce age profile segmented by demographic</p>
+        </div>
+        <div class="compact-controls">
+          <select id="age-dim" class="select-pill select-sm" onchange="renderAgeDistribution()">
+            <option value="Gender">By Gender</option>
+            <option value="Race">By Race</option>
+            <option value="StoreMarket">By Store Market</option>
+            <option value="ExemptStatus">By Exempt Status</option>
+          </select>
+        </div>
+      </div>
+      <div class="chart-wrapper chart-wrapper--medium">
+        <canvas id="age-chart"></canvas>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <p>HR Analytics Dashboard — Exercise 1 &nbsp;|&nbsp; Data: Current Employees Dataset &nbsp;|&nbsp; 2020–2026</p>
+  </footer>
+
+  <!-- Data + Logic -->
+  <script src="employee_data.js"></script>
+  <script src="exercise_dashboard.js"></script>
+</body>
+</html>

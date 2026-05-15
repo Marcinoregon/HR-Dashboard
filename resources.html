@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn More — HR Analytics Tutorials</title>
+    <meta name="description" content="Statistical and analytical tutorials for the Mr. Macky's HR Analytics Dashboard — correlation vs causation, variance, adverse impact, and more.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --bg2: #111827;
+            --card: #1a1f35;
+            --card-hover: #222845;
+            --accent: #f97316;
+            --accent2: #fb923c;
+            --purple: #a78bfa;
+            --teal: #2dd4bf;
+            --rose: #fb7185;
+            --blue: #60a5fa;
+            --green: #34d399;
+            --amber: #fbbf24;
+            --red: #ef4444;
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --border: rgba(255,255,255,0.06);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--text3); border-radius: 3px; }
+
+        /* ===== Top Navigation ===== */
+        .topnav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,14,26,0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            height: 60px;
+            gap: 20px;
+        }
+        .topnav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .topnav-brand .brand-icon {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent), #ea580c);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .topnav-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-left: auto;
+        }
+        .topnav-back {
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--text3);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            transition: all 0.15s;
+        }
+        .topnav-back:hover { color: var(--text); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+
+        /* ===== Hero ===== */
+        .hero {
+            background: linear-gradient(135deg, #1a1040 0%, #0f1629 40%, #1a0f0a 100%);
+            padding: 60px 32px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 25% 50%, rgba(249,115,22,0.1) 0%, transparent 60%),
+                        radial-gradient(circle at 80% 70%, rgba(167,139,250,0.06) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .hero-inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 2; }
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px; font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2), var(--amber));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin-bottom: 12px;
+        }
+        .hero p { color: var(--text2); font-size: 16px; max-width: 600px; }
+
+        /* ===== Learning Hub ===== */
+        .learning-hub {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 36px 32px 40px;
+        }
+        .hub-inner {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .hub-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text3);
+            margin-bottom: 18px;
+        }
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 700px) {
+            .hub-grid { grid-template-columns: 1fr; }
+        }
+
+        .lspace-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .lspace-card:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .lspace-icon {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .lspace-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .lspace-tag {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-bottom: 4px;
+        }
+        .tag-m1 { background: rgba(96,165,250,0.12); color: var(--blue); }
+        .tag-m2 { background: rgba(251,113,133,0.12); color: var(--rose); }
+        .tag-m3 { background: rgba(167,139,250,0.12); color: var(--purple); }
+        .tag-m4 { background: rgba(52,211,153,0.12); color: var(--green); }
+        .tag-core { background: rgba(249,115,22,0.12); color: var(--accent); }
+        .tag-overview { background: rgba(45,212,191,0.12); color: var(--teal); }
+
+        .lspace-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.3;
+        }
+        .lspace-desc {
+            font-size: 12px;
+            color: var(--text3);
+            line-height: 1.45;
+            margin-top: 2px;
+        }
+        .lspace-arrow {
+            font-size: 18px;
+            color: var(--text3);
+            transition: all 0.25s;
+            flex-shrink: 0;
+        }
+        .lspace-card:hover .lspace-arrow {
+            color: var(--accent);
+            transform: translateX(3px);
+        }
+
+        /* Floating Back to Top */
+        .back-to-top {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: linear-gradient(135deg, var(--accent), #ea580c);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(249,115,22,0.35);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.3s ease;
+            z-index: 200;
+            font-family: 'Inter', sans-serif;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .back-to-top:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(249,115,22,0.5);
+        }
+
+        /* ===== Main Container ===== */
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 32px 80px; }
+
+        /* ===== Tutorial Cards ===== */
+        .tutorial {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px;
+            margin-bottom: 32px;
+            transition: border-color 0.3s;
+            scroll-margin-top: 140px;
+        }
+        .tutorial:hover { border-color: rgba(249,115,22,0.2); }
+
+        .tutorial-badge {
+            display: inline-block;
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 3px 10px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+        }
+        .badge-m1 { background: rgba(96,165,250,0.12); color: var(--blue); border: 1px solid rgba(96,165,250,0.25); }
+        .badge-m2 { background: rgba(251,113,133,0.12); color: var(--rose); border: 1px solid rgba(251,113,133,0.25); }
+        .badge-m3 { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
+        .badge-m4 { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
+        .badge-core { background: rgba(249,115,22,0.12); color: var(--accent); border: 1px solid rgba(249,115,22,0.25); }
+        .badge-overview { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.25); }
+
+        .tutorial h2 {
+            font-size: 22px; font-weight: 800; margin-bottom: 8px;
+            letter-spacing: -0.02em; color: var(--text);
+        }
+        .tutorial-lead {
+            font-size: 15px; color: var(--text2); margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .tutorial h3 {
+            font-size: 15px; font-weight: 700; color: var(--accent2);
+            margin: 24px 0 10px; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .tutorial p { font-size: 14px; color: var(--text2); margin-bottom: 14px; line-height: 1.8; }
+        .tutorial strong { color: var(--text); }
+
+        /* --- Callout boxes --- */
+        .callout {
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin: 16px 0;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .callout-example {
+            background: rgba(96,165,250,0.06);
+            border-left: 3px solid var(--blue);
+            color: var(--blue);
+        }
+        .callout-warning {
+            background: rgba(251,191,36,0.06);
+            border-left: 3px solid var(--amber);
+            color: var(--amber);
+        }
+        .callout-key {
+            background: rgba(249,115,22,0.06);
+            border-left: 3px solid var(--accent);
+            color: var(--accent2);
+        }
+        .callout-formula {
+            background: rgba(167,139,250,0.06);
+            border-left: 3px solid var(--purple);
+            color: var(--purple);
+            font-family: 'Inter', monospace;
+        }
+        .callout strong { color: inherit; }
+        .callout-label { font-weight: 700; display: block; margin-bottom: 4px; }
+
+        /* --- Compare table --- */
+        .compare-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 16px 0;
+            font-size: 13px;
+        }
+        .compare-table th {
+            text-align: left;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--border);
+            color: var(--text3);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+        }
+        .compare-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text2);
+            vertical-align: top;
+        }
+        .compare-table tr:last-child td { border-bottom: none; }
+        .compare-table .col-yes { color: var(--green); font-weight: 600; }
+        .compare-table .col-no { color: var(--red); font-weight: 600; }
+
+        /* --- Diagram boxes --- */
+        .diagram-row {
+            display: flex;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .diagram-box {
+            flex: 1;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .diagram-box .diagram-val {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .diagram-box .diagram-label {
+            font-size: 11px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .diagram-arrow {
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            color: var(--text3);
+            flex-shrink: 0;
+        }
+
+        /* --- Quiz / Check your understanding --- */
+        .quiz-box {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            margin: 16px 0;
+        }
+        .quiz-box .quiz-q {
+            font-size: 14px; font-weight: 600; color: var(--text);
+            margin-bottom: 10px;
+        }
+        .quiz-box .quiz-q::before {
+            content: '🧠 ';
+        }
+        .quiz-reveal {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text3);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .quiz-reveal:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+        .quiz-answer {
+            display: none;
+            margin-top: 10px;
+            padding: 12px 14px;
+            background: rgba(52,211,153,0.06);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--green);
+            line-height: 1.7;
+        }
+        .quiz-answer.show { display: block; }
+
+        /* --- Knowledge Check (multiple choice) --- */
+        .kc-section {
+            background: rgba(249,115,22,0.04);
+            border: 1px solid rgba(249,115,22,0.15);
+            border-radius: 12px;
+            padding: 22px;
+            margin-top: 24px;
+        }
+        .kc-title {
+            font-size: 13px; font-weight: 700; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            margin-bottom: 14px;
+        }
+        .kc-title::before { content: '✅ '; }
+        .kc-question {
+            font-size: 14px; font-weight: 600; color: var(--text);
+            margin-bottom: 12px; line-height: 1.6;
+        }
+        .kc-options { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+        .kc-option {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.02);
+            cursor: pointer; font-size: 13px; color: var(--text2);
+            transition: all 0.15s;
+        }
+        .kc-option:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); }
+        .kc-option .kc-letter {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: rgba(255,255,255,0.06); color: var(--text3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; flex-shrink: 0;
+        }
+        .kc-option.selected { border-color: var(--blue); background: rgba(96,165,250,0.08); }
+        .kc-option.correct { border-color: var(--green); background: rgba(52,211,153,0.1); color: var(--green); }
+        .kc-option.correct .kc-letter { background: var(--green); color: #000; }
+        .kc-option.incorrect { border-color: var(--red); background: rgba(239,68,68,0.08); color: var(--red); opacity: 0.7; }
+        .kc-option.incorrect .kc-letter { background: var(--red); color: #fff; }
+        .kc-option.disabled { pointer-events: none; }
+        .kc-feedback {
+            display: none; margin-top: 10px; padding: 12px 14px;
+            border-radius: 8px; font-size: 13px; line-height: 1.7;
+        }
+        .kc-feedback.show { display: block; }
+        .kc-feedback.correct-fb { background: rgba(52,211,153,0.08); color: var(--green); }
+        .kc-feedback.incorrect-fb { background: rgba(239,68,68,0.08); color: var(--rose); }
+
+        /* --- Score Tracker --- */
+        .score-tracker {
+            position: fixed; bottom: 24px; right: 24px;
+            background: rgba(17,24,39,0.95); backdrop-filter: blur(12px);
+            border: 1px solid var(--border); border-radius: 14px;
+            padding: 14px 20px;
+            display: flex; align-items: center; gap: 14px;
+            z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: transform 0.3s;
+        }
+        .score-tracker.hidden { transform: translateY(100px); }
+        .score-ring {
+            width: 44px; height: 44px; position: relative;
+        }
+        .score-ring svg { transform: rotate(-90deg); }
+        .score-ring .ring-bg { stroke: rgba(255,255,255,0.06); }
+        .score-ring .ring-fill { stroke: var(--green); transition: stroke-dashoffset 0.6s ease; }
+        .score-num {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800; color: var(--text);
+        }
+        .score-label { font-size: 12px; color: var(--text3); }
+        .score-label strong { color: var(--text); font-size: 14px; display: block; }
+
+        /* --- Scenario Exercise --- */
+        .exercise-box {
+            background: rgba(167,139,250,0.04);
+            border: 1px solid rgba(167,139,250,0.15);
+            border-radius: 12px;
+            padding: 22px;
+            margin-top: 24px;
+        }
+        .exercise-title {
+            font-size: 13px; font-weight: 700; color: var(--purple);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            margin-bottom: 14px;
+        }
+        .exercise-title::before { content: '📝 '; }
+        .exercise-scenario {
+            font-size: 14px; color: var(--text2); line-height: 1.8;
+            margin-bottom: 16px; padding: 14px; border-radius: 8px;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+        }
+        .exercise-scenario strong { color: var(--text); }
+        .exercise-tasks { list-style: none; counter-reset: task; margin-bottom: 14px; }
+        .exercise-tasks li {
+            counter-increment: task;
+            padding: 8px 0 8px 32px; position: relative;
+            font-size: 13px; color: var(--text2); line-height: 1.7;
+        }
+        .exercise-tasks li::before {
+            content: counter(task); position: absolute; left: 0; top: 8px;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: rgba(167,139,250,0.12); color: var(--purple);
+            font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- Calculation input --- */
+        .calc-row { display: flex; gap: 12px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+        .calc-label { font-size: 13px; color: var(--text2); min-width: 140px; }
+        .calc-input {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            border-radius: 6px; padding: 8px 12px; font-family: inherit;
+            font-size: 14px; color: var(--text); width: 120px;
+            transition: border-color 0.15s;
+        }
+        .calc-input:focus { outline: none; border-color: var(--purple); }
+        .calc-input.correct-input { border-color: var(--green); background: rgba(52,211,153,0.06); }
+        .calc-input.incorrect-input { border-color: var(--red); background: rgba(239,68,68,0.06); }
+        .calc-check {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            border: none; color: #fff; padding: 8px 18px; border-radius: 6px;
+            font-family: inherit; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: opacity 0.15s;
+        }
+        .calc-check:hover { opacity: 0.85; }
+        .calc-result {
+            display: none; margin-top: 8px; padding: 10px 14px;
+            border-radius: 8px; font-size: 13px; line-height: 1.7;
+        }
+        .calc-result.show { display: block; }
+        .calc-result.correct-r { background: rgba(52,211,153,0.08); color: var(--green); }
+        .calc-result.incorrect-r { background: rgba(239,68,68,0.08); color: var(--rose); }
+
+        /* --- Matching Exercise --- */
+        .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+        .match-col-header {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; color: var(--text3); padding: 4px 0;
+        }
+        .match-item {
+            padding: 10px 14px; border-radius: 8px; font-size: 13px;
+            border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+            color: var(--text2); cursor: pointer; transition: all 0.15s;
+            text-align: center;
+        }
+        .match-item:hover { border-color: rgba(255,255,255,0.15); }
+        .match-item.match-selected { border-color: var(--blue); background: rgba(96,165,250,0.08); color: var(--blue); }
+        .match-item.match-correct { border-color: var(--green); background: rgba(52,211,153,0.08); color: var(--green); }
+        .match-item.match-wrong { border-color: var(--red); background: rgba(239,68,68,0.06); color: var(--red); }
+        .match-item.match-disabled { pointer-events: none; opacity: 0.6; }
+
+        /* --- True/False exercise --- */
+        .tf-statement {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 12px 14px; border-radius: 8px; margin: 8px 0;
+            border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+            font-size: 13px; color: var(--text2); line-height: 1.6;
+        }
+        .tf-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .tf-btn {
+            padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 700;
+            border: 1px solid var(--border); background: none; color: var(--text3);
+            cursor: pointer; transition: all 0.15s; font-family: inherit;
+        }
+        .tf-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+        .tf-btn.tf-correct { border-color: var(--green); color: var(--green); background: rgba(52,211,153,0.08); }
+        .tf-btn.tf-wrong { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.06); }
+        .tf-btn.tf-disabled { pointer-events: none; }
+        .tf-explain {
+            display: none; font-size: 12px; margin-top: 6px; padding: 8px 10px;
+            border-radius: 6px; line-height: 1.6;
+        }
+        .tf-explain.show { display: block; }
+        .tf-explain.tf-right { background: rgba(52,211,153,0.06); color: var(--green); }
+        .tf-explain.tf-incorrect { background: rgba(239,68,68,0.06); color: var(--rose); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .hero { padding: 36px 20px; }
+            .hero h1 { font-size: 28px; }
+            .container { padding: 24px 16px 60px; }
+            .tutorial { padding: 24px; }
+            .toc-bar { padding: 10px 16px; }
+            .diagram-row { flex-direction: column; }
+            .diagram-arrow { justify-content: center; transform: rotate(90deg); }
+            .score-tracker { bottom: 12px; right: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="topnav">
+        <a href="index.html" class="topnav-brand">
+            <div class="brand-icon">🦐</div>
+            <span>Mr. Macky's</span>
+        </a>
+        <span class="topnav-title">📖 Learn More</span>
+        <a href="index.html" class="topnav-back">← Back to Dashboard</a>
+    </nav>
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="hero-inner">
+            <h1>Analytics Toolkit</h1>
+            <p>Master the analytical skills you need for the HR Dashboard. Choose a learning space below to begin.</p>
+        </div>
+    </div>
+
+    <!-- Learning Spaces Navigation Hub -->
+    <div class="learning-hub">
+        <div class="hub-inner">
+            <div class="hub-label">Choose a Learning Space</div>
+            <div class="hub-grid">
+                <a href="#t1" class="lspace-card" data-color="green">
+                    <div class="lspace-icon" style="background: linear-gradient(135deg, rgba(52,211,153,0.2), rgba(52,211,153,0.05));">🔗</div>
+                    <div class="lspace-info">
+                        <span class="lspace-tag tag-m4">Module 4 · Overview</span>
+                        <div class="lspace-title">Correlation vs. Causation</div>
+                        <div class="lspace-desc">Learn why two things moving together doesn't mean one causes the other.</div>
+                    </div>
+                    <div class="lspace-arrow">→</div>
+                </a>
+                <a href="#t2" class="lspace-card" data-color="blue">
+                    <div class="lspace-icon" style="background: linear-gradient(135deg, rgba(96,165,250,0.2), rgba(96,165,250,0.05));">📊</div>
+                    <div class="lspace-info">
+                        <span class="lspace-tag tag-m1">Module 1</span>
+                        <div class="lspace-title">Variance &amp; Comparing Means</div>
+                        <div class="lspace-desc">Understand how data spreads and compare averages across groups.</div>
+                    </div>
+                    <div class="lspace-arrow">→</div>
+                </a>
+                <a href="#t3" class="lspace-card" data-color="purple">
+                    <div class="lspace-icon" style="background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(167,139,250,0.05));">⚖️</div>
+                    <div class="lspace-info">
+                        <span class="lspace-tag tag-m3">Module 3</span>
+                        <div class="lspace-title">Adverse Impact (4/5ths Rule)</div>
+                        <div class="lspace-desc">Calculate whether selection procedures show discriminatory patterns.</div>
+                    </div>
+                    <div class="lspace-arrow">→</div>
+                </a>
+                <a href="#t4" class="lspace-card" data-color="rose">
+                    <div class="lspace-icon" style="background: linear-gradient(135deg, rgba(251,113,133,0.2), rgba(251,113,133,0.05));">📉</div>
+                    <div class="lspace-info">
+                        <span class="lspace-tag tag-m2">Module 2</span>
+                        <div class="lspace-title">Turnover Rate Formulas</div>
+                        <div class="lspace-desc">Master the formulas to quantify employee exits and cost impact.</div>
+                    </div>
+                    <div class="lspace-arrow">→</div>
+                </a>
+                <a href="#t5" class="lspace-card" data-color="amber">
+                    <div class="lspace-icon" style="background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(251,191,36,0.05));">🎯</div>
+                    <div class="lspace-info">
+                        <span class="lspace-tag tag-m3">Module 3</span>
+                        <div class="lspace-title">Selection &amp; Validity</div>
+                        <div class="lspace-desc">Evaluate whether hiring tools actually predict job success.</div>
+                    </div>
+                    <div class="lspace-arrow">→</div>
+                </a>
+                <a href="#t6" class="lspace-card" data-color="teal">
+                    <div class="lspace-icon" style="background: linear-gradient(135deg, rgba(45,212,191,0.2), rgba(45,212,191,0.05));">📈</div>
+                    <div class="lspace-info">
+                        <span class="lspace-tag tag-core">Core Concept</span>
+                        <div class="lspace-title">Central Tendency &amp; Distributions</div>
+                        <div class="lspace-desc">Mean, median, mode — and why the shape of data matters.</div>
+                    </div>
+                    <div class="lspace-arrow">→</div>
+                </a>
+                <a href="#t7" class="lspace-card" data-color="orange">
+                    <div class="lspace-icon" style="background: linear-gradient(135deg, rgba(249,115,22,0.2), rgba(249,115,22,0.05));">👁️</div>
+                    <div class="lspace-info">
+                        <span class="lspace-tag tag-overview">Dashboard Skills</span>
+                        <div class="lspace-title">Reading Data Visualizations</div>
+                        <div class="lspace-desc">Interpret bar charts, scatter plots, doughnuts, and radar charts.</div>
+                    </div>
+                    <div class="lspace-arrow">→</div>
+                </a>
+                <a href="#t8" class="lspace-card" data-color="indigo">
+                    <div class="lspace-icon" style="background: linear-gradient(135deg, rgba(129,140,248,0.2), rgba(129,140,248,0.05));">🧠</div>
+                    <div class="lspace-info">
+                        <span class="lspace-tag tag-core">Core Concept</span>
+                        <div class="lspace-title">Evidence-Based Decision Making</div>
+                        <div class="lspace-desc">Turn raw data into actionable recommendations with confidence.</div>
+                    </div>
+                    <div class="lspace-arrow">→</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Back to Top -->
+    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        ↑ Learning Spaces
+    </button>
+
+    <!-- Tutorials -->
+    <div class="container">
+
+        <!-- TUTORIAL 1: Correlation vs. Causation -->
+        <div class="tutorial" id="t1">
+            <span class="tutorial-badge badge-m4">Module 4 · Overview</span>
+            <h2>Correlation vs. Causation</h2>
+            <p class="tutorial-lead">Just because two things move together doesn't mean one causes the other. This is arguably the most important concept in data analysis.</p>
+
+            <h3>What is Correlation?</h3>
+            <p><strong>Correlation</strong> measures the strength and direction of a relationship between two variables. When variable A goes up and variable B also goes up, they are <strong>positively correlated</strong>. When one goes up and the other goes down, they are <strong>negatively correlated</strong>.</p>
+
+            <div class="callout callout-example">
+                <span class="callout-label">📊 Dashboard Example</span>
+                In Module 4 (Compensation), you can see that employees with higher prior experience tend to have higher wages. This is a <strong>positive correlation</strong>. But does experience actually <em>cause</em> better performance?
+            </div>
+
+            <h3>What is Causation?</h3>
+            <p><strong>Causation</strong> means one variable directly influences another. Establishing causation typically requires a controlled experiment or rigorous statistical methods — not just observing patterns in data.</p>
+
+            <h3>Why It Matters in HR</h3>
+            <table class="compare-table">
+                <tr><th>Observation</th><th>Correlation?</th><th>Causation?</th></tr>
+                <tr><td>Higher engagement → Higher profit</td><td class="col-yes">Likely yes</td><td class="col-no">Not proven</td></tr>
+                <tr><td>More experience → Higher wages</td><td class="col-yes">Yes</td><td class="col-no">Wages may reflect tenure, not value</td></tr>
+                <tr><td>Lower performance → Higher turnover</td><td class="col-yes">Yes</td><td class="col-no">Could be reversed: turnover causes disengagement</td></tr>
+                <tr><td>Recruitment source → Manager quality</td><td class="col-yes">Possibly</td><td class="col-no">Other factors (personality, training) confound</td></tr>
+            </table>
+
+            <div class="callout callout-warning">
+                <span class="callout-label">⚠️ Common Trap</span>
+                When the dashboard shows that medium-market units have higher engagement but lower profit, it's tempting to conclude that engagement doesn't matter. But there may be a <strong>third variable</strong> (e.g., market size, customer volume) driving both. This is called a <strong>confounding variable</strong>.
+            </div>
+
+            <div class="quiz-box">
+                <div class="quiz-q">If units with higher manager performance ratings have higher profit, can we conclude that better managers cause more profit?</div>
+                <button class="quiz-reveal" onclick="toggleAnswer(this)">Reveal Answer</button>
+                <div class="quiz-answer">Not necessarily. While better management likely contributes to profit, profitable units may also have stronger support systems, better locations, or higher customer traffic — all of which could make management <em>easier</em> and inflate ratings. To establish causation, we'd need to control for these confounds (e.g., compare managers who moved between low- and high-profit units).</div>
+            </div>
+
+            <div class="kc-section">
+                <div class="kc-title">Knowledge Check</div>
+
+                <div class="kc-question">1. A company finds that employees who attend wellness programs have lower absenteeism. What can we conclude?</div>
+                <ul class="kc-options" data-correct="2">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Wellness programs cause lower absenteeism</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> Lower absenteeism causes employees to join wellness programs</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> There is a correlation, but we cannot determine causation from this data alone</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> The data is unreliable and should be discarded</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! This is a correlation. Self-selection bias may explain it — healthier employees may be more likely to sign up for wellness programs <em>and</em> have lower absenteeism.</div>
+                <div class="kc-feedback incorrect-fb">❌ Not quite. We can only say there's a <strong>correlation</strong>. Self-selection bias is likely at work — employees who care about health may both join wellness programs and have lower absenteeism.</div>
+
+                <div class="kc-question" style="margin-top: 18px;">2. What is a "confounding variable"?</div>
+                <ul class="kc-options" data-correct="1">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> A variable that is always measured incorrectly</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> A third variable that influences both the independent and dependent variables</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> A variable that has no relationship to the study</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> The dependent variable in a causal study</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! A confounding variable creates a spurious association between two variables by influencing both. For example, market size affects both engagement levels and profit.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is B. A confound is a third variable that influences both variables under study, creating a misleading appearance of a direct relationship.</div>
+            </div>
+
+            <div class="exercise-box">
+                <div class="exercise-title">Exercise: Spot the Correlation Trap</div>
+                <p style="font-size: 14px; color: var(--text2); margin-bottom: 14px;">For each scenario below, indicate whether the conclusion is valid (True) or a correlation trap (False):</p>
+
+                <div class="tf-statement" data-answer="false">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"Units with more experienced managers have higher profit, so experience causes profitability."</strong>
+                        <div class="tf-explain tf-right">✅ Correct — False! Experienced managers may be assigned to already-profitable units. Location, market size, and customer base could all drive both manager assignment and profit.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is False. Experienced managers may be preferentially assigned to better locations. The correlation doesn't prove direction of causality.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+
+                <div class="tf-statement" data-answer="true">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"We can observe a correlation between engagement scores and employee retention rates."</strong>
+                        <div class="tf-explain tf-right">✅ Correct — True! This statement correctly claims only a correlation, not causation. Observing relationships is valid; the error would be claiming one causes the other.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is True. The statement only claims a correlation exists — it doesn't assert causation. That's a scientifically appropriate claim.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+
+                <div class="tf-statement" data-answer="false">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"Employees who receive coaching have lower turnover, proving that coaching reduces turnover."</strong>
+                        <div class="tf-explain tf-right">✅ Correct — False! Self-selection bias: managers may choose to coach employees who already show promise and engagement. Those employees may have stayed regardless.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is False. The word "proving" is the red flag. Self-selection bias means actively coached employees may already be the ones most likely to stay.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+
+                <div class="tf-statement" data-answer="false">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"Ice cream sales and drowning deaths both peak in summer, therefore ice cream causes drowning."</strong>
+                        <div class="tf-explain tf-right">✅ Correct — False! This is the classic confounding variable example. The confound is temperature/season — hot weather increases both ice cream consumption and swimming activity.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is False. Temperature is the confounding variable. Hot weather increases both ice cream sales and swimming (which increases drowning risk).</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+            </div>
+        </div><!-- TUTORIAL 2: Variance & Comparing Means -->
+        <div class="tutorial" id="t2">
+            <span class="tutorial-badge badge-core">Core Statistics</span>
+            <h2>Variance & Comparing Means</h2>
+            <p class="tutorial-lead">An average alone can be misleading. Understanding the <em>spread</em> of your data is just as important as understanding the center.</p>
+
+            <h3>The Problem with Averages</h3>
+            <p>Imagine two restaurants both have an average performance rating of 3.5. But in restaurant A, all employees scored between 3.0 and 4.0 (low variance). In restaurant B, scores ranged from 1.0 to 5.0 (high variance). These are very different situations that require different interventions.</p>
+
+            <div class="diagram-row">
+                <div class="diagram-box">
+                    <div class="diagram-val" style="color: var(--green);">3.5</div>
+                    <div class="diagram-label">Restaurant A avg</div>
+                    <p style="font-size: 12px; color: var(--text3); margin: 6px 0 0;">Range: 3.0–4.0</p>
+                    <p style="font-size: 11px; color: var(--green); margin: 2px 0 0;">Low variance ✓</p>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="color: var(--amber);">3.5</div>
+                    <div class="diagram-label">Restaurant B avg</div>
+                    <p style="font-size: 12px; color: var(--text3); margin: 6px 0 0;">Range: 1.0–5.0</p>
+                    <p style="font-size: 11px; color: var(--amber); margin: 2px 0 0;">High variance ⚠</p>
+                </div>
+            </div>
+
+            <h3>Standard Deviation</h3>
+            <p><strong>Standard deviation (SD)</strong> is the most common measure of spread. It tells you, on average, how far individual data points are from the mean.</p>
+            <div class="callout callout-formula">
+                <span class="callout-label">Formula</span>
+                SD = √[ Σ(xᵢ - x̄)² / (n - 1) ]<br>
+                <span style="font-size: 12px; color: var(--text3);">where x̄ = mean, n = sample size, xᵢ = each individual value</span>
+            </div>
+
+            <h3>Practical Rule (68-95-99.7)</h3>
+            <p>In a normal distribution: <strong>68%</strong> of data falls within ±1 SD of the mean, <strong>95%</strong> within ±2 SD, and <strong>99.7%</strong> within ±3 SD. If a score is more than 2 SDs from the mean, it's statistically unusual.</p>
+
+            <div class="callout callout-example">
+                <span class="callout-label">📊 Dashboard Example</span>
+                When comparing engagement scores between Large and Medium markets (Overview radar chart), the <em>averages</em> may look similar. But if Large-market scores have high variance (some units at 6.0, others at 2.0), a targeted intervention is needed — not a company-wide program.
+            </div>
+
+            <h3>Why This Matters When Comparing Groups</h3>
+            <p>When the dashboard shows that "Male avg wage = $59,887" and "Female avg wage = $57,515" (Module 4), the difference of ~$2,300 seems meaningful. But <strong>is it statistically significant?</strong> That depends on sample size (n) and variance (SD). With large SD and small n, a $2,300 gap could easily be random noise.</p>
+
+            <div class="quiz-box">
+                <div class="quiz-q">Two recruitment sources both produce managers with an average performance of 3.8. Source A has 5 managers, Source B has 50. Which average is more trustworthy?</div>
+                <button class="quiz-reveal" onclick="toggleAnswer(this)">Reveal Answer</button>
+                <div class="quiz-answer"><strong>Source B</strong> is more trustworthy. With n=50, the sample mean is much more stable (less sampling error). Source A's average of 3.8 could shift dramatically with one additional hire. This is why sample size matters — always check the "n" behind any average on the dashboard.</div>
+            </div>
+
+            <div class="kc-section">
+                <div class="kc-title">Knowledge Check</div>
+
+                <div class="kc-question">1. Two departments both have a mean engagement score of 5.0 out of 7. Department A has SD = 0.3 and Department B has SD = 1.8. Which statement is true?</div>
+                <ul class="kc-options" data-correct="2">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Both departments have identical engagement levels</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> Department B has higher engagement because more employees scored above 5</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> Department A has more consistent engagement; Department B likely has both very high and very low scores</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> Standard deviation doesn't matter when means are the same</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! Same mean, very different story. Dept A is uniformly engaged; Dept B has a wide spread, suggesting some employees are highly engaged while others are disengaged.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is C. A high SD means scores are spread out. Dept B likely has some employees at 6-7 <em>and</em> others at 2-3, despite the same average.</div>
+
+                <div class="kc-question" style="margin-top: 18px;">2. If a data point falls 3 standard deviations above the mean, approximately what percentage of the population would score higher?</div>
+                <ul class="kc-options" data-correct="0">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> About 0.15% (very rare)</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> About 5%</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> About 16%</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> About 32%</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! The 68-95-99.7 rule tells us 99.7% falls within ±3 SD. So only about 0.3% falls outside — roughly 0.15% on each tail.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is A. By the 68-95-99.7 rule, 99.7% of data falls within ±3 SD, leaving only ~0.3% outside (0.15% on each side).</div>
+            </div>
+
+            <div class="exercise-box">
+                <div class="exercise-title">Exercise: Calculate Standard Deviation</div>
+                <div class="exercise-scenario">
+                    Five employees at Unit 12 received the following performance ratings: <strong>2, 3, 3, 4, 3</strong>. Use the steps below to calculate the standard deviation.
+                </div>
+
+                <div class="calc-row">
+                    <span class="calc-label">Step 1: Mean (x̄) =</span>
+                    <input class="calc-input" id="calcMean" type="text" placeholder="e.g. 3.0">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Step 2: Σ(xᵢ - x̄)² =</span>
+                    <input class="calc-input" id="calcSumSq" type="text" placeholder="e.g. 2.0">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Step 3: SD =</span>
+                    <input class="calc-input" id="calcSD" type="text" placeholder="e.g. 0.71">
+                </div>
+                <div class="calc-row">
+                    <button class="calc-check" onclick="checkSDCalc()">Check My Work</button>
+                </div>
+                <div class="calc-result correct-r" id="sdCorrect">✅ Excellent! Mean = 3.0, deviations² = (1+0+0+1+0) = 2.0, SD = √(2/4) = √0.5 ≈ <strong>0.71</strong>. This low SD indicates highly consistent performance across employees.</div>
+                <div class="calc-result incorrect-r" id="sdIncorrect">❌ Check your work. Hint: Mean = (2+3+3+4+3)/5 = <strong>3.0</strong>. Deviations: (2-3)²=1, (3-3)²=0, (3-3)²=0, (4-3)²=1, (3-3)²=0. Sum = <strong>2.0</strong>. SD = √(2/(5-1)) = √0.5 ≈ <strong>0.71</strong></div>
+            </div>
+        </div><!-- TUTORIAL 3: Adverse Impact -->
+        <div class="tutorial" id="t3">
+            <span class="tutorial-badge badge-m3">Module 3</span>
+            <h2>Adverse Impact & the 4/5ths Rule</h2>
+            <p class="tutorial-lead">Federal guidelines require employers to ensure their selection procedures don't disproportionately screen out members of a protected group. The 4/5ths rule is the primary screening test.</p>
+
+            <h3>What is Adverse Impact?</h3>
+            <p><strong>Adverse impact</strong> (also called disparate impact) occurs when a seemingly neutral employment practice disproportionately affects a protected group. Unlike intentional discrimination (disparate treatment), adverse impact can be unintentional.</p>
+
+            <h3>The 4/5ths Rule</h3>
+            <p>The <strong>Uniform Guidelines on Employee Selection Procedures (1978)</strong> provide a practical test:</p>
+
+            <div class="callout callout-formula">
+                <span class="callout-label">Impact Ratio Formula</span>
+                Impact Ratio = Selection Rate (minority group) / Selection Rate (majority group)<br>
+                <span style="font-size: 12px; color: var(--text3);">If the ratio is below 0.80 (4/5ths), adverse impact may exist</span>
+            </div>
+
+            <h3>Calculating From the Dashboard</h3>
+
+            <div class="diagram-row">
+                <div class="diagram-box">
+                    <div class="diagram-val" style="color: var(--blue);">5.9%</div>
+                    <div class="diagram-label">White Hire Rate</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">444 / 7,565</p>
+                </div>
+                <div class="diagram-arrow">vs.</div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="color: var(--purple);">2.8%</div>
+                    <div class="diagram-label">URM Hire Rate</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">90 / 3,239</p>
+                </div>
+                <div class="diagram-arrow">=</div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="color: var(--red);">0.473</div>
+                    <div class="diagram-label">Impact Ratio</div>
+                    <p style="font-size: 11px; color: var(--red); margin: 4px 0 0;">⚠ Below 0.80</p>
+                </div>
+            </div>
+
+            <h3>What Does This Mean?</h3>
+            <p>An impact ratio of <strong>0.473</strong> is well below the 0.80 threshold. This means URM candidates are being hired at roughly <strong>half the rate</strong> of White candidates. Possible explanations include:</p>
+            <ul style="color: var(--text2); font-size: 14px; padding-left: 20px; margin-bottom: 14px;">
+                <li>Interview procedures may contain bias (conscious or unconscious)</li>
+                <li>Job-irrelevant criteria may be filtering out qualified URM candidates</li>
+                <li>The applicant pools may differ in relevant qualifications</li>
+                <li>Structural barriers in the recruitment process</li>
+            </ul>
+
+            <div class="callout callout-warning">
+                <span class="callout-label">⚠️ Legal Implications</span>
+                The 4/5ths rule is a <strong>screening test</strong>, not a definitive legal standard. If adverse impact is found, the employer must show the selection procedure is <strong>job-related and consistent with business necessity</strong>. Even then, the plaintiff can prevail by demonstrating a less-discriminatory alternative exists.
+            </div>
+
+            <div class="quiz-box">
+                <div class="quiz-q">If Mr. Macky's changes their interview process and the URM hiring rate increases to 4.8% (while White stays at 5.9%), does adverse impact still exist?</div>
+                <button class="quiz-reveal" onclick="toggleAnswer(this)">Reveal Answer</button>
+                <div class="quiz-answer">Impact ratio = 4.8% / 5.9% = <strong>0.814</strong>. This is above the 0.80 threshold, so the 4/5ths rule would <strong>no longer flag adverse impact</strong>. However, best practice is to continually monitor and aim for equitable outcomes, not just passing the threshold.</div>
+            </div>
+
+            <div class="kc-section">
+                <div class="kc-title">Knowledge Check</div>
+
+                <div class="kc-question">1. A company's hiring rates are: Group A = 10%, Group B = 7%. Does the 4/5ths rule flag adverse impact?</div>
+                <ul class="kc-options" data-correct="1">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Yes — the ratio is 0.70, which is below 0.80</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> No — the ratio is 7/10 = 0.70... wait, yes it does flag adverse impact</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> No — a 3% difference is too small to matter</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> It depends on the total number of applicants</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Trick question! Both A and B calculate the correct ratio. Impact ratio = 7%/10% = 0.70, which is below 0.80. <strong>Yes, adverse impact is flagged.</strong></div>
+                <div class="kc-feedback incorrect-fb">❌ The impact ratio = 7%/10% = <strong>0.70</strong>. Since 0.70 < 0.80, adverse impact IS flagged. The absolute percentage difference doesn't matter — it's the ratio.</div>
+
+                <div class="kc-question" style="margin-top: 18px;">2. If adverse impact is found, what is the employer's next legal obligation?</div>
+                <ul class="kc-options" data-correct="2">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Immediately hire more minority candidates to balance ratios</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> Eliminate the selection procedure entirely</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> Demonstrate the procedure is job-related and consistent with business necessity</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> No obligation — the 4/5ths rule is just a guideline</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! Under the Uniform Guidelines, the employer must show the selection procedure is <strong>job-related and consistent with business necessity</strong>. Even then, if a less-discriminatory alternative exists, the current procedure may still be challenged.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is C. The employer must demonstrate the selection procedure is <strong>job-related and consistent with business necessity</strong> — not simply eliminate it or use quotas.</div>
+            </div>
+
+            <div class="exercise-box">
+                <div class="exercise-title">Exercise: Calculate Adverse Impact</div>
+                <div class="exercise-scenario">
+                    A company receives <strong>200 applications from Group A</strong> and hires <strong>40</strong>. It receives <strong>150 applications from Group B</strong> and hires <strong>15</strong>. Calculate the impact ratio and determine if adverse impact exists.
+                </div>
+
+                <div class="calc-row">
+                    <span class="calc-label">Group A hire rate =</span>
+                    <input class="calc-input" id="calcAI_A" type="text" placeholder="e.g. 20%">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Group B hire rate =</span>
+                    <input class="calc-input" id="calcAI_B" type="text" placeholder="e.g. 10%">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Impact Ratio =</span>
+                    <input class="calc-input" id="calcAI_ratio" type="text" placeholder="e.g. 0.50">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Adverse impact?</span>
+                    <input class="calc-input" id="calcAI_verdict" type="text" placeholder="Yes or No" style="width: 80px;">
+                </div>
+                <div class="calc-row">
+                    <button class="calc-check" onclick="checkAICalc()">Check My Work</button>
+                </div>
+                <div class="calc-result correct-r" id="aiCorrect">✅ Correct! Group A: 40/200 = <strong>20%</strong>, Group B: 15/150 = <strong>10%</strong>. Impact ratio = 10%/20% = <strong>0.50</strong>. Since 0.50 < 0.80, <strong>yes, adverse impact exists</strong>. Group B is selected at half the rate of Group A.</div>
+                <div class="calc-result incorrect-r" id="aiIncorrect">❌ Check your work. Group A: 40/200 = <strong>20%</strong>. Group B: 15/150 = <strong>10%</strong>. Impact ratio = minority rate ÷ majority rate = 10/20 = <strong>0.50</strong>. Since 0.50 < 0.80, adverse impact <strong>does</strong> exist.</div>
+            </div>
+        </div><!-- TUTORIAL 4: Turnover Calculation -->
+        <div class="tutorial" id="t4">
+            <span class="tutorial-badge badge-m2">Module 2</span>
+            <h2>Turnover Rate Formulas</h2>
+            <p class="tutorial-lead">Turnover is one of the most expensive HR problems. Understanding how to calculate and interpret it correctly is essential for workforce planning.</p>
+
+            <h3>Basic Turnover Rate</h3>
+            <div class="callout callout-formula">
+                <span class="callout-label">Annual Turnover Rate</span>
+                Turnover Rate = (# Separations during period / Avg # of employees) × 100
+            </div>
+
+            <h3>Voluntary vs. Involuntary</h3>
+            <table class="compare-table">
+                <tr><th>Type</th><th>Definition</th><th>Dashboard Label</th><th>Implication</th></tr>
+                <tr><td><strong>Voluntary (Quit)</strong></td><td>Employee chooses to leave</td><td>Quits</td><td>May indicate dissatisfaction, better opportunities</td></tr>
+                <tr><td><strong>Involuntary (Discharge)</strong></td><td>Employer terminates</td><td>Discharges</td><td>Performance issues, policy violations</td></tr>
+            </table>
+
+            <h3>The Cost of Turnover</h3>
+            <p>Industry estimates suggest replacing an hourly employee costs <strong>$3,000–$5,000</strong> per person (recruiting, training, lost productivity). For managers, this rises to <strong>50–200% of annual salary</strong>. With Mr. Macky's seeing ~5,700 separations per year, even conservative estimates put annual turnover costs in the tens of millions.</p>
+
+            <div class="callout callout-example">
+                <span class="callout-label">📊 Dashboard Example</span>
+                The Flight Risk heatmap shows per-unit turnover rates. A unit with 90% turnover isn't just losing people — it likely has higher training costs, lower service quality, and reduced customer satisfaction. Cross-reference with the Restaurant Performance tab to see the financial impact.
+            </div>
+
+            <div class="quiz-box">
+                <div class="quiz-q">Unit 42 had 80 total employees over the year, of which 60 separated (45 quit, 15 discharged) and 20 remain. What is the turnover rate? Is this primarily a "quit" problem or a "discharge" problem?</div>
+                <button class="quiz-reveal" onclick="toggleAnswer(this)">Reveal Answer</button>
+                <div class="quiz-answer">Turnover rate = 60/80 = <strong>75%</strong>. It's primarily a <strong>quit problem</strong> — 45/60 = 75% of separations were voluntary. This suggests employees are choosing to leave, possibly due to management quality, pay, or working conditions — not performance terminations.</div>
+            </div>
+
+            <div class="kc-section">
+                <div class="kc-title">Knowledge Check</div>
+
+                <div class="kc-question">1. If replacing one hourly employee costs $4,000 and a unit has 50 separations per year, what is the estimated annual turnover cost for that unit?</div>
+                <ul class="kc-options" data-correct="1">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> $50,000</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> $200,000</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> $400,000</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> $2,000,000</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! 50 separations × $4,000 per replacement = <strong>$200,000</strong>. Now multiply that across 148 units and the company-wide cost becomes staggering.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is B. 50 separations × $4,000 = <strong>$200,000</strong> per unit per year.</div>
+
+                <div class="kc-question" style="margin-top: 18px;">2. Employees who quit at Mr. Macky's have higher average performance (2.67) than those discharged (2.57). What does this suggest?</div>
+                <ul class="kc-options" data-correct="2">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> The performance rating system is broken</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> Discharged employees deserved to be fired</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> The company may be losing relatively better performers — a retention concern</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> Performance and turnover type are unrelated</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! When your better performers are the ones quitting, it signals dissatisfaction among valuable employees. This is a <strong>retention problem</strong> that requires investigating root causes.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is C. Higher-performing employees choosing to leave is a red flag — it suggests the organization isn't meeting their needs, creating a <strong>brain drain</strong>.</div>
+            </div>
+
+            <div class="exercise-box">
+                <div class="exercise-title">Exercise: Turnover Cost Analysis</div>
+                <div class="exercise-scenario">
+                    You are the HR Director for Mr. Macky's. Using the data below, calculate the total estimated turnover cost and recommend where to focus interventions.<br><br>
+                    <strong>Unit 15:</strong> 40 employees, 30 separations (25 quits, 5 discharges). Replacement cost: $4,000/person.<br>
+                    <strong>Unit 42:</strong> 55 employees, 12 separations (4 quits, 8 discharges). Replacement cost: $4,000/person.<br>
+                    <strong>Unit 78:</strong> 35 employees, 28 separations (26 quits, 2 discharges). Replacement cost: $4,000/person.
+                </div>
+
+                <div class="calc-row">
+                    <span class="calc-label">Unit 15 turnover rate =</span>
+                    <input class="calc-input" id="calcTO_15" type="text" placeholder="e.g. 75%">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Unit 42 turnover rate =</span>
+                    <input class="calc-input" id="calcTO_42" type="text" placeholder="e.g. 22%">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Unit 78 turnover rate =</span>
+                    <input class="calc-input" id="calcTO_78" type="text" placeholder="e.g. 80%">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Total cost (all 3) =</span>
+                    <input class="calc-input" id="calcTO_cost" type="text" placeholder="e.g. $280,000" style="width: 140px;">
+                </div>
+                <div class="calc-row">
+                    <button class="calc-check" onclick="checkTOCalc()">Check My Work</button>
+                </div>
+                <div class="calc-result correct-r" id="toCorrect">✅ Excellent! Unit 15: 30/40 = <strong>75%</strong>. Unit 42: 12/55 = <strong>21.8%</strong>. Unit 78: 28/35 = <strong>80%</strong>. Total cost: (30+12+28) × $4,000 = <strong>$280,000</strong>. Units 15 and 78 are critical — both have extreme quit rates (83% and 93% voluntary), suggesting systemic retention issues like poor management or pay.</div>
+                <div class="calc-result incorrect-r" id="toIncorrect">❌ Check your work. Turnover rate = separations ÷ total employees. Unit 15: 30/40 = <strong>75%</strong>. Unit 42: 12/55 ≈ <strong>21.8%</strong>. Unit 78: 28/35 = <strong>80%</strong>. Total cost: 70 separations × $4,000 = <strong>$280,000</strong>.</div>
+            </div>
+        </div><!-- TUTORIAL 5: Selection & Validity -->
+        <div class="tutorial" id="t5">
+            <span class="tutorial-badge badge-m3">Module 3 · Module 1</span>
+            <h2>Selection Methods & Validity</h2>
+            <p class="tutorial-lead">Not all interview and selection methods are created equal. Understanding <strong>validity</strong> helps you evaluate whether your hiring tools actually predict job success.</p>
+
+            <h3>Types of Validity</h3>
+            <table class="compare-table">
+                <tr><th>Type</th><th>What It Measures</th><th>Example</th></tr>
+                <tr><td><strong>Criterion Validity</strong></td><td>Does the test predict future job performance?</td><td>Do interview scores predict post-hire performance ratings?</td></tr>
+                <tr><td><strong>Content Validity</strong></td><td>Does the test sample the actual job content?</td><td>A cooking test for a line cook position</td></tr>
+                <tr><td><strong>Construct Validity</strong></td><td>Does the test measure the intended trait?</td><td>Does a "leadership assessment" actually measure leadership?</td></tr>
+            </table>
+
+            <h3>Applying This to the Dashboard</h3>
+            <p>Module 3 shows interview scores for hired vs. not-hired candidates. If hired candidates don't ultimately perform better (check Module 4), the interview may lack <strong>criterion validity</strong> — meaning it's not predicting what we want it to predict.</p>
+
+            <p>Module 1 shows which recruitment sources produce the best-performing managers. If Source A consistently produces higher performers than Source B, Source A has better <strong>predictive validity</strong> for our purposes.</p>
+
+            <div class="callout callout-key">
+                <span class="callout-label">💡 Key Insight</span>
+                The dashboard's "Experience-Performance Paradox" (Module 4) challenges a common assumption: that more experience = better performance. If prior experience doesn't predict performance ratings, then using experience as a major selection criterion has low validity — and we may be overpaying for a signal that doesn't predict outcomes.
+            </div>
+
+            <div class="kc-section">
+                <div class="kc-title">Knowledge Check</div>
+
+                <div class="kc-question">1. A company uses a written test to select managers. Hired candidates score 80+ on the test but their job performance ratings are random (no relationship). What type of validity is lacking?</div>
+                <ul class="kc-options" data-correct="0">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Criterion validity</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> Content validity</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> Face validity</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> Construct validity</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! Criterion validity measures whether the test <strong>predicts</strong> future job performance. If high test scores don't correlate with high performance, the test lacks criterion validity.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is A. Criterion validity asks: does the test score predict the criterion (job performance)? If test scores don't correlate with performance, criterion validity is absent.</div>
+
+                <div class="kc-question" style="margin-top: 18px;">2. The dashboard shows that prior experience doesn't predict performance. If a company still uses "5 years minimum experience" as a hiring requirement, this is an example of:</div>
+                <ul class="kc-options" data-correct="2">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Good HR practice based on industry standards</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> Content-valid selection</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> Using a low-validity predictor that may also create adverse impact</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> Construct-valid selection</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! If experience doesn't predict performance, it's a <strong>low-validity predictor</strong>. Worse, experience requirements can disproportionately screen out younger candidates and certain demographic groups, potentially creating adverse impact.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is C. When data shows experience doesn't predict performance, using it as a requirement is a <strong>low-validity</strong> practice that may also create adverse impact.</div>
+            </div>
+
+            <div class="exercise-box">
+                <div class="exercise-title">Exercise: Match the Validity Type</div>
+                <p style="font-size: 14px; color: var(--text2); margin-bottom: 14px;">For each hiring scenario, identify the type of validity being tested:</p>
+
+                <div class="tf-statement" data-answer="true">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"We compared interview scores against later job performance ratings."</strong> — This tests <em>criterion validity</em>.
+                        <div class="tf-explain tf-right">✅ Correct! Comparing a predictor (interview scores) against an outcome (performance ratings) is the definition of criterion validity.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is True. Criterion validity = does the selection tool predict the criterion (job success)? Comparing scores to performance does exactly that.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+
+                <div class="tf-statement" data-answer="false">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"Our cooking test for kitchen staff has construct validity because it involves real cooking tasks."</strong>
+                        <div class="tf-explain tf-right">✅ Correct — False! A test using actual job tasks has <strong>content validity</strong>, not construct validity. Construct validity measures abstract traits like "leadership ability."</div>
+                        <div class="tf-explain tf-incorrect">❌ This is False. Real job task tests = <strong>content validity</strong> (sampling actual job duties). Construct validity involves measuring abstract psychological traits.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+
+                <div class="tf-statement" data-answer="true">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"If recruitment Source A consistently produces higher-performing managers than Source B, Source A has better predictive validity for manager selection."</strong>
+                        <div class="tf-explain tf-right">✅ Correct! If outcomes (performance) consistently differ by source, the source itself becomes a valid predictor. This is a practical application of criterion validity.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is True. Predictive validity (a form of criterion validity) means the predictor (recruitment source) forecasts future outcomes (performance). Consistent differences confirm this.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TUTORIAL 6: Central Tendency -->
+        <div class="tutorial" id="t6">
+            <span class="tutorial-badge badge-core">Core Statistics</span>
+            <h2>Central Tendency & Distributions</h2>
+            <p class="tutorial-lead">The three "averages" — mean, median, and mode — each tell a different story about your data.</p>
+
+            <h3>Mean, Median, and Mode</h3>
+            <table class="compare-table">
+                <tr><th>Measure</th><th>Definition</th><th>When to Use</th></tr>
+                <tr><td><strong>Mean</strong></td><td>Sum of all values ÷ count</td><td>Symmetric data, no extreme outliers</td></tr>
+                <tr><td><strong>Median</strong></td><td>Middle value when sorted</td><td>Skewed data, salary distributions</td></tr>
+                <tr><td><strong>Mode</strong></td><td>Most frequently occurring value</td><td>Categorical data (e.g., most common job title)</td></tr>
+            </table>
+
+            <h3>Why This Matters for HR Data</h3>
+            <p><strong>Salary data</strong> is almost always right-skewed — a few highly-paid executives pull the mean upward. The <strong>median</strong> salary is usually a better representation of "typical" pay than the mean.</p>
+            <p><strong>Performance ratings</strong> often cluster — many employees get a 3 (meets expectations), creating a strong mode. If the distribution is very peaked (low variance), the rating system may not be differentiating performers effectively.</p>
+
+            <div class="callout callout-example">
+                <span class="callout-label">📊 Dashboard Example</span>
+                The dashboard reports "Average Wage" in Module 4. When comparing demographics (male vs. female wages), ask: is the <em>mean</em> being pulled by a few outliers? If so, the median would be a more reliable comparison. The scatter plot lets you visually check for outliers.
+            </div>
+
+            <h3>Understanding Skewness</h3>
+            <div class="diagram-row">
+                <div class="diagram-box">
+                    <div class="diagram-val" style="font-size: 16px; color: var(--green);">Mean ≈ Median</div>
+                    <div class="diagram-label">Normal (Symmetric)</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">Performance ratings</p>
+                </div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="font-size: 16px; color: var(--amber);">Mean > Median</div>
+                    <div class="diagram-label">Right-Skewed</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">Salary, tenure</p>
+                </div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="font-size: 16px; color: var(--rose);">Mean < Median</div>
+                    <div class="diagram-label">Left-Skewed</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">Age at entry-level roles</p>
+                </div>
+            </div>
+
+            <div class="kc-section">
+                <div class="kc-title">Knowledge Check</div>
+
+                <div class="kc-question">1. Manager salaries at a company are: $45K, $48K, $50K, $52K, $55K, $180K. Which measure of central tendency best represents the "typical" salary?</div>
+                <ul class="kc-options" data-correct="1">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Mean ($71,667) — it uses all the data</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> Median ($51,000) — it's not pulled by the outlier</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> Mode — the most common salary</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> All three are equally valid</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! The $180K outlier pulls the mean up to $71.7K, which doesn't represent anyone's actual salary. The <strong>median</strong> ($51K) is resistant to outliers and better represents the typical value.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is B. The $180K outlier inflates the mean. The <strong>median</strong> is resistant to extreme values, making it the best choice for skewed salary data.</div>
+            </div>
+
+            <div class="exercise-box">
+                <div class="exercise-title">Exercise: Find Mean, Median & Mode</div>
+                <div class="exercise-scenario">
+                    Seven employees have the following hourly wages: <strong>$12, $13, $13, $14, $15, $15, $42</strong>. Calculate all three measures.
+                </div>
+
+                <div class="calc-row">
+                    <span class="calc-label">Mean =</span>
+                    <input class="calc-input" id="calcCT_mean" type="text" placeholder="e.g. $17.71">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Median =</span>
+                    <input class="calc-input" id="calcCT_median" type="text" placeholder="e.g. $14">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Mode =</span>
+                    <input class="calc-input" id="calcCT_mode" type="text" placeholder="e.g. $13">
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Best measure here?</span>
+                    <input class="calc-input" id="calcCT_best" type="text" placeholder="mean/median/mode" style="width: 140px;">
+                </div>
+                <div class="calc-row">
+                    <button class="calc-check" onclick="checkCTCalc()">Check My Work</button>
+                </div>
+                <div class="calc-result correct-r" id="ctCorrect">✅ Excellent! Mean = (12+13+13+14+15+15+42)/7 = <strong>$17.71</strong>. Median = <strong>$14</strong> (middle value). Mode = <strong>$13 and $15</strong> (bimodal). The <strong>median</strong> ($14) best represents the typical wage because the $42 outlier inflates the mean.</div>
+                <div class="calc-result incorrect-r" id="ctIncorrect">❌ Check your work. Mean = 124/7 = <strong>$17.71</strong>. Sorted values: 12, 13, 13, 14, 15, 15, 42 — median is the 4th value = <strong>$14</strong>. Both $13 and $15 appear twice = <strong>bimodal</strong>. Best measure: <strong>median</strong> (resists the $42 outlier).</div>
+            </div>
+        </div>
+
+        <!-- TUTORIAL 7: Reading Visualizations -->
+        <div class="tutorial" id="t7">
+            <span class="tutorial-badge badge-overview">General Skills</span>
+            <h2>Reading Data Visualizations</h2>
+            <p class="tutorial-lead">Charts can inform or mislead. Here's how to critically evaluate the visualizations in the dashboard.</p>
+
+            <h3>Chart Types in the Dashboard</h3>
+            <table class="compare-table">
+                <tr><th>Chart Type</th><th>Best For</th><th>Dashboard Example</th></tr>
+                <tr><td><strong>Bar Chart</strong></td><td>Comparing categories</td><td>Age distribution, hiring by race</td></tr>
+                <tr><td><strong>Line Chart</strong></td><td>Trends over time</td><td>Turnover trend 2020–2026</td></tr>
+                <tr><td><strong>Doughnut</strong></td><td>Proportions of a whole</td><td>Gender split, market types</td></tr>
+                <tr><td><strong>Radar</strong></td><td>Multi-dimensional comparison</td><td>Engagement dimensions</td></tr>
+                <tr><td><strong>Scatter Plot</strong></td><td>Relationship between 2 variables</td><td>Experience vs. Wage by Performance</td></tr>
+                <tr><td><strong>Heatmap</strong></td><td>Magnitude across many items</td><td>Flight risk by unit</td></tr>
+            </table>
+
+            <h3>Common Mistakes to Avoid</h3>
+            <ul style="color: var(--text2); font-size: 14px; padding-left: 20px; margin-bottom: 14px;">
+                <li><strong>Ignoring the Y-axis scale</strong> — a bar chart that doesn't start at zero can exaggerate differences</li>
+                <li><strong>Confusing area with value</strong> — in doughnut charts, thin slices may represent more than you think</li>
+                <li><strong>Over-interpreting small samples</strong> — a trendline based on 3 data points is unreliable</li>
+                <li><strong>Cherry-picking timeframes</strong> — always look at the full trend, not just favorable years</li>
+            </ul>
+
+            <div class="callout callout-key">
+                <span class="callout-label">💡 Pro Tip: The Radar Chart</span>
+                The engagement radar chart on the Overview compares Company Average, Large Market, and Medium Market across 9 dimensions. Look for where the shapes <strong>diverge</strong> — those are the dimensions where market type makes a meaningful difference. Where the shapes overlap, engagement is consistent company-wide.
+            </div>
+
+            <div class="kc-section">
+                <div class="kc-title">Knowledge Check</div>
+
+                <div class="kc-question">1. A bar chart shows Employee Group A with an average engagement score of 5.2 and Group B with 5.0. The Y-axis starts at 4.8. What should you be cautious about?</div>
+                <ul class="kc-options" data-correct="2">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Nothing — the chart accurately shows Group A is higher</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> The data must be wrong because engagement can't be that high</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> The truncated Y-axis visually exaggerates a small difference (0.2 out of 7)</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> Bar charts shouldn't be used for engagement data</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! When the Y-axis doesn't start at zero, small differences look dramatic. A 0.2-point gap on a 7-point scale is <strong>2.9%</strong> — likely not meaningful — but the visual may suggest a much larger difference.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is C. A truncated Y-axis makes small differences appear large. Always check where the axis starts before interpreting the magnitude of differences.</div>
+            </div>
+
+            <div class="exercise-box">
+                <div class="exercise-title">Exercise: Choose the Right Chart</div>
+                <p style="font-size: 14px; color: var(--text2); margin-bottom: 14px;">For each data question, decide if the recommended chart type is the best choice:</p>
+
+                <div class="tf-statement" data-answer="true">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"Use a scatter plot to show the relationship between employee experience and wages."</strong>
+                        <div class="tf-explain tf-right">✅ Correct! Scatter plots are ideal for showing relationships between two continuous variables. Each dot = one employee, showing how experience and wages co-vary.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is True. Scatter plots visualize relationships between two continuous variables — perfect for experience vs. wages.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+
+                <div class="tf-statement" data-answer="false">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"Use a line chart to compare the number of employees in each age group."</strong>
+                        <div class="tf-explain tf-right">✅ Correct — False! Age groups are categories, not a continuous time series. A <strong>bar chart</strong> is better for comparing distinct categories.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is False. Line charts imply continuity over time. Age groups are discrete categories — use a <strong>bar chart</strong> instead.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+
+                <div class="tf-statement" data-answer="true">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"A heatmap is effective for showing turnover rates across 148 restaurant units."</strong>
+                        <div class="tf-explain tf-right">✅ Correct! Heatmaps use color intensity to show magnitude across many items simultaneously. With 148 units, a heatmap lets you quickly spot outliers.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is True. Heatmaps excel at showing patterns across many items. Color coding 148 units makes it easy to spot high-turnover outliers at a glance.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+
+                <div class="tf-statement" data-answer="false">
+                    <div style="flex: 1;">
+                        <strong style="color: var(--text);">"A pie chart is the best choice for showing engagement scores across 9 dimensions."</strong>
+                        <div class="tf-explain tf-right">✅ Correct — False! A <strong>radar chart</strong> is ideal for multi-dimensional comparison. Pie charts show parts of a whole, not relative scores across dimensions.</div>
+                        <div class="tf-explain tf-incorrect">❌ This is False. Engagement dimensions aren't parts of a whole — they're separate scales. A <strong>radar chart</strong> shows all 9 scores simultaneously for comparison.</div>
+                    </div>
+                    <div class="tf-btns">
+                        <button class="tf-btn" onclick="checkTF(this, true)">TRUE</button>
+                        <button class="tf-btn" onclick="checkTF(this, false)">FALSE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TUTORIAL 8: Evidence-Based Decision Making -->
+        <div class="tutorial" id="t8">
+            <span class="tutorial-badge badge-core">Core Framework</span>
+            <h2>Evidence-Based Decision Making</h2>
+            <p class="tutorial-lead">The goal of this entire dashboard is to move from gut-feel management to evidence-based HR. Here's the framework.</p>
+
+            <h3>The EBDM Process</h3>
+            <div class="diagram-row">
+                <div class="diagram-box">
+                    <div class="diagram-val" style="font-size: 18px; color: var(--accent);">1</div>
+                    <div class="diagram-label">Ask</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">Define the question</p>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="font-size: 18px; color: var(--blue);">2</div>
+                    <div class="diagram-label">Acquire</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">Gather relevant data</p>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="font-size: 18px; color: var(--purple);">3</div>
+                    <div class="diagram-label">Appraise</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">Evaluate quality & relevance</p>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="font-size: 18px; color: var(--green);">4</div>
+                    <div class="diagram-label">Apply</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">Make the decision</p>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-box">
+                    <div class="diagram-val" style="font-size: 18px; color: var(--amber);">5</div>
+                    <div class="diagram-label">Assess</div>
+                    <p style="font-size: 11px; color: var(--text3); margin: 4px 0 0;">Evaluate outcomes</p>
+                </div>
+            </div>
+
+            <h3>Applying EBDM to the Dashboard</h3>
+            <div class="callout callout-example">
+                <span class="callout-label">📊 Example: Reducing Turnover</span>
+                <strong>1. Ask:</strong> Why is unit-level turnover so high?<br>
+                <strong>2. Acquire:</strong> Use Module 2 heatmap to identify high-turnover units. Cross-reference with engagement scores and restaurant profit data.<br>
+                <strong>3. Appraise:</strong> Is the pattern consistent across years? Is it driven by quits or discharges? Check sample sizes.<br>
+                <strong>4. Apply:</strong> Design targeted interventions for the worst units (e.g., management coaching, pay review).<br>
+                <strong>5. Assess:</strong> Monitor next year's data to see if interventions worked.
+            </div>
+
+            <h3>The Four Sources of Evidence</h3>
+            <table class="compare-table">
+                <tr><th>Source</th><th>Description</th><th>Dashboard Coverage</th></tr>
+                <tr><td><strong>Scientific Literature</strong></td><td>Peer-reviewed research on HR practices</td><td>These tutorials reference key concepts</td></tr>
+                <tr><td><strong>Organizational Data</strong></td><td>Internal metrics and KPIs</td><td>✅ All 4 modules</td></tr>
+                <tr><td><strong>Professional Expertise</strong></td><td>Practitioner experience and judgment</td><td>Anomalies section challenges assumptions</td></tr>
+                <tr><td><strong>Stakeholder Values</strong></td><td>Employee/manager/executive input</td><td>Engagement survey data represents this</td></tr>
+            </table>
+
+            <div class="quiz-box">
+                <div class="quiz-q">A manager says: "We should hire experienced people because they perform better." Using the dashboard, how would you evaluate this claim using the EBDM framework?</div>
+                <button class="quiz-reveal" onclick="toggleAnswer(this)">Reveal Answer</button>
+                <div class="quiz-answer"><strong>Ask:</strong> Does experience predict performance?<br><strong>Acquire:</strong> Check Module 4 — the "Avg Performance by Prior Experience" chart and scatter plot.<br><strong>Appraise:</strong> The data shows minimal correlation between experience and performance ratings (the "experience-performance paradox").<br><strong>Apply:</strong> Recommend adjusting hiring criteria to weight actual skill assessments over years of experience.<br><strong>Assess:</strong> Track new hires' performance over time to validate the change.</div>
+            </div>
+
+            <div class="kc-section">
+                <div class="kc-title">Knowledge Check</div>
+
+                <div class="kc-question">1. A VP says: "Our engagement scores are above industry average, so we don't need to worry about it." Using the EBDM framework, what is the problem with this reasoning?</div>
+                <ul class="kc-options" data-correct="3">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Industry averages are always wrong</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> The VP should only trust internal data</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> Engagement scores are subjective and cannot be trusted</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> Aggregate scores hide variation; some units may have critically low engagement even if the average looks good</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! The EBDM "Appraise" step requires us to evaluate data quality. Company-wide averages can mask struggling units. The dashboard's heatmap and module drilldowns exist precisely to uncover variation beneath the surface.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is D. Averages can be misleading — some units may have dangerously low engagement even when the company average looks healthy. EBDM requires digging deeper.</div>
+
+                <div class="kc-question" style="margin-top: 18px;">2. Which of the following is the correct order of steps in the EBDM framework?</div>
+                <ul class="kc-options" data-correct="1">
+                    <li class="kc-option" data-idx="0"><span class="kc-letter">A</span> Apply → Ask → Acquire → Appraise → Assess</li>
+                    <li class="kc-option" data-idx="1"><span class="kc-letter">B</span> Ask → Acquire → Appraise → Apply → Assess</li>
+                    <li class="kc-option" data-idx="2"><span class="kc-letter">C</span> Acquire → Appraise → Ask → Assess → Apply</li>
+                    <li class="kc-option" data-idx="3"><span class="kc-letter">D</span> Ask → Apply → Acquire → Appraise → Assess</li>
+                </ul>
+                <div class="kc-feedback correct-fb">✅ Correct! The 5 A's in order: <strong>Ask</strong> the question, <strong>Acquire</strong> relevant data, <strong>Appraise</strong> its quality, <strong>Apply</strong> it to make a decision, and <strong>Assess</strong> the outcome.</div>
+                <div class="kc-feedback incorrect-fb">❌ The answer is B. The EBDM framework follows: Ask → Acquire → Appraise → Apply → Assess. You must define the question before gathering data, and evaluate evidence before acting on it.</div>
+            </div>
+
+            <div class="exercise-box">
+                <div class="exercise-title">Exercise: Apply the EBDM Framework</div>
+                <div class="exercise-scenario">
+                    <strong>Scenario:</strong> The CEO of Mr. Macky's notices that Unit 23 has the lowest profit margin in the company. She immediately wants to fire the unit manager. As the HR Director, use the EBDM framework to advise her. Answer each step:
+                </div>
+
+                <ul class="exercise-tasks">
+                    <li><strong>Ask:</strong> What question should HR investigate before making a decision?</li>
+                    <li><strong>Acquire:</strong> Which dashboard modules and data points would you check?</li>
+                    <li><strong>Appraise:</strong> What factors could explain low profit besides poor management?</li>
+                    <li><strong>Apply:</strong> Based on the evidence, what action would you recommend?</li>
+                    <li><strong>Assess:</strong> How would you measure whether your intervention worked?</li>
+                </ul>
+
+                <button class="quiz-reveal" onclick="toggleAnswer(this)">Reveal Sample Response</button>
+                <div class="quiz-answer">
+                    <strong>1. Ask:</strong> "Is Unit 23's low profit caused by management, or by external factors?"<br>
+                    <strong>2. Acquire:</strong> Check Module 2 (turnover for Unit 23), Module 4 (manager performance rating), the engagement survey for Unit 23, and the Restaurant Performance tab (COGS, payroll ratio).<br>
+                    <strong>3. Appraise:</strong> Low profit could be caused by: high COGS in that market, low customer traffic (location), high payroll ratio, new unit still ramping up, or recent manager transition. Check if the manager's performance rating is actually low or if conditions are working against them.<br>
+                    <strong>4. Apply:</strong> If the manager's ratings are adequate and external factors drive low profit, provide support (menu adjustment, marketing) rather than termination. If the manager truly underperforms (low engagement, high quit-rate, poor ratings), consider coaching first, then reassignment.<br>
+                    <strong>5. Assess:</strong> Set quarterly profit targets. Monitor turnover rate, engagement scores, and COGS for the next 2 quarters. Compare Unit 23's trajectory against similar-market units.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Score Tracker -->
+    <div class="score-tracker hidden" id="scoreTracker">
+        <div class="score-ring">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+                <circle class="ring-bg" cx="22" cy="22" r="18" fill="none" stroke-width="4"/>
+                <circle class="ring-fill" id="scoreRing" cx="22" cy="22" r="18" fill="none" stroke-width="4"
+                    stroke-dasharray="113.1" stroke-dashoffset="113.1" stroke-linecap="round"/>
+            </svg>
+            <div class="score-num" id="scoreNum">0%</div>
+        </div>
+        <div class="score-label">
+            <strong id="scoreText">0 / 0</strong>
+            Knowledge Checks
+        </div>
+    </div>
+
+    <script>
+        // --- Floating Back to Top button ---
+        window.addEventListener('scroll', function() {
+            const btn = document.getElementById('backToTop');
+            if (window.scrollY > 500) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        });
+
+        // --- Toggle open-ended answers ---
+        function toggleAnswer(btn) {
+            const answer = btn.nextElementSibling;
+            answer.classList.toggle('show');
+            btn.textContent = answer.classList.contains('show') ? 'Hide Answer' : 'Reveal Answer';
+        }
+
+        // --- True/False exercise handler ---
+        function checkTF(btn, userAnswer) {
+            const statement = btn.closest('.tf-statement');
+            if (statement.dataset.done) return;
+            statement.dataset.done = 'true';
+
+            const correctAnswer = statement.dataset.answer === 'true';
+            const isCorrect = (userAnswer === correctAnswer);
+
+            // Disable buttons
+            statement.querySelectorAll('.tf-btn').forEach(b => b.classList.add('tf-disabled'));
+
+            // Highlight the clicked button
+            btn.classList.add(isCorrect ? 'tf-correct' : 'tf-wrong');
+
+            // Show feedback
+            const explains = statement.querySelectorAll('.tf-explain');
+            explains.forEach(ex => {
+                if (isCorrect && ex.classList.contains('tf-right')) ex.classList.add('show');
+                if (!isCorrect && ex.classList.contains('tf-incorrect')) ex.classList.add('show');
+            });
+
+            // Update score tracker
+            totalAnswered++;
+            if (isCorrect) totalCorrect++;
+            updateScore();
+        }
+
+        // --- SD Calculation checker ---
+        function checkSDCalc() {
+            const mean = parseFloat(document.getElementById('calcMean').value);
+            const sumSq = parseFloat(document.getElementById('calcSumSq').value);
+            const sd = parseFloat(document.getElementById('calcSD').value);
+
+            const meanOk = Math.abs(mean - 3.0) < 0.1;
+            const sumOk = Math.abs(sumSq - 2.0) < 0.2;
+            const sdOk = Math.abs(sd - 0.71) < 0.05;
+
+            if (meanOk && sumOk && sdOk) {
+                document.getElementById('sdCorrect').classList.add('show');
+                document.getElementById('sdIncorrect').classList.remove('show');
+                totalCorrect++;
+            } else {
+                document.getElementById('sdIncorrect').classList.add('show');
+                document.getElementById('sdCorrect').classList.remove('show');
+            }
+            totalAnswered++;
+            updateScore();
+        }
+
+        // --- Adverse Impact calculation checker ---
+        function checkAICalc() {
+            const a = document.getElementById('calcAI_A').value.replace('%','').trim();
+            const b = document.getElementById('calcAI_B').value.replace('%','').trim();
+            const ratio = document.getElementById('calcAI_ratio').value.trim();
+            const verdict = document.getElementById('calcAI_verdict').value.trim().toLowerCase();
+
+            const aOk = Math.abs(parseFloat(a) - 20) < 2;
+            const bOk = Math.abs(parseFloat(b) - 10) < 2;
+            const rOk = Math.abs(parseFloat(ratio) - 0.50) < 0.05;
+            const vOk = verdict.includes('yes');
+
+            if (aOk && bOk && rOk && vOk) {
+                document.getElementById('aiCorrect').classList.add('show');
+                document.getElementById('aiIncorrect').classList.remove('show');
+                totalCorrect++;
+            } else {
+                document.getElementById('aiIncorrect').classList.add('show');
+                document.getElementById('aiCorrect').classList.remove('show');
+            }
+            totalAnswered++;
+            updateScore();
+        }
+
+        // --- Turnover cost calculation checker ---
+        function checkTOCalc() {
+            const t15 = document.getElementById('calcTO_15').value.replace('%','').trim();
+            const t42 = document.getElementById('calcTO_42').value.replace('%','').trim();
+            const t78 = document.getElementById('calcTO_78').value.replace('%','').trim();
+            const cost = document.getElementById('calcTO_cost').value.replace(/[$,]/g,'').trim();
+
+            const ok15 = Math.abs(parseFloat(t15) - 75) < 3;
+            const ok42 = Math.abs(parseFloat(t42) - 21.8) < 3;
+            const ok78 = Math.abs(parseFloat(t78) - 80) < 3;
+            const okCost = Math.abs(parseFloat(cost) - 280000) < 10000;
+
+            if (ok15 && ok42 && ok78 && okCost) {
+                document.getElementById('toCorrect').classList.add('show');
+                document.getElementById('toIncorrect').classList.remove('show');
+                totalCorrect++;
+            } else {
+                document.getElementById('toIncorrect').classList.add('show');
+                document.getElementById('toCorrect').classList.remove('show');
+            }
+            totalAnswered++;
+            updateScore();
+        }
+
+        // --- Central Tendency calculation checker ---
+        function checkCTCalc() {
+            const mean = document.getElementById('calcCT_mean').value.replace('$','').trim();
+            const median = document.getElementById('calcCT_median').value.replace('$','').trim();
+            const best = document.getElementById('calcCT_best').value.trim().toLowerCase();
+
+            const mOk = Math.abs(parseFloat(mean) - 17.71) < 1;
+            const mdOk = Math.abs(parseFloat(median) - 14) < 1;
+            const bOk = best.includes('median');
+
+            if (mOk && mdOk && bOk) {
+                document.getElementById('ctCorrect').classList.add('show');
+                document.getElementById('ctIncorrect').classList.remove('show');
+                totalCorrect++;
+            } else {
+                document.getElementById('ctIncorrect').classList.add('show');
+                document.getElementById('ctCorrect').classList.remove('show');
+            }
+            totalAnswered++;
+            updateScore();
+        }
+
+        // --- Knowledge Check system (multiple choice) ---
+        let totalAnswered = 0;
+        let totalCorrect = 0;
+        const totalQuestions = document.querySelectorAll('.kc-options').length
+            + document.querySelectorAll('.tf-statement').length
+            + document.querySelectorAll('.calc-check').length;
+
+        document.querySelectorAll('.kc-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const optionsList = this.closest('.kc-options');
+                if (optionsList.dataset.answered) return;
+                optionsList.dataset.answered = 'true';
+
+                const correctIdx = parseInt(optionsList.dataset.correct);
+                const selectedIdx = parseInt(this.dataset.idx);
+                const isCorrect = selectedIdx === correctIdx;
+
+                optionsList.querySelectorAll('.kc-option').forEach(o => o.classList.add('disabled'));
+
+                this.classList.add('selected');
+                if (isCorrect) {
+                    this.classList.add('correct');
+                    totalCorrect++;
+                } else {
+                    this.classList.add('incorrect');
+                    optionsList.querySelector(`[data-idx="${correctIdx}"]`).classList.add('correct');
+                }
+
+                let nextEl = optionsList.nextElementSibling;
+                while (nextEl) {
+                    if (nextEl.classList.contains('kc-feedback')) {
+                        if (isCorrect && nextEl.classList.contains('correct-fb')) {
+                            nextEl.classList.add('show');
+                            break;
+                        } else if (!isCorrect && nextEl.classList.contains('incorrect-fb')) {
+                            nextEl.classList.add('show');
+                            break;
+                        }
+                    }
+                    nextEl = nextEl.nextElementSibling;
+                }
+
+                totalAnswered++;
+                updateScore();
+            });
+        });
+
+        function updateScore() {
+            const tracker = document.getElementById('scoreTracker');
+            tracker.classList.remove('hidden');
+
+            const pct = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+            document.getElementById('scoreNum').textContent = pct + '%';
+            document.getElementById('scoreText').textContent = totalCorrect + ' / ' + totalAnswered;
+
+            const circumference = 113.1;
+            const offset = circumference - (totalAnswered / totalQuestions) * circumference;
+            const ring = document.getElementById('scoreRing');
+            ring.style.strokeDashoffset = offset;
+
+            if (totalAnswered > 0) {
+                const ratio = totalCorrect / totalAnswered;
+                ring.style.stroke = ratio >= 0.8 ? '#34d399' : ratio >= 0.5 ? '#fbbf24' : '#fb7185';
+            }
+        }
+    </script>
+</body>
+</html>
+
