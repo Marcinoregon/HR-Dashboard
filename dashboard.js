@@ -76,6 +76,8 @@ function switchModule(moduleId, linkEl) {
         'module4': 'Module 4: Compensation & Value',
         'anomalies': 'Data Anomalies',
         'exercises': 'Student Exercises',
+        'research': 'Research Statements',
+        'controls': 'Control Variables',
         'chartbuilder': 'Chart Builder',
         'explore': 'Explore Data',
         'stats': 'Statistical Analysis',
@@ -160,6 +162,8 @@ function renderModule(moduleId) {
         case 'module4': renderModule4(); break;
         case 'anomalies': renderAnomalies(); break;
         case 'exercises': renderExercises(); break;
+        case 'research': renderResearchQuestions(); break;
+        case 'controls': renderControlVariables(); break;
         case 'chartbuilder': renderChartBuilder(); break;
         case 'explore': renderExploreData(); break;
         case 'stats': renderStats(); break;
@@ -4290,6 +4294,680 @@ window.filterDataDict = function() {
         cat.style.display = (visible.length === 0 && hidden.length > 0) ? 'none' : '';
     });
 };
+
+// ===== RESEARCH QUESTIONS =====
+function renderResearchQuestions() {
+    const grid = document.getElementById('researchQuestionsGrid');
+    
+    const statements = [
+        {
+            id: 1,
+            statement: "The dataset allows us to analyze the correlation between individual engagement scores and job performance ratings for hourly employees.",
+            correct: false,
+            explanation: "False. Hourly employees do not receive formal performance reviews (performance ratings only exist for managers). Furthermore, the raw engagement survey data subset is anonymous and does not provide position or demographic information, making it impossible to map individual scores back to specific hourly roles or performance records."
+        },
+        {
+            id: 2,
+            statement: "We can calculate the adverse impact ratio for URM applicants relative to White applicants because the recruitment data tracks both applicant race and hiring decisions.",
+            correct: true,
+            explanation: "True. The recruitment and hiring dataset tracks the race (White vs. URM) and hire decision (Hired vs. Not Hired) for all applicants, allowing you to calculate individual hire rates and compute the adverse impact ratio. This data can be found in the **AM Applicant Information** worksheet."
+        },
+        {
+            id: 3,
+            statement: "The dataset contains unit-level average employee engagement scores alongside market size categories (Large vs. Medium), permitting a comparison of engagement across market types.",
+            correct: true,
+            explanation: "True. The dataset contains aggregated engagement scores across nine dimensions at the unit level, along with the market size category (Large vs. Medium) for each unit, allowing direct comparison between market types. This data can be found in the **Engagement Survey Results** worksheet (for unit engagement averages) and linked to the **Current Employees** or **Restaurant Performance Info** worksheets by Unit ID."
+        },
+        {
+            id: 4,
+            statement: "We can analyze whether the number of years of prior management experience predicts job performance ratings for Line Cooks.",
+            correct: false,
+            explanation: "False. Performance ratings and years of prior experience are only tracked for management-level employees (Managers and Assistant Managers) in this dataset. Line Cooks and other hourly roles have no such fields."
+        },
+        {
+            id: 5,
+            statement: "The dataset contains individual-level hourly wage rates for Bartenders, allowing us to calculate their average annual income.",
+            correct: false,
+            explanation: "False. Individual compensation data is only available for Managers (e.g., Manager Wage). The dashboard tracks overall unit-level payroll costs, but does not break down individual wage rates for hourly positions like Bartenders or Wait staff."
+        },
+        {
+            id: 6,
+            statement: "We can evaluate whether managers who voluntarily separated (quit) had lower average performance ratings than managers who remain employed.",
+            correct: true,
+            explanation: "True. The dataset tracks the employment status (Employed, Quit, Discharged) and performance ratings of management-level employees, making it possible to compare average ratings between active and former managers. This data can be found in the **Past and Current Employees** worksheet."
+        },
+        {
+            id: 7,
+            statement: "The recruitment records contain applicant gender and hire decisions, allowing us to determine if male and female applicants are hired at significantly different rates.",
+            correct: true,
+            explanation: "True. Gender (Male, Female) and hiring status (Hired, Not Hired) are recorded in the applicant records, enabling the analysis of hiring rates by gender. This data can be found in the **AM Applicant Information** worksheet."
+        },
+        {
+            id: 8,
+            statement: "The dataset allows us to identify which recruitment source yields the highest average performance rating for Assistant Managers.",
+            correct: true,
+            explanation: "True. We have recruitment source, job title, and performance ratings for all managerial roles. Since Assistant Managers are management-level, their records are complete with these fields. This data can be found in the **Current Employees** worksheet."
+        },
+        {
+            id: 9,
+            statement: "We can analyze the relationship between customer satisfaction ratings and employee turnover at the unit level.",
+            correct: false,
+            explanation: "False. The dataset does not contain any customer satisfaction metrics or surveys. It only captures employee metrics (turnover, engagement) and restaurant financial/operational data."
+        },
+        {
+            id: 10,
+            statement: "The dataset allows us to test whether units with higher overall employee engagement scores generate higher net profits.",
+            correct: true,
+            explanation: "True. Unit-level engagement survey results (aggregated scores) and unit-level financial data (Sales, COGS, Payroll, Fixed Ops, and resulting Net Profit) are available, allowing you to analyze their correlation. This data can be found in the **Engagement Survey Results** (engagement scores) and **Restaurant Performance Info** (financials and profits) worksheets, linked by Unit ID."
+        },
+        {
+            id: 11,
+            statement: "We can track changes in the company-wide adverse impact ratio over a seven-year historical period.",
+            correct: false,
+            explanation: "False. The recruitment and hiring dataset is only provided for a single year's applicant pool, not historically over seven years."
+        },
+        {
+            id: 12,
+            statement: "The dataset allows us to determine if there is a salary pay gap between male and female managers by comparing their average annual salaries.",
+            correct: true,
+            explanation: "True. Yes, we have annual salaries, gender, and job titles for management-level employees. This data can be found in the **Current Employees** worksheet."
+        },
+        {
+            id: 13,
+            statement: "We can compare the average performance rating of managers recruited through online job boards versus those recruited via university partnerships.",
+            correct: true,
+            explanation: "True. Yes, recruitment source and performance ratings are available for managers. This data can be found in the **Current Employees** (for active managers) or **Past and Current Employees** worksheets."
+        },
+        {
+            id: 14,
+            statement: "The separation records allow us to determine the specific voluntary reason (e.g., higher salary elsewhere, relocation) for each employee who quit.",
+            correct: false,
+            explanation: "False. The separation records only note 'Quit' or 'Discharged' and do not contain qualitative reasons for separation."
+        },
+        {
+            id: 15,
+            statement: "The dataset tracks the actual cost of employee separations, allowing us to calculate the exact cost savings from a 15% reduction in voluntary turnover.",
+            correct: false,
+            explanation: "False. The dataset does not track the actual cost of employee separations; we must estimate this using industry standard formulas (e.g., 50-200% of salary)."
+        },
+        {
+            id: 16,
+            statement: "We can compare the average scores of Interview 1 and Interview 2 for hourly applicants to see if they perform better in the first round.",
+            correct: false,
+            explanation: "False. Hourly applicants only receive a single structured interview, so Interview 2 scores do not exist for hourly roles."
+        },
+        {
+            id: 17,
+            statement: "The dataset allows us to evaluate the relationship between a manager's performance rating and the total sales revenue generated by their restaurant unit.",
+            correct: true,
+            explanation: "True. Yes, we can link manager performance ratings with their unit's sales data. This data can be found in the **Current Employees** worksheet (for manager performance ratings) and **Restaurant Performance Info** worksheet (for unit sales revenue), linked by Unit ID."
+        },
+        {
+            id: 18,
+            statement: "We can analyze whether employee turnover rates are higher in units with larger payroll expenditures.",
+            correct: true,
+            explanation: "True. Yes, both unit turnover rate and unit payroll are tracked in the dataset. This data can be found in the **Restaurant Performance Info** worksheet."
+        },
+        {
+            id: 19,
+            statement: "The dataset tracks individual-level engagement survey responses over a seven-year historical period to see how employee satisfaction changes over time.",
+            correct: false,
+            explanation: "False. Historical engagement data is only provided in aggregate format by category. The individual-level raw engagement survey subset is only provided for the most recent year."
+        },
+        {
+            id: 20,
+            statement: "We can determine if URM applicants score lower on average during structured interviews than White applicants.",
+            correct: true,
+            explanation: "True. Yes, the hiring dataset contains structured interview scores (Interview 1 and Interview 2) and applicant race, allowing this comparison. This data can be found in the **AM Applicant Information** worksheet."
+        }
+    ];
+
+    grid.innerHTML = '';
+
+    window.researchQuestionsList = statements;
+    if (!window.researchQuizState) {
+        window.researchQuizState = {
+            answers: {},
+            correctCount: 0,
+            answeredCount: 0
+        };
+    }
+    const state = window.researchQuizState;
+
+    statements.forEach((sObj) => {
+        const card = document.createElement('div');
+        card.className = 'research-card';
+        card.id = `research-card-${sObj.id}`;
+        
+        card.innerHTML = `
+            <div class="research-card-header">
+                <span class="research-card-number">Statement ${sObj.id} of ${statements.length}</span>
+            </div>
+            <div class="research-question-text">${sObj.statement}</div>
+            <div class="research-btn-group">
+                <button class="research-btn btn-true" onclick="answerResearchQuestion(${sObj.id}, true)">True</button>
+                <button class="research-btn btn-false" onclick="answerResearchQuestion(${sObj.id}, false)">False</button>
+            </div>
+            <div class="research-feedback" id="feedback-${sObj.id}" style="display: none;"></div>
+        `;
+        grid.appendChild(card);
+
+        // Restore answered state if it exists
+        const prevAnswer = state.answers[sObj.id];
+        if (prevAnswer !== undefined) {
+            const btns = card.querySelectorAll('.research-btn');
+            const btnTrue = btns[0];
+            const btnFalse = btns[1];
+            const feedbackDiv = card.querySelector(`#feedback-${sObj.id}`);
+            
+            btnTrue.disabled = true;
+            btnFalse.disabled = true;
+            btnTrue.classList.add('disabled');
+            btnFalse.classList.add('disabled');
+
+            const isCorrect = (prevAnswer === sObj.correct);
+            if (prevAnswer) {
+                btnTrue.classList.add(isCorrect ? 'selected-correct' : 'selected-incorrect');
+            } else {
+                btnFalse.classList.add(isCorrect ? 'selected-correct' : 'selected-incorrect');
+            }
+            
+            // Highlight correct choice if wrong
+            if (!isCorrect) {
+                if (sObj.correct) {
+                    btnTrue.classList.add('selected-correct');
+                } else {
+                    btnFalse.classList.add('selected-correct');
+                }
+            }
+
+            feedbackDiv.className = `research-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedbackDiv.style.display = 'block';
+            feedbackDiv.innerHTML = `
+                <div class="research-feedback-title">${isCorrect ? '✓ Correct' : '✗ Incorrect'} &nbsp;|&nbsp; Correct Answer: ${sObj.correct ? 'True' : 'False'}</div>
+                <div class="research-feedback-desc">${sObj.explanation}</div>
+            `;
+        }
+    });
+    
+    // Update scoreboard UI from current state
+    document.getElementById('researchScoreValue').textContent = `${state.correctCount} / ${statements.length}`;
+    const progressPct = Math.round((state.answeredCount / statements.length) * 100);
+    document.getElementById('researchProgressValue').textContent = `${progressPct}%`;
+    document.getElementById('researchProgressBarFill').style.width = `${progressPct}%`;
+}
+
+window.answerResearchQuestion = function(qId, selectedAnswer) {
+    const state = window.researchQuizState;
+    if (!state || state.answers[qId] !== undefined) return; // Already answered
+
+    const qObj = window.researchQuestionsList.find(q => q.id === qId);
+    state.answers[qId] = selectedAnswer;
+    state.answeredCount++;
+
+    const isCorrect = (selectedAnswer === qObj.correct);
+    if (isCorrect) {
+        state.correctCount++;
+    }
+
+    // Update buttons UI
+    const card = document.getElementById(`research-card-${qId}`);
+    const btnTrue = card.querySelector('.btn-true');
+    const btnFalse = card.querySelector('.btn-false');
+
+    btnTrue.classList.add('disabled');
+    btnFalse.classList.add('disabled');
+    btnTrue.disabled = true;
+    btnFalse.disabled = true;
+
+    if (selectedAnswer) {
+        if (isCorrect) {
+            btnTrue.classList.add('selected-correct');
+        } else {
+            btnTrue.classList.add('selected-incorrect');
+            btnFalse.classList.add('selected-correct');
+        }
+    } else {
+        if (isCorrect) {
+            btnFalse.classList.add('selected-correct');
+        } else {
+            btnFalse.classList.add('selected-incorrect');
+            btnTrue.classList.add('selected-correct');
+        }
+    }
+
+    // Reveal feedback
+    const feedbackDiv = document.getElementById(`feedback-${qId}`);
+    feedbackDiv.className = `research-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    feedbackDiv.style.display = 'block';
+    feedbackDiv.innerHTML = `
+        <div class="research-feedback-title">${isCorrect ? '✓ Correct' : '✗ Incorrect'} &nbsp;|&nbsp; Correct Answer: ${qObj.correct ? 'True' : 'False'}</div>
+        <div class="research-feedback-desc">${qObj.explanation}</div>
+    `;
+
+};
+
+// ===== CONTROL VARIABLES =====
+function renderControlVariables() {
+    const grid = document.getElementById('controlsQuestionsGrid');
+    
+    const questions = [
+        {
+            id: 1,
+            q: "What control variables might we include if we were to analyze the adverse impact ratios of White and URM applicants?",
+            options: [
+                "Total net profit of the restaurant location",
+                "Structured interview scores (Interview 1 & 2) and target Job Title",
+                "Current employee flight risk scores",
+                "Supervisor performance ratings of active managers"
+            ],
+            correctIndex: 1,
+            explanation: "Interview scores reflect structured candidate qualification measures, and job title determines the specific role requirements. Controlling for these allows you to isolate whether race has an independent effect on selection among candidates of similar qualifications applying for the same positions. Unit profits or manager performance ratings are irrelevant to the applicant tracking system."
+        },
+        {
+            id: 2,
+            q: "What control variables might we include if we were to analyze unit-level employee engagement scores across market types (Large vs. Medium)?",
+            options: [
+                "Applicant gender ratio",
+                "Total Headcount (number of employees at the unit)",
+                "Hourly candidate interview score averages",
+                "Qualitative separation reason codes"
+            ],
+            correctIndex: 1,
+            explanation: "Total Headcount represents the size of the team at each restaurant unit. Large locations might have different communication dynamics, spans of control, and team density compared to medium locations, making headcount a critical control variable when comparing geographic market averages."
+        },
+        {
+            id: 3,
+            q: "What control variables might we include if we were to analyze manager voluntary separation (quit status) relative to their performance ratings?",
+            options: [
+                "Manager Salary (Manager Wage)",
+                "Applicant selection rate (Hiring Rate)",
+                "Restaurant Cost of Goods Sold (COGS)",
+                "Customer focus engagement survey average"
+            ],
+            correctIndex: 0,
+            explanation: "Higher salaries are a strong direct driver of employee retention. To isolate the relationship between a manager's supervisor evaluation (performance rating) and their separation behavior, you must control for their annual base salary (Manager Wage) to rule out compensation-driven turnover."
+        },
+        {
+            id: 4,
+            q: "What control variables might we include if we were to analyze applicant hiring rate differences by gender?",
+            options: [
+                "Restaurant unit sales revenue",
+                "Structured interview scores and targeted Job Title",
+                "Average store employee turnover rates",
+                "Age bracket of the active workforce"
+            ],
+            correctIndex: 1,
+            explanation: "Controlling for structured Interview Scores and target Job Title ensures that you are comparing male and female applicants who applied for the same role and scored similarly in the selection evaluations, allowing you to isolate gender-specific differences in hiring decisions."
+        },
+        {
+            id: 5,
+            q: "What control variables might we include if we were to analyze the relationship between recruitment source and Assistant Manager performance ratings?",
+            options: [
+                "Years of Experience (Prior Experience)",
+                "Unit fixed operating expenses",
+                "Selection rate (Hiring Rate) of the source",
+                "Restaurant net profit margin"
+            ],
+            correctIndex: 0,
+            explanation: "Years of prior experience directly influences job competency and performance reviews. Controlling for experience ensures that you are measuring the true effectiveness of the recruiting source itself rather than differences in the career stages of the candidates it attracts."
+        },
+        {
+            id: 6,
+            q: "What control variables might we include if we were to analyze the relationship between unit-level employee engagement and net profits?",
+            options: [
+                "Market Size (Large vs. Medium) and Total Headcount (Unit Size)",
+                "Applicant race demographics",
+                "Performance ratings of active managers",
+                "Structured interview scores of candidates"
+            ],
+            correctIndex: 0,
+            explanation: "Large markets and larger physical units (Total Headcount) naturally generate higher sales volumes and profits regardless of engagement level. You must control for Market Size and store size (headcount) to isolate the independent impact of engagement on unit net profits."
+        },
+        {
+            id: 7,
+            q: "What control variables might we include if we were to analyze the salary pay gap between male and female managers?",
+            options: [
+                "Job Title (Manager vs. Assistant Manager), Years of Experience, and Performance Rating",
+                "Total Unit Headcount and Fixed Operating Expenses",
+                "Applicant race and structured interview scores",
+                "Unit Turnover Rate and Sales Revenue"
+            ],
+            correctIndex: 0,
+            explanation: "Manager salaries are structurally determined by their hierarchical job tier (Manager vs. Assistant Manager), tenure (Years of Experience), and merit evaluations (Performance Rating). To identify true gender-based pay disparities, all three must be controlled."
+        },
+        {
+            id: 8,
+            q: "What control variables might we include if we were to compare manager performance ratings between online job board and university partnership recruits?",
+            options: [
+                "Prior Years of Experience (or Age Bracket)",
+                "Unit fixed operating expenses",
+                "Hourly employee engagement averages",
+                "Restaurant sales revenue"
+            ],
+            correctIndex: 0,
+            explanation: "University partnerships recruit new graduates who typically have very low experience and fall into younger age brackets. Online job boards capture experienced lateral hires. Controlling for prior experience prevents career-stage differences from confounding the recruiting channel comparison."
+        },
+        {
+            id: 9,
+            q: "What control variables might we include if we were to analyze the relationship between a manager's performance rating and their unit's sales revenue?",
+            options: [
+                "Market Size (Large vs. Medium)",
+                "Manager gender",
+                "Candidate interview scores",
+                "Manager recruitment source"
+            ],
+            correctIndex: 0,
+            explanation: "Restaurants in Large Markets have a higher natural customer base and physical demand potential compared to Medium Markets. Controlling for Market Size is necessary to see if manager performance has an independent effect on sales revenue."
+        },
+        {
+            id: 10,
+            q: "What control variables might we include if we were to analyze the relationship between unit payroll expenditures and employee turnover rates?",
+            options: [
+                "Total Headcount (Unit Size)",
+                "Average manager salary",
+                "Applicant structured interview scores",
+                "Manager performance rating"
+            ],
+            correctIndex: 0,
+            explanation: "Larger units require more staff, which naturally increases total payroll. Controlling for Total Headcount ensures you are measuring turnover patterns relative to store size rather than payroll scale alone."
+        },
+        {
+            id: 11,
+            q: "What control variables might we include if we were to analyze structured interview scores between White and URM applicants?",
+            options: [
+                "Recruitment Source and target Job Title",
+                "Unit Sales Revenue",
+                "Restaurant Net Profit",
+                "Flight Risk Status"
+            ],
+            correctIndex: 0,
+            explanation: "Recruitment sources can vary in demographics, candidate prep, and training, and different jobs can have differing interview standard baselines. Controlling for Recruitment Source and Job Title applied for ensures you isolate potential score differences based on candidate demographic background."
+        }
+    ];
+
+    grid.innerHTML = '';
+
+    window.controlQuestionsList = questions;
+    if (!window.controlQuizState) {
+        window.controlQuizState = {
+            answers: {},
+            correctCount: 0,
+            answeredCount: 0
+        };
+    }
+    const state = window.controlQuizState;
+
+    questions.forEach((qObj) => {
+        const card = document.createElement('div');
+        card.className = 'research-card';
+        card.id = `controls-card-${qObj.id}`;
+        
+        let optionsHtml = '';
+        qObj.options.forEach((opt, idx) => {
+            optionsHtml += `
+                <button class="control-mc-btn mc-btn-${idx}" onclick="answerControlQuestion(${qObj.id}, ${idx})">
+                    <span class="mc-letter">${['A', 'B', 'C', 'D'][idx]}.</span>
+                    <span class="mc-text">${opt}</span>
+                </button>
+            `;
+        });
+
+        card.innerHTML = `
+            <div class="research-card-header">
+                <span class="research-card-number">Question ${qObj.id} of ${questions.length}</span>
+            </div>
+            <div class="research-question-text" style="font-weight: 700; margin-bottom: 12px;">
+                ${qObj.q}
+            </div>
+            <div class="control-mc-group">
+                ${optionsHtml}
+            </div>
+            <div class="research-feedback" id="controls-feedback-${qObj.id}" style="display: none;"></div>
+        `;
+        grid.appendChild(card);
+
+        // Restore answered state if it exists
+        const prevAnswerIdx = state.answers[qObj.id];
+        if (prevAnswerIdx !== undefined) {
+            const btns = card.querySelectorAll('.control-mc-btn');
+            const feedbackDiv = card.querySelector(`#controls-feedback-${qObj.id}`);
+            
+            const isCorrect = (prevAnswerIdx === qObj.correctIndex);
+            
+            btns.forEach((btn, idx) => {
+                btn.classList.add('disabled');
+                btn.disabled = true;
+
+                if (idx === prevAnswerIdx) {
+                    if (isCorrect) {
+                        btn.classList.add('selected-correct');
+                    } else {
+                        btn.classList.add('selected-incorrect');
+                    }
+                }
+                
+                // Highlight correct answer in green if user was wrong
+                if (idx === qObj.correctIndex && !isCorrect) {
+                    btn.classList.add('selected-correct');
+                }
+            });
+
+            feedbackDiv.className = `research-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedbackDiv.style.display = 'block';
+            feedbackDiv.innerHTML = `
+                <div class="research-feedback-title">${isCorrect ? '✓ Correct' : '✗ Incorrect'} &nbsp;|&nbsp; Correct Choice: ${['A', 'B', 'C', 'D'][qObj.correctIndex]}</div>
+                <div class="research-feedback-desc">${qObj.explanation}</div>
+            `;
+        }
+    });
+
+    // Update scoreboard UI from current state
+    document.getElementById('controlsScoreValue').textContent = `${state.correctCount} / ${questions.length}`;
+    const progressPct = Math.round((state.answeredCount / questions.length) * 100);
+    document.getElementById('controlsProgressValue').textContent = `${progressPct}%`;
+    document.getElementById('controlsProgressBarFill').style.width = `${progressPct}%`;
+}
+
+window.answerControlQuestion = function(qId, selectedIndex) {
+    const state = window.controlQuizState;
+    if (!state || state.answers[qId] !== undefined) return; // Already answered
+
+    const qObj = window.controlQuestionsList.find(q => q.id === qId);
+    state.answers[qId] = selectedIndex;
+    state.answeredCount++;
+
+    const isCorrect = (selectedIndex === qObj.correctIndex);
+    if (isCorrect) {
+        state.correctCount++;
+    }
+
+    // Update buttons UI
+    const card = document.getElementById(`controls-card-${qId}`);
+    const btns = card.querySelectorAll('.control-mc-btn');
+
+    btns.forEach((btn, idx) => {
+        btn.classList.add('disabled');
+        btn.disabled = true;
+
+        if (idx === selectedIndex) {
+            if (isCorrect) {
+                btn.classList.add('selected-correct');
+            } else {
+                btn.classList.add('selected-incorrect');
+            }
+        }
+        
+        // Highlight correct answer in green if user was wrong
+        if (idx === qObj.correctIndex && !isCorrect) {
+            btn.classList.add('selected-correct');
+        }
+    });
+
+    // Reveal feedback
+    const feedbackDiv = document.getElementById(`controls-feedback-${qId}`);
+    feedbackDiv.className = `research-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    feedbackDiv.style.display = 'block';
+    feedbackDiv.innerHTML = `
+        <div class="research-feedback-title">${isCorrect ? '✓ Correct' : '✗ Incorrect'} &nbsp;|&nbsp; Correct Choice: ${['A', 'B', 'C', 'D'][qObj.correctIndex]}</div>
+        <div class="research-feedback-desc">${qObj.explanation}</div>
+    `;
+
+    // Update scoreboard
+    document.getElementById('controlsScoreValue').textContent = `${state.correctCount} / ${window.controlQuestionsList.length}`;
+    const progressPct = Math.round((state.answeredCount / window.controlQuestionsList.length) * 100);
+    document.getElementById('controlsProgressValue').textContent = `${progressPct}%`;
+    document.getElementById('controlsProgressBarFill').style.width = `${progressPct}%`;
+};
+
+// ===== RESET & DOWNLOAD RESULTS =====
+window.resetResearchQuiz = function() {
+    if (confirm("Are you sure you want to reset your Research Statements quiz answers?")) {
+        window.researchQuizState = {
+            answers: {},
+            correctCount: 0,
+            answeredCount: 0
+        };
+        renderResearchQuestions();
+    }
+};
+
+window.downloadResearchResults = function() {
+    const nameInput = document.getElementById('researchStudentName');
+    const studentName = nameInput ? nameInput.value.trim() : "";
+    if (!studentName) {
+        alert("Please enter your name in the Student Name field before downloading your results.");
+        if (nameInput) nameInput.focus();
+        return;
+    }
+
+    const state = window.researchQuizState || { answers: {}, correctCount: 0, answeredCount: 0 };
+    const list = window.researchQuestionsList || [];
+    
+    let text = "";
+    text += "==================================================\n";
+    text += "       HR ANALYTICS CASE STUDY - GRADED REPORT     \n";
+    text += "==================================================\n\n";
+    text += `Student Name: ${studentName}\n`;
+    text += `Module:       Research Statements Quiz\n`;
+    text += `Date/Time:    ${new Date().toLocaleString()}\n`;
+    text += `Score:        ${state.correctCount} / ${list.length} correct (${list.length > 0 ? Math.round(state.correctCount/list.length*100) : 0}%)\n`;
+    text += `Progress:     ${state.answeredCount} of ${list.length} answered\n\n`;
+    text += "==================================================\n";
+    text += "                  DETAILED BREAKDOWN               \n";
+    text += "==================================================\n\n";
+
+    list.forEach((qObj) => {
+        const studentAns = state.answers[qObj.id];
+        let status = "UNANSWERED";
+        let chosenStr = "[No selection]";
+        if (studentAns !== undefined) {
+            const isCorrect = (studentAns === qObj.correct);
+            status = isCorrect ? "CORRECT" : "INCORRECT";
+            chosenStr = studentAns ? "True" : "False";
+        }
+        
+        text += `Statement #${qObj.id}:\n`;
+        text += `"${qObj.statement}"\n`;
+        text += `Correct Answer:   ${qObj.correct ? "True" : "False"}\n`;
+        text += `Your Answer:      ${chosenStr}\n`;
+        text += `Result:           [${status}]\n`;
+        text += `Explanation:      ${qObj.explanation}\n`;
+        text += "--------------------------------------------------\n\n";
+    });
+
+    text += "==================================================\n";
+    text += "                  END OF REPORT                    \n";
+    text += "==================================================\n";
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `HR_Research_Statements_${studentName.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+window.resetControlsQuiz = function() {
+    if (confirm("Are you sure you want to reset your Control Variables quiz answers?")) {
+        window.controlQuizState = {
+            answers: {},
+            correctCount: 0,
+            answeredCount: 0
+        };
+        renderControlVariables();
+    }
+};
+
+window.downloadControlsResults = function() {
+    const nameInput = document.getElementById('controlsStudentName');
+    const studentName = nameInput ? nameInput.value.trim() : "";
+    if (!studentName) {
+        alert("Please enter your name in the Student Name field before downloading your results.");
+        if (nameInput) nameInput.focus();
+        return;
+    }
+
+    const state = window.controlQuizState || { answers: {}, correctCount: 0, answeredCount: 0 };
+    const list = window.controlQuestionsList || [];
+    
+    let text = "";
+    text += "==================================================\n";
+    text += "       HR ANALYTICS CASE STUDY - GRADED REPORT     \n";
+    text += "==================================================\n\n";
+    text += `Student Name: ${studentName}\n`;
+    text += `Module:       Control Variables Quiz\n`;
+    text += `Date/Time:    ${new Date().toLocaleString()}\n`;
+    text += `Score:        ${state.correctCount} / ${list.length} correct (${list.length > 0 ? Math.round(state.correctCount/list.length*100) : 0}%)\n`;
+    text += `Progress:     ${state.answeredCount} of ${list.length} answered\n\n`;
+    text += "==================================================\n";
+    text += "                  DETAILED BREAKDOWN               \n";
+    text += "==================================================\n\n";
+
+    list.forEach((qObj) => {
+        const studentAnsIdx = state.answers[qObj.id];
+        let status = "UNANSWERED";
+        let chosenStr = "[No selection]";
+        if (studentAnsIdx !== undefined) {
+            const isCorrect = (studentAnsIdx === qObj.correctIndex);
+            status = isCorrect ? "CORRECT" : "INCORRECT";
+            chosenStr = `${['A', 'B', 'C', 'D'][studentAnsIdx]}. ${qObj.options[studentAnsIdx]}`;
+        }
+        
+        text += `Question #${qObj.id}:\n`;
+        text += `"${qObj.q}"\n`;
+        text += `Correct Option:   ${['A', 'B', 'C', 'D'][qObj.correctIndex]}. ${qObj.options[qObj.correctIndex]}\n`;
+        text += `Your Option:      ${chosenStr}\n`;
+        text += `Result:           [${status}]\n`;
+        text += `Explanation:      ${qObj.explanation}\n`;
+        text += "--------------------------------------------------\n\n";
+    });
+
+    text += "==================================================\n";
+    text += "                  END OF REPORT                    \n";
+    text += "==================================================\n";
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `HR_Control_Variables_${studentName.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// Sync Student Name inputs across tabs
+document.addEventListener('input', (e) => {
+    if (e.target && (e.target.id === 'researchStudentName' || e.target.id === 'controlsStudentName')) {
+        const val = e.target.value;
+        const otherId = e.target.id === 'researchStudentName' ? 'controlsStudentName' : 'researchStudentName';
+        const otherInput = document.getElementById(otherId);
+        if (otherInput) {
+            otherInput.value = val;
+        }
+    }
+});
 
 // ===== INITIALIZE =====
 document.addEventListener('DOMContentLoaded', () => {

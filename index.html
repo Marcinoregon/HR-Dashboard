@@ -54,6 +54,14 @@
                 <span class="nav-icon">📝</span>
                 <span class="nav-label">Student Exercises</span>
             </a>
+            <a href="#" class="nav-link" data-module="research" onclick="switchModule('research', this)">
+                <span class="nav-icon">❓</span>
+                <span class="nav-label">Research Statements</span>
+            </a>
+            <a href="#" class="nav-link" data-module="controls" onclick="switchModule('controls', this)">
+                <span class="nav-icon">🛡️</span>
+                <span class="nav-label">Control Variables</span>
+            </a>
             <a href="#" class="nav-link" data-module="chartbuilder" onclick="switchModule('chartbuilder', this)">
                 <span class="nav-icon">📈</span>
                 <span class="nav-label">Chart Builder</span>
@@ -333,6 +341,97 @@
                 </div>
             </div>
             <div class="exercises-grid" id="exercisesGrid"></div>
+        </section>
+
+        <!-- ===== RESEARCH QUESTIONS ===== -->
+        <section class="module-section" id="section-research">
+            <div class="section-header">
+                <div class="section-icon">❓</div>
+                <div>
+                    <h2>Research Statements</h2>
+                    <p>Evaluate whether specific HR research statements are True or False based on the current dataset</p>
+                </div>
+            </div>
+            
+            <!-- Student Info & Action Controls -->
+            <div class="quiz-actions-container">
+                <div class="student-name-group">
+                    <span class="student-name-label">👨‍🎓 Student Name:</span>
+                    <input type="text" id="researchStudentName" class="student-name-input" placeholder="Enter your full name">
+                </div>
+                <div class="quiz-buttons-group">
+                    <button class="quiz-action-btn reset" onclick="resetResearchQuiz()">🔄 Reset Quiz</button>
+                    <button class="quiz-action-btn download" onclick="downloadResearchResults()">📥 Download Results</button>
+                </div>
+            </div>
+
+            <div class="research-summary-panel">
+                <div class="research-summary-scores">
+                    <div class="research-summary-score-block">
+                        <div class="research-summary-score-value" id="researchScoreValue">0 / 20</div>
+                        <div class="research-summary-score-label">Correct Answers</div>
+                    </div>
+                    <div class="research-summary-score-block">
+                        <div class="research-summary-score-value" id="researchProgressValue">0%</div>
+                        <div class="research-summary-score-label">Progress</div>
+                    </div>
+                </div>
+                <div class="research-progress-bar-container">
+                    <div class="research-progress-bar-fill" id="researchProgressBarFill" style="width: 0%;"></div>
+                </div>
+                <div class="research-summary-note">
+                    📌 <strong>Task:</strong> Read each research statement regarding data availability and feasibility in the Mr. Macky's Cajun Cuisine dataset. Select **True** if the statement is correct (i.e. the data or analysis is available as stated), or **False** if the statement is incorrect (i.e. due to missing variables, anonymity, or incorrect aggregation level).
+                </div>
+            </div>
+
+            <div class="research-grid" id="researchQuestionsGrid">
+                <!-- Questions will be dynamically rendered by JavaScript -->
+            </div>
+        </section>
+
+        <!-- ===== CONTROL VARIABLES ===== -->
+        <section class="module-section" id="section-controls">
+            <div class="section-header">
+                <div class="section-icon">🛡️</div>
+                <div>
+                    <h2>Control Variables</h2>
+                    <p>Identify critical control variables to isolate effects and avoid confounding bias in statistical models</p>
+                </div>
+            </div>
+            <!-- Student Info & Action Controls -->
+            <div class="quiz-actions-container">
+                <div class="student-name-group">
+                    <span class="student-name-label">👨‍🎓 Student Name:</span>
+                    <input type="text" id="controlsStudentName" class="student-name-input" placeholder="Enter your full name">
+                </div>
+                <div class="quiz-buttons-group">
+                    <button class="quiz-action-btn reset" onclick="resetControlsQuiz()">🔄 Reset Quiz</button>
+                    <button class="quiz-action-btn download" onclick="downloadControlsResults()">📥 Download Results</button>
+                </div>
+            </div>
+
+            <div class="research-summary-panel">
+                <div class="research-summary-scores">
+                    <div class="research-summary-score-block">
+                        <div class="research-summary-score-value" id="controlsScoreValue">0 / 11</div>
+                        <div class="research-summary-score-label">Correct Answers</div>
+                    </div>
+                    <div class="research-summary-score-block">
+                        <div class="research-summary-score-value" id="controlsProgressValue">0%</div>
+                        <div class="research-summary-score-label">Progress</div>
+                    </div>
+                </div>
+                <div class="research-progress-bar-container">
+                    <div class="research-progress-bar-fill" id="controlsProgressBarFill" style="width: 0%;"></div>
+                </div>
+                <div class="research-summary-note">
+                    📌 <strong>Task:</strong> For each regression/analysis scenario derived from the valid statements in the dataset, select the variable(s) that should be included as control variables to account for confounding effects (e.g. employee qualifications, location demographics, or job tier).
+                </div>
+            </div>
+
+            <div class="research-grid" id="controlsQuestionsGrid">
+                <!-- MC Questions will be dynamically rendered by JavaScript -->
+            </div>
         </section>
 
         <!-- ===== CHART BUILDER ===== -->
