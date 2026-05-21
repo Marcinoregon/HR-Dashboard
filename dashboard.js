@@ -82,6 +82,7 @@ function switchModule(moduleId, linkEl) {
         'explore': 'Explore Data',
         'stats': 'T-Test Analysis',
         'chisq': 'Chi-Square Analysis',
+        'ols':   'OLS Regression',
         'datadict': 'Data Dictionary',
     };
     document.getElementById('pageTitle').textContent = titles[moduleId] || 'Dashboard';
@@ -169,6 +170,7 @@ function renderModule(moduleId) {
         case 'explore': renderExploreData(); break;
         case 'stats': renderStats(); break;
         case 'chisq': renderChiSquare(); break;
+        case 'ols':   renderOLS(); break;
         case 'datadict': renderDataDictionary(); break;
     }
 }
@@ -3559,6 +3561,400 @@ function runChiSquare() {
                 : `The chi-square test finds <strong>no statistically significant association</strong> between these variables, χ²(${df}) = ${chi2.toFixed(2)}, p = ${pDisplay}. The observed frequency differences are consistent with random chance at the α = 0.05 level.`
             }</p>
             <p style="font-size:0.82rem;color:#94a3b8;margin-top:0.5rem">${cfg.description}</p>
+        </div>
+    `;
+}
+
+// --- Engagement Analysis ---
+
+// ===== OLS REGRESSION ENGINE =====
+
+// --- Matrix Utilities (pure-JS) ---
+function matT(A) {
+    const r = A.length, c = A[0].length;
+    return Array.from({length: c}, (_, j) => Array.from({length: r}, (_, i) => A[i][j]));
+}
+function matMul(A, B) {
+    const rA = A.length, cA = A[0].length, cB = B[0].length;
+    const C = Array.from({length: rA}, () => new Array(cB).fill(0));
+    for (let i = 0; i < rA; i++)
+        for (let k = 0; k < cA; k++) if (A[i][k] !== 0)
+            for (let j = 0; j < cB; j++)
+                C[i][j] += A[i][k] * B[k][j];
+    return C;
+}
+function matInv(A) {
+    const n = A.length;
+    const M = A.map((row, i) => { const aug = new Array(2*n).fill(0); row.forEach((v,j) => aug[j]=v); aug[n+i]=1; return aug; });
+    for (let col = 0; col < n; col++) {
+        let mx = col;
+        for (let r = col+1; r < n; r++) if (Math.abs(M[r][col]) > Math.abs(M[mx][col])) mx = r;
+        [M[col], M[mx]] = [M[mx], M[col]];
+        const piv = M[col][col];
+        if (Math.abs(piv) < 1e-14) return null;
+        for (let j = 0; j < 2*n; j++) M[col][j] /= piv;
+        for (let r = 0; r < n; r++) if (r !== col) { const f = M[r][col]; for (let j = 0; j < 2*n; j++) M[r][j] -= f*M[col][j]; }
+    }
+    return M.map(row => row.slice(n));
+}
+
+// F-distribution CDF (uses regIncBeta already defined for t-test)
+function fDistCDF(x, d1, d2) {
+    if (x <= 0) return 0;
+    return regIncBeta(d1/2, d2/2, (d1*x)/(d1*x + d2));
+}
+
+// t-critical for 95% CI by df
+function tCrit95(df) {
+    if (df >= 120) return 1.980; if (df >= 60) return 2.000;
+    if (df >= 40)  return 2.021; if (df >= 30) return 2.042;
+    if (df >= 20)  return 2.086; if (df >= 15) return 2.131;
+    if (df >= 10)  return 2.228; if (df >= 5)  return 2.571;
+    return 3.182;
+}
+
+// Core OLS solver using normal equations: B = (X'X)^-1 X'y
+function solveOLS(Xdata, Ydata) {
+    const n = Ydata.length;
+    if (n < 3) return { error: 'Need at least 3 observations.' };
+    const X = Xdata.map(row => [1, ...row]);  // prepend intercept
+    const k = X[0].length;
+    if (n <= k) return { error: `More parameters (${k}) than observations (${n}). Use fewer predictors.` };
+    const Xt   = matT(X);
+    const XtX  = matMul(Xt, X);
+    const XtXi = matInv(XtX);
+    if (!XtXi) return { error: 'Matrix is singular — likely perfect multicollinearity (e.g., dummy variable trap or zero-variance predictor). Try removing one predictor.' };
+    const Xty = matMul(Xt, Ydata.map(v => [v]));
+    const B   = matMul(XtXi, Xty).map(r => r[0]);
+    // Fit statistics
+    const yhat  = X.map(row => B.reduce((s,b,i) => s + b*row[i], 0));
+    const resid = Ydata.map((y,i) => y - yhat[i]);
+    const sse   = resid.reduce((s,r) => s + r*r, 0);
+    const yMean = Ydata.reduce((s,v) => s+v, 0) / n;
+    const sst   = Ydata.reduce((s,v) => s + (v-yMean)**2, 0);
+    const r2    = sst > 0 ? Math.max(0, 1 - sse/sst) : 0;
+    const adjR2 = 1 - (1-r2)*(n-1)/(n-k);
+    const mse   = sse / (n-k);
+    // Standard errors, t-stats, p-values
+    const SE    = XtXi.map((row,i) => Math.sqrt(Math.max(0, row[i]*mse)));
+    const tStat = B.map((b,i) => SE[i] > 0 ? b/SE[i] : 0);
+    const pVal  = tStat.map(t => 2*(1 - tCDF(Math.abs(t), n-k)));
+    // 95% CI
+    const tc    = tCrit95(n-k);
+    const CI95  = B.map((b,i) => [b - tc*SE[i], b + tc*SE[i]]);
+    // F-test
+    const ssr   = sst - sse;
+    const fStat = mse > 0 && k > 1 ? (ssr/(k-1))/mse : 0;
+    const fP    = k > 1 ? Math.max(0, 1 - fDistCDF(fStat, k-1, n-k)) : 1;
+    return { B, SE, tStat, pVal, CI95, r2, adjR2, fStat, fP, n, k, mse, sse, resid, yhat };
+}
+
+// --- OLS Variable Registry ---
+const OLS_VARS = {
+    manager: {
+        continuous: {
+            wage:  { label: 'Annual Wage ($)' },
+            perf:  { label: 'Performance Rating' },
+            exp:   { label: 'Experience (yrs)' },
+        },
+        nominal: {
+            gender: { label: 'Gender',        cats: ['Male',  'Female'] },
+            race:   { label: 'Race/Ethnicity', cats: ['White', 'URM']    },
+            market: { label: 'Market Type',   cats: ['Large', 'Medium'] },
+        }
+    },
+    unit: {
+        continuous: {
+            profit:        { label: 'Net Profit ($)' },
+            sales:         { label: 'Sales Revenue ($)' },
+            payroll:       { label: 'Payroll Cost ($)' },
+            cogs:          { label: 'COGS ($)' },
+            headcount:     { label: 'Headcount' },
+            turnoverRate:  { label: 'Turnover Rate (%)' },
+            quits:         { label: 'Quits Count' },
+            discharged:    { label: 'Discharges Count' },
+            avgEngagement: { label: 'Avg Engagement Score' },
+        },
+        nominal: {
+            market: { label: 'Market Type', cats: ['Large', 'Medium'] },
+        }
+    }
+};
+
+function buildOLSData() {
+    // Manager observations
+    const managers = (D.module4 && D.module4.scatterManagers) ? D.module4.scatterManagers : [];
+    const managerObs = managers.map(m => {
+        const uh = D.module1.unitHeadcount[m.unit] || {};
+        return { wage: m.wage, perf: m.perf, exp: m.exp, gender: m.gender, race: m.race, market: uh.market };
+    }).filter(o => o.market && o.wage != null && o.perf != null && o.exp != null);
+
+    // Unit observations
+    const dims = ['jobSatisfaction','collaboration','communication','support','customerFocus','personalGrowth','inclusion','empowerment','accountability'];
+    const unitObs = Object.entries(D.restaurant.performanceByUnit2026).map(([id, u]) => {
+        const hc  = D.module1.unitHeadcount[id] || {};
+        const to  = D.module2.turnoverByUnit[id] || {};
+        const eng = D.engagement.unitEngagement[id];
+        const avgEngagement = eng ? dims.reduce((s,d) => s + eng[d], 0) / dims.length : null;
+        const toTotal = (to.quit||0) + (to.discharged||0);
+        const toBase  = (to.employed||0) + toTotal;
+        return {
+            profit: u.profit, sales: u.sales, payroll: u.payroll, cogs: u.cogs,
+            headcount: hc.total || 0,
+            turnoverRate: toBase > 0 ? (toTotal/toBase)*100 : 0,
+            quits: to.quit||0, discharged: to.discharged||0,
+            avgEngagement, market: u.market
+        };
+    }).filter(o => o.avgEngagement !== null);
+
+    return { managerObs, unitObs };
+}
+
+// --- OLS UI State ---
+let _olsDS = 'manager';
+
+function renderOLS() {
+    const container = document.getElementById('olsContent');
+    const { managerObs, unitObs } = buildOLSData();
+    container.innerHTML = `
+        <div class="ols-panel">
+            <div class="ols-dataset-row">
+                <span class="stats-ctrl-label">📂 Observation Level</span>
+                <div class="ols-ds-btns">
+                    <button class="ols-ds-btn active" id="olsDsManager" onclick="switchOLSDS('manager')">Manager-Level <span class="ols-n-badge">N = ${managerObs.length}</span></button>
+                    <button class="ols-ds-btn" id="olsDsUnit" onclick="switchOLSDS('unit')">Restaurant-Unit Level <span class="ols-n-badge">N = ${unitObs.length}</span></button>
+                </div>
+            </div>
+            <div class="ols-var-row">
+                <div class="ols-dv-box">
+                    <label class="stats-ctrl-label">📊 Dependent Variable (Y)</label>
+                    <select id="olsDV" class="stats-select" onchange="refreshOLSIVs()"></select>
+                    <div class="ols-dv-note">Only continuous variables can be used as Y</div>
+                </div>
+                <div class="ols-iv-box">
+                    <label class="stats-ctrl-label">🔧 Independent Variables &amp; Covariates</label>
+                    <div id="olsIVList" class="ols-iv-list"></div>
+                </div>
+            </div>
+            <div class="ols-run-row">
+                <button class="stats-run-btn" onclick="execOLS()">▶ Run OLS Regression</button>
+                <span class="ols-hint">💡 Nominal variables are automatically expanded to k−1 dummy variables (last category = reference)</span>
+            </div>
+        </div>
+        <div id="olsResults"></div>
+    `;
+    _olsDS = 'manager';
+    refreshOLSDV();
+    refreshOLSIVs();
+}
+
+function switchOLSDS(ds) {
+    _olsDS = ds;
+    document.getElementById('olsDsManager').classList.toggle('active', ds === 'manager');
+    document.getElementById('olsDsUnit').classList.toggle('active', ds === 'unit');
+    document.getElementById('olsResults').innerHTML = '';
+    refreshOLSDV();
+    refreshOLSIVs();
+}
+
+function refreshOLSDV() {
+    const vars = OLS_VARS[_olsDS].continuous;
+    const sel  = document.getElementById('olsDV');
+    sel.innerHTML = Object.entries(vars).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
+}
+
+function refreshOLSIVs() {
+    const dv   = document.getElementById('olsDV').value;
+    const vars = OLS_VARS[_olsDS];
+    let html = '<div class="ols-iv-group-label">Continuous Variables</div>';
+    Object.entries(vars.continuous).forEach(([k,v]) => {
+        if (k === dv) return;
+        html += `<label class="ols-iv-item">
+            <input type="checkbox" class="ols-cb" value="${k}" data-vtype="continuous">
+            <span class="ols-iv-name">${v.label}</span>
+            <span class="ols-type-badge">continuous</span>
+        </label>`;
+    });
+    html += '<div class="ols-iv-group-label" style="margin-top:12px">Nominal Variables (auto-dummy)</div>';
+    Object.entries(vars.nominal).forEach(([k,v]) => {
+        const ref    = v.cats[v.cats.length - 1];
+        const dums   = v.cats.slice(0,-1).map(c => `<em>${c}</em>`).join(', ');
+        html += `<label class="ols-iv-item">
+            <input type="checkbox" class="ols-cb" value="${k}" data-vtype="nominal">
+            <span class="ols-iv-name">${v.label}</span>
+            <span class="ols-type-badge ols-nom-badge">nominal → dummies: ${dums} <span style="opacity:.7">(ref: ${ref})</span></span>
+        </label>`;
+    });
+    document.getElementById('olsIVList').innerHTML = html;
+}
+
+function execOLS() {
+    const dv      = document.getElementById('olsDV').value;
+    const checked = [...document.querySelectorAll('.ols-cb:checked')];
+    if (!checked.length) {
+        document.getElementById('olsResults').innerHTML = '<div class="stats-no-data">Select at least one independent variable.</div>';
+        return;
+    }
+    const vars = OLS_VARS[_olsDS];
+    const { managerObs, unitObs } = buildOLSData();
+    const obs = _olsDS === 'manager' ? managerObs : unitObs;
+
+    // Build column definitions (expand nominals → dummy columns)
+    const colDefs = [];
+    checked.forEach(cb => {
+        const key  = cb.value;
+        const vtype = cb.dataset.vtype;
+        if (vtype === 'continuous') {
+            colDefs.push({ label: vars.continuous[key].label, key, isDummy: false });
+        } else {
+            const nv  = vars.nominal[key];
+            const ref = nv.cats[nv.cats.length - 1];
+            nv.cats.slice(0,-1).forEach(cat => {
+                colDefs.push({ label: `${nv.label}: ${cat} (vs. ${ref})`, key, isDummy: true, cat, ref });
+            });
+        }
+    });
+
+    // Assemble X matrix and y vector, skipping rows with missing values
+    const Xdata = [], Ydata = [];
+    obs.forEach(o => {
+        const y = o[dv];
+        if (y == null || isNaN(y)) return;
+        const row = []; let ok = true;
+        colDefs.forEach(col => {
+            const val = o[col.key];
+            if (col.isDummy) {
+                if (val == null) { ok = false; return; }
+                row.push(val === col.cat ? 1 : 0);
+            } else {
+                if (val == null || isNaN(val)) { ok = false; return; }
+                row.push(+val);
+            }
+        });
+        if (ok) { Xdata.push(row); Ydata.push(+y); }
+    });
+
+    if (Ydata.length < colDefs.length + 3) {
+        document.getElementById('olsResults').innerHTML =
+            `<div class="stats-no-data">Not enough valid observations (N = ${Ydata.length}) for ${colDefs.length + 1} parameters. Try fewer predictors.</div>`;
+        return;
+    }
+
+    const res = solveOLS(Xdata, Ydata);
+    if (res.error) {
+        document.getElementById('olsResults').innerHTML = `<div class="stats-no-data">⚠️ ${res.error}</div>`;
+        return;
+    }
+    displayOLSResults(res, dv, colDefs, checked, vars);
+}
+
+function displayOLSResults(res, dvKey, colDefs, checkedCBs, vars) {
+    const { B, SE, tStat, pVal, CI95, r2, adjR2, fStat, fP, n, k, mse } = res;
+    const dvLabel   = vars.continuous[dvKey].label;
+    const pFmt      = p => p < .001 ? '< .001' : p.toFixed(3);
+    const stars     = p => p < .001 ? '***' : p < .01 ? '**' : p < .05 ? '*' : p < .1 ? '†' : '';
+    const isCur     = ['wage','profit','sales','payroll','cogs'].includes(dvKey);
+    const fmtCoef   = v => isNaN(v) ? '—' : isCur
+        ? (v < 0 ? '−$' : '$') + Math.abs(v).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+        : v.toFixed(4);
+    const fmtSE     = v => isNaN(v) ? '—' : isCur
+        ? '$' + Math.abs(v).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+        : v.toFixed(4);
+
+    const labels = ['Intercept', ...colDefs.map(c => c.label)];
+
+    const rows = B.map((b, i) => {
+        const sig    = pVal[i] < .05;
+        const pClass = sig ? 'stats-sig-yes' : '';
+        return `<tr class="${sig ? 'ols-sig-row' : ''}">
+            <td>${labels[i]}</td>
+            <td><strong>${fmtCoef(b)}</strong></td>
+            <td>${fmtSE(SE[i])}</td>
+            <td>${tStat[i].toFixed(3)}</td>
+            <td class="${pClass}">${pFmt(pVal[i])} <strong>${stars(pVal[i])}</strong></td>
+            <td class="ols-ci">[${fmtCoef(CI95[i][0])}, ${fmtCoef(CI95[i][1])}]</td>
+        </tr>`;
+    }).join('');
+
+    // Dummy variable notes
+    const nomKeys   = [...new Set(checkedCBs.filter(cb => cb.dataset.vtype === 'nominal').map(cb => cb.value))];
+    const dummyNote = nomKeys.map(nk => {
+        const nv = vars.nominal[nk];
+        return `<li><strong>${nv.label}</strong>: Reference = "<em>${nv.cats[nv.cats.length - 1]}</em>" (coded 0 across all dummies)</li>`;
+    }).join('');
+
+    const sigPreds  = labels.slice(1).filter((_, i) => pVal[i+1] < .05);
+    const fSigClass = fP < .05 ? 'stats-sig-yes' : '';
+    const r2Pct     = (r2 * 100).toFixed(1);
+    const adjR2Pct  = (Math.max(0, adjR2) * 100).toFixed(1);
+    const rmse      = Math.sqrt(mse);
+
+    document.getElementById('olsResults').innerHTML = `
+        <div class="ols-model-summary">
+            <div class="ols-summary-item">
+                <span>R²</span>
+                <strong>${r2.toFixed(4)}</strong>
+                <small>${r2Pct}% variance explained</small>
+            </div>
+            <div class="ols-summary-item">
+                <span>Adj. R²</span>
+                <strong>${adjR2.toFixed(4)}</strong>
+                <small>${adjR2Pct}% (penalty for k)</small>
+            </div>
+            <div class="ols-summary-item">
+                <span>F-statistic</span>
+                <strong>${fStat.toFixed(3)}</strong>
+                <small>F(${k-1}, ${n-k})</small>
+            </div>
+            <div class="ols-summary-item">
+                <span>p(F)</span>
+                <strong class="${fSigClass}">${pFmt(fP)}</strong>
+            </div>
+            <div class="ols-summary-item">
+                <span>N (observations)</span>
+                <strong>${n}</strong>
+            </div>
+            <div class="ols-summary-item">
+                <span>RMSE</span>
+                <strong>${fmtSE(rmse)}</strong>
+                <small>root mean sq. error</small>
+            </div>
+        </div>
+        <div class="ols-coef-wrap">
+            <div class="chisq-table-title">📋 Coefficient Table &nbsp;—&nbsp; DV: ${dvLabel}</div>
+            <div style="overflow-x:auto">
+                <table class="ols-coef-table">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>B (Coefficient)</th>
+                            <th>Std. Error</th>
+                            <th>t-value</th>
+                            <th>p-value</th>
+                            <th>95% CI</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+            <div class="ols-sig-legend">† p &lt; .10 &nbsp;&nbsp; * p &lt; .05 &nbsp;&nbsp; ** p &lt; .01 &nbsp;&nbsp; *** p &lt; .001 &nbsp;&nbsp;&nbsp; 95% CI uses t-critical for df = ${n-k}</div>
+        </div>
+        ${dummyNote ? `<div class="ols-dummy-notes">
+            <strong>📌 Dummy Variable Reference Categories</strong>
+            <ul>${dummyNote}</ul>
+        </div>` : ''}
+        <div class="stats-interpretation">
+            <h4>📝 Regression Interpretation</h4>
+            <p>The OLS model explains <strong>${r2Pct}%</strong> of the variance in <strong>${dvLabel}</strong>
+            (R² = ${r2.toFixed(3)}, Adj. R² = ${adjR2.toFixed(3)}). The overall model is
+            ${fP < .05
+                ? `<strong>statistically significant</strong>, F(${k-1}, ${n-k}) = ${fStat.toFixed(2)}, p = ${pFmt(fP)}.`
+                : `<strong>not statistically significant</strong> at α = .05, F(${k-1}, ${n-k}) = ${fStat.toFixed(2)}, p = ${pFmt(fP)}.`
+            }</p>
+            ${sigPreds.length > 0
+                ? `<p style="margin-top:8px">Significant predictors (p &lt; .05): <strong>${sigPreds.join('; ')}</strong></p>`
+                : `<p style="margin-top:8px;color:#94a3b8">No individual predictors reach p &lt; .05.</p>`
+            }
         </div>
     `;
 }

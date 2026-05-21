@@ -78,6 +78,10 @@
                 <span class="nav-icon">χ²</span>
                 <span class="nav-label">Chi-Square Analysis</span>
             </a>
+            <a href="#" class="nav-link" data-module="ols" onclick="switchModule('ols', this)">
+                <span class="nav-icon">β</span>
+                <span class="nav-label">OLS Regression</span>
+            </a>
             <a href="#" class="nav-link" data-module="datadict" onclick="switchModule('datadict', this)">
                 <span class="nav-icon">📖</span>
                 <span class="nav-label">Data Dictionary</span>
@@ -477,6 +481,17 @@
                 </div>
             </div>
             <div id="chisqContent"></div>
+        </section>
+
+        <section class="module-section" id="section-ols">
+            <div class="section-header">
+                <div class="section-icon">β</div>
+                <div>
+                    <h2>OLS Regression</h2>
+                    <p>Build and interpret ordinary least squares regression models — select a dependent variable, add covariates, and let the engine auto-create dummy variables for nominal predictors</p>
+                </div>
+            </div>
+            <div id="olsContent"></div>
         </section>
 
         <section class="module-section" id="section-datadict">
