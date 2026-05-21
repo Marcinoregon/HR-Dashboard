@@ -72,7 +72,11 @@
             </a>
             <a href="#" class="nav-link" data-module="stats" onclick="switchModule('stats', this)">
                 <span class="nav-icon">📏</span>
-                <span class="nav-label">Statistical Analysis</span>
+                <span class="nav-label">T-Test</span>
+            </a>
+            <a href="#" class="nav-link" data-module="chisq" onclick="switchModule('chisq', this)">
+                <span class="nav-icon">χ²</span>
+                <span class="nav-label">Chi-Square Analysis</span>
             </a>
             <a href="#" class="nav-link" data-module="datadict" onclick="switchModule('datadict', this)">
                 <span class="nav-icon">📖</span>
@@ -450,8 +454,8 @@
             <div class="section-header">
                 <div class="section-icon">📏</div>
                 <div>
-                    <h2>Statistical Analysis</h2>
-                    <p>Compare group means with t-tests and predict turnover likelihood using HR metrics</p>
+                    <h2>T-Test Analysis</h2>
+                    <p>Compare group means with Welch's t-tests and assess effect sizes across HR metrics</p>
                 </div>
             </div>
             <div class="stats-tabs">
@@ -462,6 +466,17 @@
             <div id="statsCompare"></div>
             <div id="statsPredict" style="display:none"></div>
             <div id="statsEngagement" style="display:none"></div>
+        </section>
+
+        <section class="module-section" id="section-chisq">
+            <div class="section-header">
+                <div class="section-icon">χ²</div>
+                <div>
+                    <h2>Chi-Square Analysis</h2>
+                    <p>Test independence between categorical HR variables — hiring outcomes, turnover, race, gender, and more</p>
+                </div>
+            </div>
+            <div id="chisqContent"></div>
         </section>
 
         <section class="module-section" id="section-datadict">

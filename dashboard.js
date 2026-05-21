@@ -80,7 +80,8 @@ function switchModule(moduleId, linkEl) {
         'controls': 'Control Variables',
         'chartbuilder': 'Chart Builder',
         'explore': 'Explore Data',
-        'stats': 'Statistical Analysis',
+        'stats': 'T-Test Analysis',
+        'chisq': 'Chi-Square Analysis',
         'datadict': 'Data Dictionary',
     };
     document.getElementById('pageTitle').textContent = titles[moduleId] || 'Dashboard';
@@ -167,6 +168,7 @@ function renderModule(moduleId) {
         case 'chartbuilder': renderChartBuilder(); break;
         case 'explore': renderExploreData(); break;
         case 'stats': renderStats(); break;
+        case 'chisq': renderChiSquare(); break;
         case 'datadict': renderDataDictionary(); break;
     }
 }
@@ -3203,6 +3205,364 @@ function runCompareMeans() {
 }
 
 // --- Turnover Prediction ---
+// --- Engagement Analysis ---
+
+// ===== CHI-SQUARE ANALYSIS =====
+
+// Chi-square statistic from a 2x2 contingency table [[a,b],[c,d]]
+function chiSquare2x2(table) {
+    const [[a,b],[c,d]] = table;
+    const n = a + b + c + d;
+    if (n === 0) return { chi2: 0, p: 1, df: 1 };
+    const chi2 = n * Math.pow(a*d - b*c, 2) / ((a+b)*(c+d)*(a+c)*(b+d));
+    const p = 1 - chiSquareCDF(chi2, 1);
+    return { chi2, p, df: 1 };
+}
+
+// General chi-square from an observed frequency array and expected frequencies
+function chiSquareGoF(observed, expected) {
+    let chi2 = 0;
+    for (let i = 0; i < observed.length; i++) {
+        if (expected[i] > 0) chi2 += Math.pow(observed[i] - expected[i], 2) / expected[i];
+    }
+    const df = observed.length - 1;
+    const p = 1 - chiSquareCDF(chi2, df);
+    return { chi2, p, df };
+}
+
+// Chi-square CDF using regularized incomplete gamma
+function chiSquareCDF(x, k) {
+    if (x <= 0) return 0;
+    return regIncGamma(k / 2, x / 2);
+}
+
+// Regularized lower incomplete gamma P(a, x)
+function regIncGamma(a, x) {
+    if (x < 0) return 0;
+    if (x === 0) return 0;
+    // Use series expansion for small x, continued fraction for large
+    if (x < a + 1) {
+        // Series
+        let term = 1 / a, sum = term;
+        for (let n = 1; n <= 200; n++) {
+            term *= x / (a + n);
+            sum += term;
+            if (Math.abs(term) < 1e-10 * Math.abs(sum)) break;
+        }
+        return sum * Math.exp(-x + a * Math.log(x) - lnGamma(a));
+    } else {
+        // Continued fraction (Lentz)
+        let b0 = x + 1 - a, c = 1e30, d = 1 / b0;
+        let f = d;
+        for (let i = 1; i <= 200; i++) {
+            const an = -i * (i - a);
+            b0 += 2;
+            d = an * d + b0; if (Math.abs(d) < 1e-30) d = 1e-30;
+            c = b0 + an / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+            d = 1 / d;
+            const del = d * c;
+            f *= del;
+            if (Math.abs(del - 1) < 1e-10) break;
+        }
+        return 1 - Math.exp(-x + a * Math.log(x) - lnGamma(a)) * f;
+    }
+}
+
+// Cramér's V (effect size for chi-square)
+function cramersV(chi2, n, minDim) {
+    return Math.sqrt(chi2 / (n * (minDim - 1)));
+}
+
+// ===== CHI-SQUARE CONFIGURATIONS =====
+const CHISQ_CONFIGS = [
+    {
+        id: 'hire_race',
+        label: 'Hiring Outcome × Race (White vs URM)',
+        description: 'Tests whether hiring decisions (hired vs. not hired) are independent of applicant race.',
+        hypothesis: 'H₀: Hiring outcome is independent of race.  H₁: Hiring outcome and race are associated.',
+        getTable: () => {
+            const w = D.module3.hireByRace.White;
+            const u = D.module3.hireByRace.URM;
+            return {
+                rows: ['Hired', 'Not Hired'],
+                cols: ['White', 'URM'],
+                table: [[w.hired, u.hired], [w.notHired || (w.total - w.hired), u.notHired || (u.total - u.hired)]]
+            };
+        }
+    },
+    {
+        id: 'hire_gender',
+        label: 'Hiring Outcome × Gender (Male vs Female)',
+        description: 'Tests whether hiring decisions are independent of applicant gender.',
+        hypothesis: 'H₀: Hiring outcome is independent of gender.  H₁: Hiring outcome and gender are associated.',
+        getTable: () => {
+            const m = D.module3.hireByGender.Male;
+            const f = D.module3.hireByGender.Female;
+            return {
+                rows: ['Hired', 'Not Hired'],
+                cols: ['Male', 'Female'],
+                table: [[m.hired, f.hired], [(m.total - m.hired), (f.total - f.hired)]]
+            };
+        }
+    },
+    {
+        id: 'turnover_market',
+        label: 'Turnover Type × Market (Large vs Medium)',
+        description: 'Tests whether turnover type (quit vs. discharged) differs between market types.',
+        hypothesis: 'H₀: Turnover type is independent of market type.  H₁: There is an association between market type and how employees leave.',
+        getTable: () => {
+            let lQ = 0, lD = 0, mQ = 0, mD = 0;
+            Object.entries(D.module2.turnoverByUnit).forEach(([id, u]) => {
+                const mkt = (D.module1.unitHeadcount[id] || {}).market;
+                if (mkt === 'Large') { lQ += u.quit; lD += u.discharged; }
+                else { mQ += u.quit; mD += u.discharged; }
+            });
+            return {
+                rows: ['Quit', 'Discharged'],
+                cols: ['Large', 'Medium'],
+                table: [[lQ, mQ], [lD, mD]]
+            };
+        }
+    },
+    {
+        id: 'turnover_race',
+        label: 'Turnover Status × Race (White vs URM)',
+        description: 'Tests whether current employee turnover-risk status differs by race using workforce counts.',
+        hypothesis: 'H₀: Turnover risk is independent of race.  H₁: Race and turnover risk are associated.',
+        getTable: () => {
+            const wCount = D.module1.raceCounts.White || 0;
+            const uCount = D.module1.raceCounts.URM || 0;
+            const totalTurnover = (D.module2.statusCounts['Quit'] || 0) + (D.module2.statusCounts['Discharged'] || 0);
+            const total = wCount + uCount;
+            const wTurn = total > 0 ? Math.round(totalTurnover * (wCount / total)) : 0;
+            const uTurn = totalTurnover - wTurn;
+            return {
+                rows: ['Turned Over', 'Still Employed'],
+                cols: ['White', 'URM'],
+                table: [[wTurn, uTurn], [wCount - wTurn, uCount - uTurn]]
+            };
+        }
+    },
+    {
+        id: 'turnover_gender',
+        label: 'Turnover Status × Gender (Male vs Female)',
+        description: 'Tests whether turnover differs between male and female employees.',
+        hypothesis: 'H₀: Turnover is independent of gender.  H₁: Gender and turnover status are associated.',
+        getTable: () => {
+            const mCount = D.module1.genderCounts.Male || 0;
+            const fCount = D.module1.genderCounts.Female || 0;
+            const totalTurnover = (D.module2.statusCounts['Quit'] || 0) + (D.module2.statusCounts['Discharged'] || 0);
+            const total = mCount + fCount;
+            const mTurn = total > 0 ? Math.round(totalTurnover * (mCount / total)) : 0;
+            const fTurn = totalTurnover - mTurn;
+            return {
+                rows: ['Turned Over', 'Still Employed'],
+                cols: ['Male', 'Female'],
+                table: [[mTurn, fTurn], [mCount - mTurn, fCount - fTurn]]
+            };
+        }
+    },
+    {
+        id: 'profit_market',
+        label: 'Profitability × Market (Large vs Medium)',
+        description: 'Tests whether restaurant profitability (profitable vs. not) is independent of market type.',
+        hypothesis: 'H₀: Profitability is independent of market type.  H₁: Market type and profitability are associated.',
+        getTable: () => {
+            let lP = 0, lNP = 0, mP = 0, mNP = 0;
+            Object.values(D.restaurant.performanceByUnit2026).forEach(u => {
+                if (u.market === 'Large') { u.profit >= 0 ? lP++ : lNP++; }
+                else { u.profit >= 0 ? mP++ : mNP++; }
+            });
+            return {
+                rows: ['Profitable', 'Not Profitable'],
+                cols: ['Large', 'Medium'],
+                table: [[lP, mP], [lNP, mNP]]
+            };
+        }
+    },
+    {
+        id: 'recruit_source_race',
+        label: 'Recruitment Source × Race (Hired Managers)',
+        description: 'Tests whether recruitment source is associated with race among hired managers.',
+        hypothesis: 'H₀: Recruitment source is independent of race among hires.  H₁: There is an association between source and race.',
+        getTable: () => {
+            const managers = D.module4 && D.module4.scatterManagers ? D.module4.scatterManagers : [];
+            const sourceWhite = {}, sourceURM = {};
+            managers.forEach(m => {
+                const src = m.source || 'Unknown';
+                const race = m.race || 'Unknown';
+                if (race === 'White') sourceWhite[src] = (sourceWhite[src] || 0) + 1;
+                else sourceURM[src] = (sourceURM[src] || 0) + 1;
+            });
+            const sources = [...new Set([...Object.keys(sourceWhite), ...Object.keys(sourceURM)].filter(s => s !== 'Unknown'))];
+            if (sources.length < 2) {
+                // Fallback using module3 recruit source data
+                const src = D.module3.recruitSource || {};
+                const rows = Object.keys(src).slice(0, 3);
+                const wArr = rows.map(r => src[r].White || 0);
+                const uArr = rows.map(r => src[r].URM || 0);
+                return { rows, cols: ['White', 'URM'], table: rows.map((r,i) => [wArr[i], uArr[i]]) };
+            }
+            const wRow = sources.map(s => sourceWhite[s] || 0);
+            const uRow = sources.map(s => sourceURM[s] || 0);
+            return {
+                rows: ['White', 'URM'],
+                cols: sources,
+                table: [wRow, uRow]
+            };
+        }
+    },
+    {
+        id: 'perf_market',
+        label: 'High Performance × Market (Managers)',
+        description: 'Tests whether high-performing managers (rating ≥4) are distributed independently of market type.',
+        hypothesis: 'H₀: Manager performance level is independent of market type.  H₁: Market type and performance level are associated.',
+        getTable: () => {
+            const managers = D.module4 && D.module4.scatterManagers ? D.module4.scatterManagers : [];
+            let lHi = 0, lLo = 0, mHi = 0, mLo = 0;
+            managers.forEach(m => {
+                const mkt = (D.module1.unitHeadcount[m.unit] || {}).market;
+                if (mkt === 'Large') { m.perf >= 4 ? lHi++ : lLo++; }
+                else { m.perf >= 4 ? mHi++ : mLo++; }
+            });
+            return {
+                rows: ['High Perf (≥4)', 'Lower Perf (<4)'],
+                cols: ['Large', 'Medium'],
+                table: [[lHi, mHi], [lLo, mLo]]
+            };
+        }
+    },
+    {
+        id: 'high_eng_profitable',
+        label: 'High Engagement × Profitability (Units)',
+        description: 'Tests whether high-engagement restaurant units are more likely to be profitable.',
+        hypothesis: 'H₀: Engagement level is independent of profitability.  H₁: Engagement and profitability are associated.',
+        getTable: () => {
+            const dims = ['jobSatisfaction','collaboration','communication','support','customerFocus','personalGrowth','inclusion','empowerment','accountability'];
+            const unitAvgs = {};
+            Object.entries(D.engagement.unitEngagement).forEach(([id, s]) => {
+                unitAvgs[id] = dims.reduce((sum, d) => sum + s[d], 0) / dims.length;
+            });
+            const avgs = Object.values(unitAvgs).sort((a, b) => a - b);
+            const medEng = avgs[Math.floor(avgs.length / 2)];
+            let hiP = 0, hiNP = 0, loP = 0, loNP = 0;
+            Object.entries(D.restaurant.performanceByUnit2026).forEach(([id, u]) => {
+                const isHiEng = (unitAvgs[id] || 0) >= medEng;
+                const isProfit = u.profit >= 0;
+                if (isHiEng) { isProfit ? hiP++ : hiNP++; }
+                else { isProfit ? loP++ : loNP++; }
+            });
+            return {
+                rows: ['Profitable', 'Not Profitable'],
+                cols: ['High Engagement', 'Low Engagement'],
+                table: [[hiP, loP], [hiNP, loNP]]
+            };
+        }
+    },
+];
+
+function renderChiSquare() {
+    const container = document.getElementById('chisqContent');
+    const opts = CHISQ_CONFIGS.map((c, i) => `<option value="${i}">${c.label}</option>`).join('');
+    container.innerHTML = `
+        <div class="stats-controls">
+            <div class="stats-control-group" style="flex:1">
+                <label class="stats-ctrl-label">📋 Analysis Scenario</label>
+                <select id="chisqSelect" class="stats-select" onchange="runChiSquare()" style="width:100%">
+                    ${opts}
+                </select>
+            </div>
+            <button class="stats-run-btn" onclick="runChiSquare()">Run χ² Test</button>
+        </div>
+        <div class="stats-interpretation" style="margin:0 0 1rem;">
+            <p id="chisqHypothesis" style="font-size:0.85rem;color:#94a3b8"></p>
+        </div>
+        <div id="chisqResults"></div>
+    `;
+    runChiSquare();
+}
+
+function runChiSquare() {
+    const idx = parseInt(document.getElementById('chisqSelect').value, 10);
+    const cfg = CHISQ_CONFIGS[idx];
+    document.getElementById('chisqHypothesis').textContent = cfg.hypothesis;
+
+    let tableData;
+    try { tableData = cfg.getTable(); } catch(e) {
+        document.getElementById('chisqResults').innerHTML = `<div class="stats-no-data">Unable to compute this analysis with the available data.</div>`;
+        return;
+    }
+
+    const { rows, cols, table } = tableData;
+    // Flatten all cells to check for minimum expected frequency
+    const n = table.flat().reduce((s, v) => s + v, 0);
+    if (n === 0) {
+        document.getElementById('chisqResults').innerHTML = `<div class="stats-no-data">No data available for this comparison.</div>`;
+        return;
+    }
+
+    // Compute expected frequencies and chi-square
+    const rowTotals = table.map(row => row.reduce((s, v) => s + v, 0));
+    const colTotals = cols.map((_, ci) => table.reduce((s, row) => s + row[ci], 0));
+    const expected = table.map((row, ri) => row.map((_, ci) => (rowTotals[ri] * colTotals[ci]) / n));
+
+    let chi2 = 0;
+    table.forEach((row, ri) => row.forEach((obs, ci) => {
+        if (expected[ri][ci] > 0) chi2 += Math.pow(obs - expected[ri][ci], 2) / expected[ri][ci];
+    }));
+    const df = (rows.length - 1) * (cols.length - 1);
+    const p = 1 - chiSquareCDF(chi2, df);
+    const sig = p < 0.05;
+    const sigLabel = sig ? 'Statistically Significant' : 'Not Significant';
+    const sigClass = sig ? 'stats-sig-yes' : 'stats-sig-no';
+    const pDisplay = p < 0.001 ? '< 0.001' : p.toFixed(4);
+    const minDim = Math.min(rows.length, cols.length);
+    const v = minDim > 1 ? cramersV(chi2, n, minDim) : 0;
+    let vLabel = 'Negligible';
+    if (v >= 0.5) vLabel = 'Large';
+    else if (v >= 0.3) vLabel = 'Medium';
+    else if (v >= 0.1) vLabel = 'Small';
+
+    // Check Cochran condition (expected ≥ 5)
+    const lowExpected = expected.flat().filter(e => e < 5).length;
+    const warning = lowExpected > 0 ? `<div style="background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:0.75rem 1rem;font-size:0.82rem;color:#fbbf24;margin-bottom:1rem;">⚠️ ${lowExpected} cell(s) have expected frequency &lt; 5. Chi-square results may be unreliable. Consider combining categories or using Fisher's exact test.</div>` : '';
+
+    // Build contingency table HTML
+    let tableHTML = `<table class="chisq-table"><thead><tr><th></th>${cols.map(c => `<th>${c}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+    table.forEach((row, ri) => {
+        const rTotal = rowTotals[ri];
+        tableHTML += `<tr><th>${rows[ri]}</th>${row.map((obs, ci) => {
+            const exp = expected[ri][ci].toFixed(1);
+            return `<td><div class="chisq-cell-obs">${obs}</div><div class="chisq-cell-exp">exp: ${exp}</div></td>`;
+        }).join('')}<td><strong>${rTotal}</strong></td></tr>`;
+    });
+    tableHTML += `<tr class="chisq-total-row"><th>Total</th>${colTotals.map(t => `<td>${t}</td>`).join('')}<td><strong>${n}</strong></td></tr></tbody></table>`;
+
+    document.getElementById('chisqResults').innerHTML = `
+        ${warning}
+        <div class="chisq-table-wrap">
+            <div class="chisq-table-title">📊 Observed Counts (with Expected Frequencies)</div>
+            ${tableHTML}
+        </div>
+        <div class="stats-test-summary" style="margin-top:1.25rem">
+            <div class="stats-test-item"><span>χ² statistic</span><strong>${chi2.toFixed(4)}</strong></div>
+            <div class="stats-test-item"><span>Degrees of freedom</span><strong>${df}</strong></div>
+            <div class="stats-test-item"><span>p-value</span><strong class="${sigClass}">${pDisplay}</strong></div>
+            <div class="stats-test-item"><span>Cramér's V</span><strong>${v.toFixed(3)} (${vLabel})</strong></div>
+            <div class="stats-test-item"><span>Total N</span><strong>${n}</strong></div>
+            <div class="stats-test-item stats-badge-item"><span class="stats-badge ${sigClass}">${sigLabel}</span></div>
+        </div>
+        <div class="stats-interpretation">
+            <h4>📝 Interpretation</h4>
+            <p>${sig
+                ? `The chi-square test reveals a <strong>statistically significant association</strong> between the two variables, χ²(${df}) = ${chi2.toFixed(2)}, p = ${pDisplay}. The effect size is <strong>${vLabel.toLowerCase()}</strong> (Cramér's V = ${v.toFixed(2)}), suggesting the association is ${vLabel === 'Negligible' ? 'very weak despite significance' : vLabel.toLowerCase() + ' in practical terms'}.`
+                : `The chi-square test finds <strong>no statistically significant association</strong> between these variables, χ²(${df}) = ${chi2.toFixed(2)}, p = ${pDisplay}. The observed frequency differences are consistent with random chance at the α = 0.05 level.`
+            }</p>
+            <p style="font-size:0.82rem;color:#94a3b8;margin-top:0.5rem">${cfg.description}</p>
+        </div>
+    `;
+}
+
 // --- Engagement Analysis ---
 function renderEngagementStats() {
     const dims = ['jobSatisfaction','collaboration','communication','support','customerFocus','personalGrowth','inclusion','empowerment','accountability'];
