@@ -77,7 +77,7 @@ function switchModule(moduleId, linkEl) {
         'anomalies': 'Data Anomalies',
         'exercises': 'Student Exercises',
         'research': 'Research Statements',
-        'controls': 'Control Variables',
+        'controls': 'Control Variables/Covariates',
         'chartbuilder': 'Chart Builder',
         'explore': 'Explore Data',
         'stats': 'T-Test Analysis',
@@ -5303,142 +5303,142 @@ window.answerResearchQuestion = function(qId, selectedAnswer) {
 
 };
 
-// ===== CONTROL VARIABLES =====
+// ===== COVARIATES =====
 function renderControlVariables() {
     const grid = document.getElementById('controlsQuestionsGrid');
     
     const questions = [
         {
             id: 1,
-            q: "What control variables might we include if we were to analyze the adverse impact ratios of White and URM applicants?",
+            q: "What covariates should we include when analyzing the hiring rate difference between White and URM applicants?",
             options: [
-                "Total net profit of the restaurant location",
-                "Structured interview scores (Interview 1 & 2) and target Job Title",
-                "Current employee flight risk scores",
-                "Supervisor performance ratings of active managers"
+                "Restaurant net profit",
+                "Interview scores and Job Title",
+                "Employee flight risk scores",
+                "Manager performance ratings"
             ],
             correctIndex: 1,
-            explanation: "Interview scores reflect structured candidate qualification measures, and job title determines the specific role requirements. Controlling for these allows you to isolate whether race has an independent effect on selection among candidates of similar qualifications applying for the same positions. Unit profits or manager performance ratings are irrelevant to the applicant tracking system."
+            explanation: "Interview scores reflect structured candidate qualification measures, and job title determines the specific role requirements. Including these as covariates allows you to isolate whether race has an independent effect on selection among candidates of similar qualifications applying for the same positions. Unit profits or manager performance ratings are irrelevant to the applicant tracking system."
         },
         {
             id: 2,
-            q: "What control variables might we include if we were to analyze unit-level employee engagement scores across market types (Large vs. Medium)?",
+            q: "What covariates should we include when comparing employee engagement between Large and Medium markets?",
             options: [
                 "Applicant gender ratio",
-                "Total Headcount (number of employees at the unit)",
-                "Hourly candidate interview score averages",
-                "Qualitative separation reason codes"
+                "Total Headcount (store size)",
+                "Interview scores",
+                "Separation reasons"
             ],
             correctIndex: 1,
-            explanation: "Total Headcount represents the size of the team at each restaurant unit. Large locations might have different communication dynamics, spans of control, and team density compared to medium locations, making headcount a critical control variable when comparing geographic market averages."
+            explanation: "Total Headcount represents the size of the team at each restaurant unit. Large locations might have different communication dynamics, spans of control, and team density compared to medium locations, making headcount a critical covariate when comparing geographic market averages."
         },
         {
             id: 3,
-            q: "What control variables might we include if we were to analyze manager voluntary separation (quit status) relative to their performance ratings?",
+            q: "What covariates should we include when analyzing if manager performance ratings predict voluntary turnover (quits)?",
             options: [
-                "Manager Salary (Manager Wage)",
-                "Applicant selection rate (Hiring Rate)",
-                "Restaurant Cost of Goods Sold (COGS)",
-                "Customer focus engagement survey average"
+                "Manager Salary",
+                "Hiring Rate",
+                "Cost of Goods Sold (COGS)",
+                "Customer engagement scores"
             ],
             correctIndex: 0,
-            explanation: "Higher salaries are a strong direct driver of employee retention. To isolate the relationship between a manager's supervisor evaluation (performance rating) and their separation behavior, you must control for their annual base salary (Manager Wage) to rule out compensation-driven turnover."
+            explanation: "Higher salaries are a strong direct driver of employee retention. To isolate the relationship between a manager's supervisor evaluation (performance rating) and their separation behavior, you must include their annual base salary as a covariate to rule out compensation-driven turnover."
         },
         {
             id: 4,
-            q: "What control variables might we include if we were to analyze applicant hiring rate differences by gender?",
+            q: "What covariates should we include when analyzing differences in hiring rates by gender?",
             options: [
-                "Restaurant unit sales revenue",
-                "Structured interview scores and targeted Job Title",
-                "Average store employee turnover rates",
-                "Age bracket of the active workforce"
+                "Unit sales revenue",
+                "Interview scores and Job Title",
+                "Store turnover rates",
+                "Employee age bracket"
             ],
             correctIndex: 1,
-            explanation: "Controlling for structured Interview Scores and target Job Title ensures that you are comparing male and female applicants who applied for the same role and scored similarly in the selection evaluations, allowing you to isolate gender-specific differences in hiring decisions."
+            explanation: "Including Interview Scores and target Job Title as covariates ensures that you are comparing male and female applicants who applied for the same role and scored similarly in the selection evaluations, allowing you to isolate gender-specific differences in hiring decisions."
         },
         {
             id: 5,
-            q: "What control variables might we include if we were to analyze the relationship between recruitment source and Assistant Manager performance ratings?",
+            q: "What covariates should we include when analyzing how recruitment source affects an Assistant Manager's performance?",
             options: [
-                "Years of Experience (Prior Experience)",
-                "Unit fixed operating expenses",
-                "Selection rate (Hiring Rate) of the source",
-                "Restaurant net profit margin"
+                "Years of Prior Experience",
+                "Operating expenses",
+                "Hiring rate of the source",
+                "Net profit margin"
             ],
             correctIndex: 0,
-            explanation: "Years of prior experience directly influences job competency and performance reviews. Controlling for experience ensures that you are measuring the true effectiveness of the recruiting source itself rather than differences in the career stages of the candidates it attracts."
+            explanation: "Years of prior experience directly influences job competency and performance reviews. Including experience as a covariate ensures that you are measuring the true effectiveness of the recruiting source itself rather than differences in the career stages of the candidates it attracts."
         },
         {
             id: 6,
-            q: "What control variables might we include if we were to analyze the relationship between unit-level employee engagement and net profits?",
+            q: "What covariates should we include when analyzing the impact of employee engagement on unit profits?",
             options: [
-                "Market Size (Large vs. Medium) and Total Headcount (Unit Size)",
-                "Applicant race demographics",
-                "Performance ratings of active managers",
-                "Structured interview scores of candidates"
+                "Market Size and Total Headcount",
+                "Applicant demographics",
+                "Manager performance ratings",
+                "Candidate interview scores"
             ],
             correctIndex: 0,
-            explanation: "Large markets and larger physical units (Total Headcount) naturally generate higher sales volumes and profits regardless of engagement level. You must control for Market Size and store size (headcount) to isolate the independent impact of engagement on unit net profits."
+            explanation: "Large markets and larger physical units (Total Headcount) naturally generate higher sales volumes and profits regardless of engagement level. You must include Market Size and store size (headcount) as covariates to isolate the independent impact of engagement on unit net profits."
         },
         {
             id: 7,
-            q: "What control variables might we include if we were to analyze the salary pay gap between male and female managers?",
+            q: "What covariates should we include when analyzing the gender pay gap among managers?",
             options: [
-                "Job Title (Manager vs. Assistant Manager), Years of Experience, and Performance Rating",
-                "Total Unit Headcount and Fixed Operating Expenses",
-                "Applicant race and structured interview scores",
-                "Unit Turnover Rate and Sales Revenue"
+                "Job Title, Years of Experience, and Performance Rating",
+                "Total Headcount and Operating Expenses",
+                "Applicant race and interview scores",
+                "Turnover Rate and Sales Revenue"
             ],
             correctIndex: 0,
-            explanation: "Manager salaries are structurally determined by their hierarchical job tier (Manager vs. Assistant Manager), tenure (Years of Experience), and merit evaluations (Performance Rating). To identify true gender-based pay disparities, all three must be controlled."
+            explanation: "Manager salaries are structurally determined by their hierarchical job tier (Manager vs. Assistant Manager), tenure (Years of Experience), and merit evaluations (Performance Rating). To identify true gender-based pay disparities, all three must be included as covariates."
         },
         {
             id: 8,
-            q: "What control variables might we include if we were to compare manager performance ratings between online job board and university partnership recruits?",
+            q: "What covariates should we include when comparing performance ratings of online recruits vs. university recruits?",
             options: [
-                "Prior Years of Experience (or Age Bracket)",
-                "Unit fixed operating expenses",
-                "Hourly employee engagement averages",
-                "Restaurant sales revenue"
+                "Years of Experience or Age",
+                "Operating expenses",
+                "Employee engagement scores",
+                "Sales revenue"
             ],
             correctIndex: 0,
-            explanation: "University partnerships recruit new graduates who typically have very low experience and fall into younger age brackets. Online job boards capture experienced lateral hires. Controlling for prior experience prevents career-stage differences from confounding the recruiting channel comparison."
+            explanation: "University partnerships recruit new graduates who typically have very low experience and fall into younger age brackets. Online job boards capture experienced lateral hires. Including prior experience as a covariate prevents career-stage differences from confounding the recruiting channel comparison."
         },
         {
             id: 9,
-            q: "What control variables might we include if we were to analyze the relationship between a manager's performance rating and their unit's sales revenue?",
+            q: "What covariates should we include when analyzing how a manager's performance affects their unit's sales?",
             options: [
-                "Market Size (Large vs. Medium)",
+                "Market Size",
                 "Manager gender",
-                "Candidate interview scores",
-                "Manager recruitment source"
+                "Interview scores",
+                "Recruitment source"
             ],
             correctIndex: 0,
-            explanation: "Restaurants in Large Markets have a higher natural customer base and physical demand potential compared to Medium Markets. Controlling for Market Size is necessary to see if manager performance has an independent effect on sales revenue."
+            explanation: "Restaurants in Large Markets have a higher natural customer base and physical demand potential compared to Medium Markets. Including Market Size as a covariate is necessary to see if manager performance has an independent effect on sales revenue."
         },
         {
             id: 10,
-            q: "What control variables might we include if we were to analyze the relationship between unit payroll expenditures and employee turnover rates?",
+            q: "What covariates should we include when analyzing how unit payroll affects turnover rates?",
             options: [
-                "Total Headcount (Unit Size)",
+                "Total Headcount",
                 "Average manager salary",
-                "Applicant structured interview scores",
+                "Interview scores",
                 "Manager performance rating"
             ],
             correctIndex: 0,
-            explanation: "Larger units require more staff, which naturally increases total payroll. Controlling for Total Headcount ensures you are measuring turnover patterns relative to store size rather than payroll scale alone."
+            explanation: "Larger units require more staff, which naturally increases total payroll. Including Total Headcount as a covariate ensures you are measuring turnover patterns relative to store size rather than payroll scale alone."
         },
         {
             id: 11,
-            q: "What control variables might we include if we were to analyze structured interview scores between White and URM applicants?",
+            q: "What covariates should we include when comparing interview scores between White and URM applicants?",
             options: [
-                "Recruitment Source and target Job Title",
+                "Recruitment Source and Job Title",
                 "Unit Sales Revenue",
                 "Restaurant Net Profit",
                 "Flight Risk Status"
             ],
             correctIndex: 0,
-            explanation: "Recruitment sources can vary in demographics, candidate prep, and training, and different jobs can have differing interview standard baselines. Controlling for Recruitment Source and Job Title applied for ensures you isolate potential score differences based on candidate demographic background."
+            explanation: "Recruitment sources can vary in demographics, candidate prep, and training, and different jobs can have differing interview standard baselines. Including Recruitment Source and Job Title applied for as covariates ensures you isolate potential score differences based on candidate demographic background."
         }
     ];
 
@@ -5646,7 +5646,7 @@ window.downloadResearchResults = function() {
 };
 
 window.resetControlsQuiz = function() {
-    if (confirm("Are you sure you want to reset your Control Variables quiz answers?")) {
+    if (confirm("Are you sure you want to reset your Covariates quiz answers?")) {
         window.controlQuizState = {
             answers: {},
             correctCount: 0,
@@ -5673,7 +5673,7 @@ window.downloadControlsResults = function() {
     text += "       HR ANALYTICS CASE STUDY - GRADED REPORT     \n";
     text += "==================================================\n\n";
     text += `Student Name: ${studentName}\n`;
-    text += `Module:       Control Variables Quiz\n`;
+    text += `Module:       Covariates Quiz\n`;
     text += `Date/Time:    ${new Date().toLocaleString()}\n`;
     text += `Score:        ${state.correctCount} / ${list.length} correct (${list.length > 0 ? Math.round(state.correctCount/list.length*100) : 0}%)\n`;
     text += `Progress:     ${state.answeredCount} of ${list.length} answered\n\n`;
