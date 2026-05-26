@@ -3557,6 +3557,26 @@ function cramersV(chi2, n, minDim) {
 }
 
 // ===== CHI-SQUARE CONFIGURATIONS =====
+let chisqSelectedYear = 'all';
+
+function getHireData(type, year) {
+    // type: 'race' or 'gender'
+    const src = type === 'race' ? HIRE_BY_YEAR_RACE : HIRE_BY_YEAR_GENDER;
+    if (year === 'all') {
+        // Sum all years
+        const result = {};
+        Object.values(src).forEach(yrData => {
+            Object.entries(yrData).forEach(([grp, vals]) => {
+                if (!result[grp]) result[grp] = { hired: 0, total: 0 };
+                result[grp].hired += vals.hired;
+                result[grp].total += vals.total;
+            });
+        });
+        return result;
+    }
+    return src[year] || null;
+}
+
 const CHISQ_CONFIGS = [
     {
         id: 'hire_race',
@@ -3564,12 +3584,13 @@ const CHISQ_CONFIGS = [
         description: 'Tests whether hiring decisions (hired vs. not hired) are independent of applicant race.',
         hypothesis: 'H₀: Hiring outcome is independent of race.  H₁: Hiring outcome and race are associated.',
         getTable: () => {
-            const w = D.module3.hireByRace.White;
-            const u = D.module3.hireByRace.URM;
+            const d = getHireData('race', chisqSelectedYear);
+            if (!d || !d.White || !d.URM) return null;
+            const w = d.White, u = d.URM;
             return {
                 rows: ['Hired', 'Not Hired'],
                 cols: ['White', 'URM'],
-                table: [[w.hired, u.hired], [w.notHired || (w.total - w.hired), u.notHired || (u.total - u.hired)]]
+                table: [[w.hired, u.hired], [w.total - w.hired, u.total - u.hired]]
             };
         }
     },
@@ -3579,12 +3600,13 @@ const CHISQ_CONFIGS = [
         description: 'Tests whether hiring decisions are independent of applicant gender.',
         hypothesis: 'H₀: Hiring outcome is independent of gender.  H₁: Hiring outcome and gender are associated.',
         getTable: () => {
-            const m = D.module3.hireByGender.Male;
-            const f = D.module3.hireByGender.Female;
+            const d = getHireData('gender', chisqSelectedYear);
+            if (!d || !d.Male || !d.Female) return null;
+            const m = d.Male, f = d.Female;
             return {
                 rows: ['Hired', 'Not Hired'],
                 cols: ['Male', 'Female'],
-                table: [[m.hired, f.hired], [(m.total - m.hired), (f.total - f.hired)]]
+                table: [[m.hired, f.hired], [m.total - m.hired, f.total - f.hired]]
             };
         }
     },
@@ -3593,12 +3615,22 @@ const CHISQ_CONFIGS = [
 function renderChiSquare() {
     const container = document.getElementById('chisqContent');
     const opts = CHISQ_CONFIGS.map((c, i) => `<option value="${i}">${c.label}</option>`).join('');
+    const years = Object.keys(HIRE_BY_YEAR_RACE).sort();
+    const yearOpts = [`<option value="all">All Years (2020–2026)</option>`]
+        .concat(years.map(y => `<option value="${y}"${y === chisqSelectedYear ? ' selected' : ''}>${y}</option>`))
+        .join('');
     container.innerHTML = `
         <div class="stats-controls">
-            <div class="stats-control-group" style="flex:1">
-                <label class="stats-ctrl-label">📋 Analysis Scenario</label>
+            <div class="stats-control-group" style="flex:2">
+                <label class="stats-ctrl-label">📋 Analysis</label>
                 <select id="chisqSelect" class="stats-select" onchange="runChiSquare()" style="width:100%">
                     ${opts}
+                </select>
+            </div>
+            <div class="stats-control-group stats-year-group">
+                <label class="stats-ctrl-label">📅 Year</label>
+                <select id="chisqYear" class="stats-select stats-year-select" onchange="onChiSqYearChange()">
+                    ${yearOpts}
                 </select>
             </div>
             <button class="stats-run-btn" onclick="runChiSquare()">Run χ² Test</button>
@@ -3611,9 +3643,17 @@ function renderChiSquare() {
     runChiSquare();
 }
 
+function onChiSqYearChange() {
+    chisqSelectedYear = document.getElementById('chisqYear').value;
+    runChiSquare();
+}
+
 function runChiSquare() {
     const idx = parseInt(document.getElementById('chisqSelect').value, 10);
     const cfg = CHISQ_CONFIGS[idx];
+    const yearEl = document.getElementById('chisqYear');
+    if (yearEl) chisqSelectedYear = yearEl.value;
+    const yearLabel = chisqSelectedYear === 'all' ? 'All Years (2020–2026)' : chisqSelectedYear;
     document.getElementById('chisqHypothesis').textContent = cfg.hypothesis;
 
     let tableData;
@@ -3667,7 +3707,12 @@ function runChiSquare() {
     });
     tableHTML += `<tr class="chisq-total-row"><th>Total</th>${colTotals.map(t => `<td>${t}</td>`).join('')}<td><strong>${n}</strong></td></tr></tbody></table>`;
 
+    const yearBanner = chisqSelectedYear !== 'all'
+        ? `<div class="stats-year-banner"><span class="stats-year-badge">📅 ${yearLabel}</span><span class="stats-year-note">Showing applicant data for <strong>${yearLabel}</strong></span></div>`
+        : '';
+
     document.getElementById('chisqResults').innerHTML = `
+        ${yearBanner}
         ${warning}
         <div class="chisq-table-wrap">
             <div class="chisq-table-title">📊 Observed Counts (with Expected Frequencies)</div>
