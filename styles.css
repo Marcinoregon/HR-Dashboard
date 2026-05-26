@@ -2310,6 +2310,78 @@ canvas {
     font-style: italic;
 }
 
+/* ===== Year Selection Checkboxes (Chi-Square & T-Test) ===== */
+.chisq-year-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+.chisq-year-check {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 8px;
+    padding: 6px 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.chisq-year-check:hover {
+    background: rgba(51, 65, 85, 0.7);
+    color: #cbd5e1;
+    border-color: rgba(148, 163, 184, 0.25);
+    transform: translateY(-1px);
+}
+
+.chisq-year-check input[type="checkbox"] {
+    display: none; /* Hide standard checkboxes */
+}
+
+/* Checked state using :has selector */
+.chisq-year-check:has(input[type="checkbox"]:checked) {
+    background: rgba(45, 212, 191, 0.12);
+    color: #2dd4bf;
+    border-color: rgba(45, 212, 191, 0.45);
+    box-shadow: 0 0 10px rgba(45, 212, 191, 0.1);
+}
+
+/* Toggle Link Button */
+.chisq-toggle-btn {
+    background: none;
+    border: none;
+    color: #2dd4bf;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: color 0.2s, text-shadow 0.2s;
+}
+
+.chisq-toggle-btn:hover {
+    color: #0d9488;
+    text-shadow: 0 0 8px rgba(45, 212, 191, 0.3);
+}
+
+/* Flex layout helper for control labels with action buttons */
+.stats-control-group label.stats-ctrl-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 .stats-results-grid {
     display: grid;
     grid-template-columns: 1fr auto 1fr;

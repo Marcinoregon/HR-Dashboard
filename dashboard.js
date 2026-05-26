@@ -55,7 +55,7 @@ function alpha(color, a) {
 // ===== State =====
 let activeCharts = {};
 const D = DASHBOARD_DATA;
-let statsSelectedYear = 'all'; // Year filter for T-Test Compare Means
+let statsSelectedYears = ['2020','2021','2022','2023','2024','2025','2026']; // Year filter for T-Test Compare Means (array)
 
 // ===== Navigation =====
 function switchModule(moduleId, linkEl) {
@@ -2705,21 +2705,26 @@ function renderStats() {
 }
 
 // --- Compare Means ---
-// Year-aware helper: returns turnover count scaled by the selected year's share
+// Year-aware helper: returns turnover count scaled by the selected years' combined share
 function getYearScaledTurnover(unitData, field) {
-    const yr = statsSelectedYear;
-    if (yr === 'all') return unitData[field];
-    // Scale unit's all-time total by the selected year's proportion of company-wide totals
+    const allYears = Object.keys(D.module2.turnoverByYear);
+    const isAll = statsSelectedYears.length === 0 || statsSelectedYears.length === allYears.length;
+    if (isAll) return unitData[field];
+    // Sum fractions for each selected year
     const byYear = D.module2.turnoverByYear;
     const totalQuit = Object.values(byYear).reduce((s, y) => s + y.quit, 0);
     const totalDischarged = Object.values(byYear).reduce((s, y) => s + y.discharged, 0);
     if (field === 'quit') {
-        const yearFraction = totalQuit > 0 ? byYear[yr].quit / totalQuit : 0;
-        return Math.round(unitData.quit * yearFraction);
+        const fraction = totalQuit > 0
+            ? statsSelectedYears.reduce((s, yr) => s + (byYear[yr] ? byYear[yr].quit : 0), 0) / totalQuit
+            : 0;
+        return Math.round(unitData.quit * fraction);
     }
     if (field === 'discharged') {
-        const yearFraction = totalDischarged > 0 ? byYear[yr].discharged / totalDischarged : 0;
-        return Math.round(unitData.discharged * yearFraction);
+        const fraction = totalDischarged > 0
+            ? statsSelectedYears.reduce((s, yr) => s + (byYear[yr] ? byYear[yr].discharged : 0), 0) / totalDischarged
+            : 0;
+        return Math.round(unitData.discharged * fraction);
     }
     return unitData[field];
 }
@@ -2796,19 +2801,19 @@ const COMPARE_CONFIGS = {
                 const m = D.module3.hireByGender.Male, f = D.module3.hireByGender.Female;
                 return [[m.total > 0 ? (m.hired/m.total)*100 : 0], [f.total > 0 ? (f.hired/f.total)*100 : 0]];
             },
-            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYear,'Men','jobSatisfaction'),    getEngData(statsSelectedYear,'Women','jobSatisfaction')],
-            'Engagement — Collaboration':        () => [getEngData(statsSelectedYear,'Men','collaboration'),        getEngData(statsSelectedYear,'Women','collaboration')],
-            'Engagement — Communication':        () => [getEngData(statsSelectedYear,'Men','communication'),        getEngData(statsSelectedYear,'Women','communication')],
-            'Engagement — Support':              () => [getEngData(statsSelectedYear,'Men','support'),              getEngData(statsSelectedYear,'Women','support')],
-            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYear,'Men','customerFocus'),       getEngData(statsSelectedYear,'Women','customerFocus')],
-            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYear,'Men','personalGrowth'),      getEngData(statsSelectedYear,'Women','personalGrowth')],
-            'Engagement — Inclusion':            () => [getEngData(statsSelectedYear,'Men','inclusion'),            getEngData(statsSelectedYear,'Women','inclusion')],
-            'Engagement — Empowerment':          () => [getEngData(statsSelectedYear,'Men','empowerment'),          getEngData(statsSelectedYear,'Women','empowerment')],
-            'Engagement — Accountability':       () => [getEngData(statsSelectedYear,'Men','accountability'),       getEngData(statsSelectedYear,'Women','accountability')],
-            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYear,'Men','mgrVision'),           getEngData(statsSelectedYear,'Women','mgrVision')],
-            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYear,'Men','mgrStaffDev'),        getEngData(statsSelectedYear,'Women','mgrStaffDev')],
-            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYear,'Men','mgrSupportiveLeadership'), getEngData(statsSelectedYear,'Women','mgrSupportiveLeadership')],
-            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYear,'Men','mgrInnovativeThinking'), getEngData(statsSelectedYear,'Women','mgrInnovativeThinking')],
+            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYears,'Men','jobSatisfaction'),    getEngData(statsSelectedYears,'Women','jobSatisfaction')],
+            'Engagement — Collaboration':        () => [getEngData(statsSelectedYears,'Men','collaboration'),        getEngData(statsSelectedYears,'Women','collaboration')],
+            'Engagement — Communication':        () => [getEngData(statsSelectedYears,'Men','communication'),        getEngData(statsSelectedYears,'Women','communication')],
+            'Engagement — Support':              () => [getEngData(statsSelectedYears,'Men','support'),              getEngData(statsSelectedYears,'Women','support')],
+            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYears,'Men','customerFocus'),       getEngData(statsSelectedYears,'Women','customerFocus')],
+            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYears,'Men','personalGrowth'),      getEngData(statsSelectedYears,'Women','personalGrowth')],
+            'Engagement — Inclusion':            () => [getEngData(statsSelectedYears,'Men','inclusion'),            getEngData(statsSelectedYears,'Women','inclusion')],
+            'Engagement — Empowerment':          () => [getEngData(statsSelectedYears,'Men','empowerment'),          getEngData(statsSelectedYears,'Women','empowerment')],
+            'Engagement — Accountability':       () => [getEngData(statsSelectedYears,'Men','accountability'),       getEngData(statsSelectedYears,'Women','accountability')],
+            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYears,'Men','mgrVision'),           getEngData(statsSelectedYears,'Women','mgrVision')],
+            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYears,'Men','mgrStaffDev'),        getEngData(statsSelectedYears,'Women','mgrStaffDev')],
+            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYears,'Men','mgrSupportiveLeadership'), getEngData(statsSelectedYears,'Women','mgrSupportiveLeadership')],
+            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYears,'Men','mgrInnovativeThinking'), getEngData(statsSelectedYears,'Women','mgrInnovativeThinking')],
         }
     },
     race: {
@@ -2833,19 +2838,19 @@ const COMPARE_CONFIGS = {
                 const u = D.module3.avgInterviews.URM_Not_hired || D.module3.avgInterviews['URM_Not hired'];
                 return [Array(w.count).fill(w.avgInterview1), Array(u.count).fill(u.avgInterview1)];
             },
-            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYear,'White','jobSatisfaction'),    getEngData(statsSelectedYear,'URM','jobSatisfaction')],
-            'Engagement — Collaboration':        () => [getEngData(statsSelectedYear,'White','collaboration'),        getEngData(statsSelectedYear,'URM','collaboration')],
-            'Engagement — Communication':        () => [getEngData(statsSelectedYear,'White','communication'),        getEngData(statsSelectedYear,'URM','communication')],
-            'Engagement — Support':              () => [getEngData(statsSelectedYear,'White','support'),              getEngData(statsSelectedYear,'URM','support')],
-            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYear,'White','customerFocus'),       getEngData(statsSelectedYear,'URM','customerFocus')],
-            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYear,'White','personalGrowth'),      getEngData(statsSelectedYear,'URM','personalGrowth')],
-            'Engagement — Inclusion':            () => [getEngData(statsSelectedYear,'White','inclusion'),            getEngData(statsSelectedYear,'URM','inclusion')],
-            'Engagement — Empowerment':          () => [getEngData(statsSelectedYear,'White','empowerment'),          getEngData(statsSelectedYear,'URM','empowerment')],
-            'Engagement — Accountability':       () => [getEngData(statsSelectedYear,'White','accountability'),       getEngData(statsSelectedYear,'URM','accountability')],
-            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYear,'White','mgrVision'),           getEngData(statsSelectedYear,'URM','mgrVision')],
-            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYear,'White','mgrStaffDev'),        getEngData(statsSelectedYear,'URM','mgrStaffDev')],
-            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYear,'White','mgrSupportiveLeadership'), getEngData(statsSelectedYear,'URM','mgrSupportiveLeadership')],
-            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYear,'White','mgrInnovativeThinking'), getEngData(statsSelectedYear,'URM','mgrInnovativeThinking')],
+            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYears,'White','jobSatisfaction'),    getEngData(statsSelectedYears,'URM','jobSatisfaction')],
+            'Engagement — Collaboration':        () => [getEngData(statsSelectedYears,'White','collaboration'),        getEngData(statsSelectedYears,'URM','collaboration')],
+            'Engagement — Communication':        () => [getEngData(statsSelectedYears,'White','communication'),        getEngData(statsSelectedYears,'URM','communication')],
+            'Engagement — Support':              () => [getEngData(statsSelectedYears,'White','support'),              getEngData(statsSelectedYears,'URM','support')],
+            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYears,'White','customerFocus'),       getEngData(statsSelectedYears,'URM','customerFocus')],
+            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYears,'White','personalGrowth'),      getEngData(statsSelectedYears,'URM','personalGrowth')],
+            'Engagement — Inclusion':            () => [getEngData(statsSelectedYears,'White','inclusion'),            getEngData(statsSelectedYears,'URM','inclusion')],
+            'Engagement — Empowerment':          () => [getEngData(statsSelectedYears,'White','empowerment'),          getEngData(statsSelectedYears,'URM','empowerment')],
+            'Engagement — Accountability':       () => [getEngData(statsSelectedYears,'White','accountability'),       getEngData(statsSelectedYears,'URM','accountability')],
+            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYears,'White','mgrVision'),           getEngData(statsSelectedYears,'URM','mgrVision')],
+            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYears,'White','mgrStaffDev'),        getEngData(statsSelectedYears,'URM','mgrStaffDev')],
+            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYears,'White','mgrSupportiveLeadership'), getEngData(statsSelectedYears,'URM','mgrSupportiveLeadership')],
+            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYears,'White','mgrInnovativeThinking'), getEngData(statsSelectedYears,'URM','mgrInnovativeThinking')],
         }
     },
     performance: {
@@ -2888,19 +2893,19 @@ const COMPARE_CONFIGS = {
         label: 'Exempt vs Non-Exempt',
         groups: ['Exempt', 'Non-Exempt'],
         metrics: {
-            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYear,'Exempt','jobSatisfaction'),    getEngData(statsSelectedYear,'Non-Exempt','jobSatisfaction')],
-            'Engagement — Collaboration':        () => [getEngData(statsSelectedYear,'Exempt','collaboration'),        getEngData(statsSelectedYear,'Non-Exempt','collaboration')],
-            'Engagement — Communication':        () => [getEngData(statsSelectedYear,'Exempt','communication'),        getEngData(statsSelectedYear,'Non-Exempt','communication')],
-            'Engagement — Support':              () => [getEngData(statsSelectedYear,'Exempt','support'),              getEngData(statsSelectedYear,'Non-Exempt','support')],
-            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYear,'Exempt','customerFocus'),       getEngData(statsSelectedYear,'Non-Exempt','customerFocus')],
-            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYear,'Exempt','personalGrowth'),      getEngData(statsSelectedYear,'Non-Exempt','personalGrowth')],
-            'Engagement — Inclusion':            () => [getEngData(statsSelectedYear,'Exempt','inclusion'),            getEngData(statsSelectedYear,'Non-Exempt','inclusion')],
-            'Engagement — Empowerment':          () => [getEngData(statsSelectedYear,'Exempt','empowerment'),          getEngData(statsSelectedYear,'Non-Exempt','empowerment')],
-            'Engagement — Accountability':       () => [getEngData(statsSelectedYear,'Exempt','accountability'),       getEngData(statsSelectedYear,'Non-Exempt','accountability')],
-            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYear,'Exempt','mgrVision'),           getEngData(statsSelectedYear,'Non-Exempt','mgrVision')],
-            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYear,'Exempt','mgrStaffDev'),        getEngData(statsSelectedYear,'Non-Exempt','mgrStaffDev')],
-            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYear,'Exempt','mgrSupportiveLeadership'), getEngData(statsSelectedYear,'Non-Exempt','mgrSupportiveLeadership')],
-            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYear,'Exempt','mgrInnovativeThinking'), getEngData(statsSelectedYear,'Non-Exempt','mgrInnovativeThinking')],
+            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYears,'Exempt','jobSatisfaction'),    getEngData(statsSelectedYears,'Non-Exempt','jobSatisfaction')],
+            'Engagement — Collaboration':        () => [getEngData(statsSelectedYears,'Exempt','collaboration'),        getEngData(statsSelectedYears,'Non-Exempt','collaboration')],
+            'Engagement — Communication':        () => [getEngData(statsSelectedYears,'Exempt','communication'),        getEngData(statsSelectedYears,'Non-Exempt','communication')],
+            'Engagement — Support':              () => [getEngData(statsSelectedYears,'Exempt','support'),              getEngData(statsSelectedYears,'Non-Exempt','support')],
+            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYears,'Exempt','customerFocus'),       getEngData(statsSelectedYears,'Non-Exempt','customerFocus')],
+            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYears,'Exempt','personalGrowth'),      getEngData(statsSelectedYears,'Non-Exempt','personalGrowth')],
+            'Engagement — Inclusion':            () => [getEngData(statsSelectedYears,'Exempt','inclusion'),            getEngData(statsSelectedYears,'Non-Exempt','inclusion')],
+            'Engagement — Empowerment':          () => [getEngData(statsSelectedYears,'Exempt','empowerment'),          getEngData(statsSelectedYears,'Non-Exempt','empowerment')],
+            'Engagement — Accountability':       () => [getEngData(statsSelectedYears,'Exempt','accountability'),       getEngData(statsSelectedYears,'Non-Exempt','accountability')],
+            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYears,'Exempt','mgrVision'),           getEngData(statsSelectedYears,'Non-Exempt','mgrVision')],
+            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYears,'Exempt','mgrStaffDev'),        getEngData(statsSelectedYears,'Non-Exempt','mgrStaffDev')],
+            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYears,'Exempt','mgrSupportiveLeadership'), getEngData(statsSelectedYears,'Non-Exempt','mgrSupportiveLeadership')],
+            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYears,'Exempt','mgrInnovativeThinking'), getEngData(statsSelectedYears,'Non-Exempt','mgrInnovativeThinking')],
             'Workforce Count': () => [[D.module1.exemptCounts.Exempt], [D.module1.exemptCounts['Non-Exempt']]],
         }
     },
@@ -3036,12 +3041,16 @@ function splitByEngagement(valueFn) {
 function renderCompareMeans() {
     const container = document.getElementById('statsCompare');
     const years = Object.keys(D.module2.turnoverByYear).sort();
-    const yearOpts = [`<option value="all">All Years (2020–2026)</option>`]
-        .concat(years.map(y => `<option value="${y}"${y === String(statsSelectedYear) ? ' selected' : ''}>${y}</option>`))
-        .join('');
+    const checkboxes = years.map(y => {
+        const checked = statsSelectedYears.includes(y) ? 'checked' : '';
+        return `<label class="chisq-year-check">
+            <input type="checkbox" value="${y}" ${checked} onchange="onStatsYearChange()">
+            <span>${y}</span>
+        </label>`;
+    }).join('');
     let groupOpts = Object.entries(COMPARE_CONFIGS).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
     container.innerHTML = `
-        <div class="stats-controls">
+        <div class="stats-controls" style="flex-wrap:wrap;gap:0.75rem">
             <div class="stats-control-group">
                 <label class="stats-ctrl-label">👥 Grouping Variable</label>
                 <select id="statsGrouping" class="stats-select" onchange="onStatsGroupChange()">
@@ -3053,21 +3062,42 @@ function renderCompareMeans() {
                 <select id="statsMetric" class="stats-select" onchange="runCompareMeans()">
                 </select>
             </div>
-            <div class="stats-control-group stats-year-group">
-                <label class="stats-ctrl-label">📅 Year Filter</label>
-                <select id="statsYear" class="stats-select stats-year-select" onchange="onStatsYearChange()">
-                    ${yearOpts}
-                </select>
+            <div class="stats-control-group" style="flex:3;min-width:260px">
+                <label class="stats-ctrl-label">📅 Year Selection
+                    <button onclick="chkToggleAllStats()" class="chisq-toggle-btn" id="statsToggleAll">Deselect All</button>
+                </label>
+                <div class="chisq-year-checks" id="statsYearChecks">${checkboxes}</div>
             </div>
             <button class="stats-run-btn" onclick="runCompareMeans()">Run t-Test</button>
         </div>
         <div id="statsResults"></div>
     `;
+    updateStatsToglBtn();
     onStatsGroupChange();
 }
 
+function updateStatsToglBtn() {
+    const allYears = Object.keys(D.module2.turnoverByYear).sort();
+    const btn = document.getElementById('statsToggleAll');
+    if (!btn) return;
+    btn.textContent = statsSelectedYears.length === allYears.length ? 'Deselect All' : 'Select All';
+}
+
+function chkToggleAllStats() {
+    const allYears = Object.keys(D.module2.turnoverByYear).sort();
+    statsSelectedYears = statsSelectedYears.length === allYears.length ? [] : [...allYears];
+    document.querySelectorAll('#statsYearChecks input[type=checkbox]').forEach(cb => {
+        cb.checked = statsSelectedYears.includes(cb.value);
+    });
+    updateStatsToglBtn();
+    runCompareMeans();
+}
+
 function onStatsYearChange() {
-    statsSelectedYear = document.getElementById('statsYear').value;
+    statsSelectedYears = Array.from(
+        document.querySelectorAll('#statsYearChecks input[type=checkbox]:checked')
+    ).map(cb => cb.value);
+    updateStatsToglBtn();
     runCompareMeans();
 }
 
@@ -3093,13 +3123,18 @@ function runCompareMeans() {
     const gKey = document.getElementById('statsGrouping').value;
     const metricKey = document.getElementById('statsMetric').value;
     const cfg = COMPARE_CONFIGS[gKey];
-    // Sync year state in case rendered before change fired
-    const yearEl = document.getElementById('statsYear');
-    if (yearEl) statsSelectedYear = yearEl.value;
+    const allYears = Object.keys(D.module2.turnoverByYear).sort();
+    const isAll = statsSelectedYears.length === 0 || statsSelectedYears.length === allYears.length;
+    const yearLabel = isAll ? 'All Years' : statsSelectedYears.slice().sort().join(', ');
+    const isYearAware = YEAR_AWARE_METRICS.has(metricKey) && gKey === 'market';
+
+    if (statsSelectedYears.length === 0) {
+        document.getElementById('statsResults').innerHTML = '<div class="stats-no-data">⚠️ Please select at least one year.</div>';
+        return;
+    }
+
     const [g1, g2] = cfg.metrics[metricKey]();
     const groupLabels = cfg.groups;
-    const yearLabel = statsSelectedYear === 'all' ? 'All Years' : statsSelectedYear;
-    const isYearAware = YEAR_AWARE_METRICS.has(metricKey) && gKey === 'market';
 
     if (g1.length < 2 || g2.length < 2) {
         document.getElementById('statsResults').innerHTML = '<div class="stats-no-data">Not enough data for this comparison (need at least 2 per group).</div>';
@@ -3130,12 +3165,12 @@ function runCompareMeans() {
     };
 
     // Year context banner
-    const yearBanner = statsSelectedYear !== 'all'
+    const yearBanner = !isAll
         ? `<div class="stats-year-banner">
             <span class="stats-year-badge">📅 ${yearLabel}</span>
             ${isYearAware
                 ? `<span class="stats-year-note">Turnover counts proportionally scaled to <strong>${yearLabel}</strong> company-wide totals</span>`
-                : `<span class="stats-year-note year-note-muted">Year filter applies to turnover metrics only — this metric uses all-years data</span>`
+                : `<span class="stats-year-note year-note-muted">Year filter applies to turnover & engagement metrics only — this metric uses all-years data</span>`
             }
            </div>`
         : '';
@@ -3174,8 +3209,8 @@ function runCompareMeans() {
         <div class="stats-interpretation">
             <h4>📝 Interpretation</h4>
             <p>${sig
-                ? `The difference in <strong>${metricKey}</strong>${statsSelectedYear !== 'all' && isYearAware ? ` (${yearLabel})` : ''} between <strong>${groupLabels[0]}</strong> (M = ${fmtVal(m1)}) and <strong>${groupLabels[1]}</strong> (M = ${fmtVal(m2)}) is <strong>statistically significant</strong> at the α = 0.05 level, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
-                : `The difference in <strong>${metricKey}</strong>${statsSelectedYear !== 'all' && isYearAware ? ` (${yearLabel})` : ''} between <strong>${groupLabels[0]}</strong> (M = ${fmtVal(m1)}) and <strong>${groupLabels[1]}</strong> (M = ${fmtVal(m2)}) is <strong>not statistically significant</strong> at the α = 0.05 level, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
+                ? `The difference in <strong>${metricKey}</strong>${!isAll && isYearAware ? ` (${yearLabel})` : ''} between <strong>${groupLabels[0]}</strong> (M = ${fmtVal(m1)}) and <strong>${groupLabels[1]}</strong> (M = ${fmtVal(m2)}) is <strong>statistically significant</strong> at the α = 0.05 level, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
+                : `The difference in <strong>${metricKey}</strong>${!isAll && isYearAware ? ` (${yearLabel})` : ''} between <strong>${groupLabels[0]}</strong> (M = ${fmtVal(m1)}) and <strong>${groupLabels[1]}</strong> (M = ${fmtVal(m2)}) is <strong>not statistically significant</strong> at the α = 0.05 level, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
             }</p>
         </div>
         <div class="stats-chart-wrap" style="position:relative;height:220px;">
@@ -3262,17 +3297,19 @@ const ENG_GROUPS = {
     race:    { label: 'Race — White vs URM',           g1: 'White',    g2: 'URM',       color1: COLORS.purple, color2: COLORS.orange },
 };
 
-function getEngData(year, cat, dim) {
-    if (!window.ENGAGEMENT_BY_YEAR) return [];
-    if (year === 'all') {
-        // Pool all years
-        const pooled = [];
-        Object.values(ENGAGEMENT_BY_YEAR).forEach(yObj => {
-            if (yObj[cat] && yObj[cat][dim]) pooled.push(...yObj[cat][dim]);
-        });
-        return pooled;
-    }
-    return (ENGAGEMENT_BY_YEAR[year] && ENGAGEMENT_BY_YEAR[year][cat] && ENGAGEMENT_BY_YEAR[year][cat][dim]) || [];
+function getEngData(years, cat, dim) {
+    if (typeof ENGAGEMENT_BY_YEAR === 'undefined') return [];
+    // Accept array or legacy 'all' string
+    const allKeys = Object.keys(ENGAGEMENT_BY_YEAR);
+    const yList = (!years || years === 'all' || (Array.isArray(years) && years.length === 0) || (Array.isArray(years) && years.length === allKeys.length))
+        ? allKeys
+        : (Array.isArray(years) ? years : [years]);
+    const pooled = [];
+    yList.forEach(y => {
+        const yObj = ENGAGEMENT_BY_YEAR[y];
+        if (yObj && yObj[cat] && yObj[cat][dim]) pooled.push(...yObj[cat][dim]);
+    });
+    return pooled;
 }
 
 function renderEngagementStats() {
@@ -3557,24 +3594,23 @@ function cramersV(chi2, n, minDim) {
 }
 
 // ===== CHI-SQUARE CONFIGURATIONS =====
-let chisqSelectedYear = 'all';
+let chisqSelectedYears = ['2020','2021','2022','2023','2024','2025','2026']; // default = all
 
-function getHireData(type, year) {
-    // type: 'race' or 'gender'
+function getHireData(type, years) {
+    // years: array of year strings, e.g. ['2022','2023']
     const src = type === 'race' ? HIRE_BY_YEAR_RACE : HIRE_BY_YEAR_GENDER;
-    if (year === 'all') {
-        // Sum all years
-        const result = {};
-        Object.values(src).forEach(yrData => {
-            Object.entries(yrData).forEach(([grp, vals]) => {
-                if (!result[grp]) result[grp] = { hired: 0, total: 0 };
-                result[grp].hired += vals.hired;
-                result[grp].total += vals.total;
-            });
+    const result = {};
+    const yList = (!years || years.length === 0) ? Object.keys(src) : years;
+    yList.forEach(y => {
+        const yrData = src[y];
+        if (!yrData) return;
+        Object.entries(yrData).forEach(([grp, vals]) => {
+            if (!result[grp]) result[grp] = { hired: 0, total: 0 };
+            result[grp].hired += vals.hired;
+            result[grp].total += vals.total;
         });
-        return result;
-    }
-    return src[year] || null;
+    });
+    return Object.keys(result).length ? result : null;
 }
 
 const CHISQ_CONFIGS = [
@@ -3584,7 +3620,7 @@ const CHISQ_CONFIGS = [
         description: 'Tests whether hiring decisions (hired vs. not hired) are independent of applicant race.',
         hypothesis: 'H₀: Hiring outcome is independent of race.  H₁: Hiring outcome and race are associated.',
         getTable: () => {
-            const d = getHireData('race', chisqSelectedYear);
+            const d = getHireData('race', chisqSelectedYears);
             if (!d || !d.White || !d.URM) return null;
             const w = d.White, u = d.URM;
             return {
@@ -3600,7 +3636,7 @@ const CHISQ_CONFIGS = [
         description: 'Tests whether hiring decisions are independent of applicant gender.',
         hypothesis: 'H₀: Hiring outcome is independent of gender.  H₁: Hiring outcome and gender are associated.',
         getTable: () => {
-            const d = getHireData('gender', chisqSelectedYear);
+            const d = getHireData('gender', chisqSelectedYears);
             if (!d || !d.Male || !d.Female) return null;
             const m = d.Male, f = d.Female;
             return {
@@ -3615,23 +3651,27 @@ const CHISQ_CONFIGS = [
 function renderChiSquare() {
     const container = document.getElementById('chisqContent');
     const opts = CHISQ_CONFIGS.map((c, i) => `<option value="${i}">${c.label}</option>`).join('');
-    const years = Object.keys(HIRE_BY_YEAR_RACE).sort();
-    const yearOpts = [`<option value="all">All Years (2020–2026)</option>`]
-        .concat(years.map(y => `<option value="${y}"${y === chisqSelectedYear ? ' selected' : ''}>${y}</option>`))
-        .join('');
+    const allYears = Object.keys(HIRE_BY_YEAR_RACE).sort();
+    const checkboxes = allYears.map(y => {
+        const checked = chisqSelectedYears.includes(y) ? 'checked' : '';
+        return `<label class="chisq-year-check">
+            <input type="checkbox" value="${y}" ${checked} onchange="onChiSqYearChange()">
+            <span>${y}</span>
+        </label>`;
+    }).join('');
     container.innerHTML = `
-        <div class="stats-controls">
-            <div class="stats-control-group" style="flex:2">
+        <div class="stats-controls" style="flex-wrap:wrap;gap:0.75rem">
+            <div class="stats-control-group" style="flex:2;min-width:220px">
                 <label class="stats-ctrl-label">📋 Analysis</label>
                 <select id="chisqSelect" class="stats-select" onchange="runChiSquare()" style="width:100%">
                     ${opts}
                 </select>
             </div>
-            <div class="stats-control-group stats-year-group">
-                <label class="stats-ctrl-label">📅 Year</label>
-                <select id="chisqYear" class="stats-select stats-year-select" onchange="onChiSqYearChange()">
-                    ${yearOpts}
-                </select>
+            <div class="stats-control-group" style="flex:3;min-width:260px">
+                <label class="stats-ctrl-label">📅 Year Selection
+                    <button onclick="chisqToggleAllYears()" class="chisq-toggle-btn" id="chisqToggleAll">Deselect All</button>
+                </label>
+                <div class="chisq-year-checks" id="chisqYearChecks">${checkboxes}</div>
             </div>
             <button class="stats-run-btn" onclick="runChiSquare()">Run χ² Test</button>
         </div>
@@ -3640,21 +3680,52 @@ function renderChiSquare() {
         </div>
         <div id="chisqResults"></div>
     `;
+    updateChisqToggleBtn();
+    runChiSquare();
+}
+
+function updateChisqToggleBtn() {
+    const allYears = Object.keys(HIRE_BY_YEAR_RACE).sort();
+    const btn = document.getElementById('chisqToggleAll');
+    if (!btn) return;
+    btn.textContent = chisqSelectedYears.length === allYears.length ? 'Deselect All' : 'Select All';
+}
+
+function chisqToggleAllYears() {
+    const allYears = Object.keys(HIRE_BY_YEAR_RACE).sort();
+    if (chisqSelectedYears.length === allYears.length) {
+        chisqSelectedYears = [];
+    } else {
+        chisqSelectedYears = [...allYears];
+    }
+    // Sync checkboxes
+    document.querySelectorAll('#chisqYearChecks input[type=checkbox]').forEach(cb => {
+        cb.checked = chisqSelectedYears.includes(cb.value);
+    });
+    updateChisqToggleBtn();
     runChiSquare();
 }
 
 function onChiSqYearChange() {
-    chisqSelectedYear = document.getElementById('chisqYear').value;
+    chisqSelectedYears = Array.from(
+        document.querySelectorAll('#chisqYearChecks input[type=checkbox]:checked')
+    ).map(cb => cb.value);
+    updateChisqToggleBtn();
     runChiSquare();
 }
 
 function runChiSquare() {
     const idx = parseInt(document.getElementById('chisqSelect').value, 10);
     const cfg = CHISQ_CONFIGS[idx];
-    const yearEl = document.getElementById('chisqYear');
-    if (yearEl) chisqSelectedYear = yearEl.value;
-    const yearLabel = chisqSelectedYear === 'all' ? 'All Years (2020–2026)' : chisqSelectedYear;
+    const allYears = Object.keys(HIRE_BY_YEAR_RACE).sort();
+    const isAll = chisqSelectedYears.length === allYears.length || chisqSelectedYears.length === 0;
+    const yearLabel = isAll ? 'All Years (2020–2026)' : chisqSelectedYears.sort().join(', ');
     document.getElementById('chisqHypothesis').textContent = cfg.hypothesis;
+
+    if (chisqSelectedYears.length === 0) {
+        document.getElementById('chisqResults').innerHTML = `<div class="stats-no-data">⚠️ Please select at least one year.</div>`;
+        return;
+    }
 
     let tableData;
     try { tableData = cfg.getTable(); } catch(e) {
@@ -3707,7 +3778,7 @@ function runChiSquare() {
     });
     tableHTML += `<tr class="chisq-total-row"><th>Total</th>${colTotals.map(t => `<td>${t}</td>`).join('')}<td><strong>${n}</strong></td></tr></tbody></table>`;
 
-    const yearBanner = chisqSelectedYear !== 'all'
+    const yearBanner = !isAll
         ? `<div class="stats-year-banner"><span class="stats-year-badge">📅 ${yearLabel}</span><span class="stats-year-note">Showing applicant data for <strong>${yearLabel}</strong></span></div>`
         : '';
 
