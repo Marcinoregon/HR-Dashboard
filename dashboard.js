@@ -55,6 +55,7 @@ function alpha(color, a) {
 // ===== State =====
 let activeCharts = {};
 const D = DASHBOARD_DATA;
+let statsSelectedYear = 'all'; // Year filter for T-Test Compare Means
 
 // ===== Navigation =====
 function switchModule(moduleId, linkEl) {
@@ -2704,19 +2705,40 @@ function renderStats() {
 }
 
 // --- Compare Means ---
+// Year-aware helper: returns turnover count scaled by the selected year's share
+function getYearScaledTurnover(unitData, field) {
+    const yr = statsSelectedYear;
+    if (yr === 'all') return unitData[field];
+    // Scale unit's all-time total by the selected year's proportion of company-wide totals
+    const byYear = D.module2.turnoverByYear;
+    const totalQuit = Object.values(byYear).reduce((s, y) => s + y.quit, 0);
+    const totalDischarged = Object.values(byYear).reduce((s, y) => s + y.discharged, 0);
+    if (field === 'quit') {
+        const yearFraction = totalQuit > 0 ? byYear[yr].quit / totalQuit : 0;
+        return Math.round(unitData.quit * yearFraction);
+    }
+    if (field === 'discharged') {
+        const yearFraction = totalDischarged > 0 ? byYear[yr].discharged / totalDischarged : 0;
+        return Math.round(unitData.discharged * yearFraction);
+    }
+    return unitData[field];
+}
+
 const COMPARE_CONFIGS = {
     market: {
         label: 'Market (Large vs Medium)',
         groups: ['Large', 'Medium'],
         metrics: {
             'Headcount': () => { const u = D.module1.unitHeadcount; return splitByMarket(u, (id,u) => u.total); },
-            'Quit Count': () => { const u = D.module2.turnoverByUnit; return splitByMarket(u, (id,u) => u.quit); },
-            'Discharged Count': () => { const u = D.module2.turnoverByUnit; return splitByMarket(u, (id,u) => u.discharged); },
-            'Total Turnover Count': () => { const u = D.module2.turnoverByUnit; return splitByMarket(u, (id,u) => u.quit + u.discharged); },
+            'Quit Count': () => { const u = D.module2.turnoverByUnit; return splitByMarket(u, (id,u) => getYearScaledTurnover(u, 'quit')); },
+            'Discharged Count': () => { const u = D.module2.turnoverByUnit; return splitByMarket(u, (id,u) => getYearScaledTurnover(u, 'discharged')); },
+            'Total Turnover Count': () => { const u = D.module2.turnoverByUnit; return splitByMarket(u, (id,u) => getYearScaledTurnover(u, 'quit') + getYearScaledTurnover(u, 'discharged')); },
             'Turnover Rate (%)': () => {
                 const u = D.module2.turnoverByUnit;
                 return splitByMarket(u, (id,u) => {
-                    const tot = u.quit+u.discharged;
+                    const q = getYearScaledTurnover(u, 'quit');
+                    const d = getYearScaledTurnover(u, 'discharged');
+                    const tot = q + d;
                     return u.employed > 0 ? tot/(u.employed+tot)*100 : 0;
                 });
             },
@@ -2774,22 +2796,19 @@ const COMPARE_CONFIGS = {
                 const m = D.module3.hireByGender.Male, f = D.module3.hireByGender.Female;
                 return [[m.total > 0 ? (m.hired/m.total)*100 : 0], [f.total > 0 ? (f.hired/f.total)*100 : 0]];
             },
-            'Engagement — Job Satisfaction': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Men', 'jobSatisfaction'), engCatToArray(c, 'Women', 'jobSatisfaction')];
-            },
-            'Engagement — Collaboration': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Men', 'collaboration'), engCatToArray(c, 'Women', 'collaboration')];
-            },
-            'Engagement — Customer Focus': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Men', 'customerFocus'), engCatToArray(c, 'Women', 'customerFocus')];
-            },
-            'Engagement — Empowerment': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Men', 'empowerment'), engCatToArray(c, 'Women', 'empowerment')];
-            },
+            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYear,'Men','jobSatisfaction'),    getEngData(statsSelectedYear,'Women','jobSatisfaction')],
+            'Engagement — Collaboration':        () => [getEngData(statsSelectedYear,'Men','collaboration'),        getEngData(statsSelectedYear,'Women','collaboration')],
+            'Engagement — Communication':        () => [getEngData(statsSelectedYear,'Men','communication'),        getEngData(statsSelectedYear,'Women','communication')],
+            'Engagement — Support':              () => [getEngData(statsSelectedYear,'Men','support'),              getEngData(statsSelectedYear,'Women','support')],
+            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYear,'Men','customerFocus'),       getEngData(statsSelectedYear,'Women','customerFocus')],
+            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYear,'Men','personalGrowth'),      getEngData(statsSelectedYear,'Women','personalGrowth')],
+            'Engagement — Inclusion':            () => [getEngData(statsSelectedYear,'Men','inclusion'),            getEngData(statsSelectedYear,'Women','inclusion')],
+            'Engagement — Empowerment':          () => [getEngData(statsSelectedYear,'Men','empowerment'),          getEngData(statsSelectedYear,'Women','empowerment')],
+            'Engagement — Accountability':       () => [getEngData(statsSelectedYear,'Men','accountability'),       getEngData(statsSelectedYear,'Women','accountability')],
+            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYear,'Men','mgrVision'),           getEngData(statsSelectedYear,'Women','mgrVision')],
+            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYear,'Men','mgrStaffDev'),        getEngData(statsSelectedYear,'Women','mgrStaffDev')],
+            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYear,'Men','mgrSupportiveLeadership'), getEngData(statsSelectedYear,'Women','mgrSupportiveLeadership')],
+            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYear,'Men','mgrInnovativeThinking'), getEngData(statsSelectedYear,'Women','mgrInnovativeThinking')],
         }
     },
     race: {
@@ -2814,18 +2833,19 @@ const COMPARE_CONFIGS = {
                 const u = D.module3.avgInterviews.URM_Not_hired || D.module3.avgInterviews['URM_Not hired'];
                 return [Array(w.count).fill(w.avgInterview1), Array(u.count).fill(u.avgInterview1)];
             },
-            'Engagement — Job Satisfaction': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'White', 'jobSatisfaction'), engCatToArray(c, 'URM', 'jobSatisfaction')];
-            },
-            'Engagement — Collaboration': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'White', 'collaboration'), engCatToArray(c, 'URM', 'collaboration')];
-            },
-            'Engagement — Customer Focus': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'White', 'customerFocus'), engCatToArray(c, 'URM', 'customerFocus')];
-            },
+            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYear,'White','jobSatisfaction'),    getEngData(statsSelectedYear,'URM','jobSatisfaction')],
+            'Engagement — Collaboration':        () => [getEngData(statsSelectedYear,'White','collaboration'),        getEngData(statsSelectedYear,'URM','collaboration')],
+            'Engagement — Communication':        () => [getEngData(statsSelectedYear,'White','communication'),        getEngData(statsSelectedYear,'URM','communication')],
+            'Engagement — Support':              () => [getEngData(statsSelectedYear,'White','support'),              getEngData(statsSelectedYear,'URM','support')],
+            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYear,'White','customerFocus'),       getEngData(statsSelectedYear,'URM','customerFocus')],
+            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYear,'White','personalGrowth'),      getEngData(statsSelectedYear,'URM','personalGrowth')],
+            'Engagement — Inclusion':            () => [getEngData(statsSelectedYear,'White','inclusion'),            getEngData(statsSelectedYear,'URM','inclusion')],
+            'Engagement — Empowerment':          () => [getEngData(statsSelectedYear,'White','empowerment'),          getEngData(statsSelectedYear,'URM','empowerment')],
+            'Engagement — Accountability':       () => [getEngData(statsSelectedYear,'White','accountability'),       getEngData(statsSelectedYear,'URM','accountability')],
+            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYear,'White','mgrVision'),           getEngData(statsSelectedYear,'URM','mgrVision')],
+            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYear,'White','mgrStaffDev'),        getEngData(statsSelectedYear,'URM','mgrStaffDev')],
+            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYear,'White','mgrSupportiveLeadership'), getEngData(statsSelectedYear,'URM','mgrSupportiveLeadership')],
+            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYear,'White','mgrInnovativeThinking'), getEngData(statsSelectedYear,'URM','mgrInnovativeThinking')],
         }
     },
     performance: {
@@ -2868,42 +2888,19 @@ const COMPARE_CONFIGS = {
         label: 'Exempt vs Non-Exempt',
         groups: ['Exempt', 'Non-Exempt'],
         metrics: {
-            'Engagement — Job Satisfaction': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'jobSatisfaction'), engCatToArray(c, 'Non-Exempt', 'jobSatisfaction')];
-            },
-            'Engagement — Collaboration': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'collaboration'), engCatToArray(c, 'Non-Exempt', 'collaboration')];
-            },
-            'Engagement — Communication': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'communication'), engCatToArray(c, 'Non-Exempt', 'communication')];
-            },
-            'Engagement — Support': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'support'), engCatToArray(c, 'Non-Exempt', 'support')];
-            },
-            'Engagement — Customer Focus': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'customerFocus'), engCatToArray(c, 'Non-Exempt', 'customerFocus')];
-            },
-            'Engagement — Personal Growth': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'personalGrowth'), engCatToArray(c, 'Non-Exempt', 'personalGrowth')];
-            },
-            'Engagement — Inclusion': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'inclusion'), engCatToArray(c, 'Non-Exempt', 'inclusion')];
-            },
-            'Engagement — Empowerment': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'empowerment'), engCatToArray(c, 'Non-Exempt', 'empowerment')];
-            },
-            'Engagement — Accountability': () => {
-                const c = D.engagement.engByCategory;
-                return [engCatToArray(c, 'Exempt', 'accountability'), engCatToArray(c, 'Non-Exempt', 'accountability')];
-            },
+            'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYear,'Exempt','jobSatisfaction'),    getEngData(statsSelectedYear,'Non-Exempt','jobSatisfaction')],
+            'Engagement — Collaboration':        () => [getEngData(statsSelectedYear,'Exempt','collaboration'),        getEngData(statsSelectedYear,'Non-Exempt','collaboration')],
+            'Engagement — Communication':        () => [getEngData(statsSelectedYear,'Exempt','communication'),        getEngData(statsSelectedYear,'Non-Exempt','communication')],
+            'Engagement — Support':              () => [getEngData(statsSelectedYear,'Exempt','support'),              getEngData(statsSelectedYear,'Non-Exempt','support')],
+            'Engagement — Customer Focus':       () => [getEngData(statsSelectedYear,'Exempt','customerFocus'),       getEngData(statsSelectedYear,'Non-Exempt','customerFocus')],
+            'Engagement — Personal Growth':      () => [getEngData(statsSelectedYear,'Exempt','personalGrowth'),      getEngData(statsSelectedYear,'Non-Exempt','personalGrowth')],
+            'Engagement — Inclusion':            () => [getEngData(statsSelectedYear,'Exempt','inclusion'),            getEngData(statsSelectedYear,'Non-Exempt','inclusion')],
+            'Engagement — Empowerment':          () => [getEngData(statsSelectedYear,'Exempt','empowerment'),          getEngData(statsSelectedYear,'Non-Exempt','empowerment')],
+            'Engagement — Accountability':       () => [getEngData(statsSelectedYear,'Exempt','accountability'),       getEngData(statsSelectedYear,'Non-Exempt','accountability')],
+            'Engagement — MGR Vision':           () => [getEngData(statsSelectedYear,'Exempt','mgrVision'),           getEngData(statsSelectedYear,'Non-Exempt','mgrVision')],
+            'Engagement — MGR Staff Dev':        () => [getEngData(statsSelectedYear,'Exempt','mgrStaffDev'),        getEngData(statsSelectedYear,'Non-Exempt','mgrStaffDev')],
+            'Engagement — MGR Supportive Ldrsp': () => [getEngData(statsSelectedYear,'Exempt','mgrSupportiveLeadership'), getEngData(statsSelectedYear,'Non-Exempt','mgrSupportiveLeadership')],
+            'Engagement — MGR Innovative Think': () => [getEngData(statsSelectedYear,'Exempt','mgrInnovativeThinking'), getEngData(statsSelectedYear,'Non-Exempt','mgrInnovativeThinking')],
             'Workforce Count': () => [[D.module1.exemptCounts.Exempt], [D.module1.exemptCounts['Non-Exempt']]],
         }
     },
@@ -3038,6 +3035,10 @@ function splitByEngagement(valueFn) {
 
 function renderCompareMeans() {
     const container = document.getElementById('statsCompare');
+    const years = Object.keys(D.module2.turnoverByYear).sort();
+    const yearOpts = [`<option value="all">All Years (2020–2026)</option>`]
+        .concat(years.map(y => `<option value="${y}"${y === String(statsSelectedYear) ? ' selected' : ''}>${y}</option>`))
+        .join('');
     let groupOpts = Object.entries(COMPARE_CONFIGS).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
     container.innerHTML = `
         <div class="stats-controls">
@@ -3052,11 +3053,22 @@ function renderCompareMeans() {
                 <select id="statsMetric" class="stats-select" onchange="runCompareMeans()">
                 </select>
             </div>
+            <div class="stats-control-group stats-year-group">
+                <label class="stats-ctrl-label">📅 Year Filter</label>
+                <select id="statsYear" class="stats-select stats-year-select" onchange="onStatsYearChange()">
+                    ${yearOpts}
+                </select>
+            </div>
             <button class="stats-run-btn" onclick="runCompareMeans()">Run t-Test</button>
         </div>
         <div id="statsResults"></div>
     `;
     onStatsGroupChange();
+}
+
+function onStatsYearChange() {
+    statsSelectedYear = document.getElementById('statsYear').value;
+    runCompareMeans();
 }
 
 function onStatsGroupChange() {
@@ -3067,12 +3079,27 @@ function onStatsGroupChange() {
     runCompareMeans();
 }
 
+// Metrics that have meaningful year-level granularity
+const YEAR_AWARE_METRICS = new Set([
+    'Quit Count', 'Discharged Count', 'Total Turnover Count', 'Turnover Rate (%)',
+    'Engagement — Job Satisfaction', 'Engagement — Collaboration', 'Engagement — Communication',
+    'Engagement — Support', 'Engagement — Customer Focus', 'Engagement — Personal Growth',
+    'Engagement — Inclusion', 'Engagement — Empowerment', 'Engagement — Accountability',
+    'Engagement — MGR Vision', 'Engagement — MGR Staff Dev',
+    'Engagement — MGR Supportive Ldrsp', 'Engagement — MGR Innovative Think',
+]);
+
 function runCompareMeans() {
     const gKey = document.getElementById('statsGrouping').value;
     const metricKey = document.getElementById('statsMetric').value;
     const cfg = COMPARE_CONFIGS[gKey];
+    // Sync year state in case rendered before change fired
+    const yearEl = document.getElementById('statsYear');
+    if (yearEl) statsSelectedYear = yearEl.value;
     const [g1, g2] = cfg.metrics[metricKey]();
     const groupLabels = cfg.groups;
+    const yearLabel = statsSelectedYear === 'all' ? 'All Years' : statsSelectedYear;
+    const isYearAware = YEAR_AWARE_METRICS.has(metricKey) && gKey === 'market';
 
     if (g1.length < 2 || g2.length < 2) {
         document.getElementById('statsResults').innerHTML = '<div class="stats-no-data">Not enough data for this comparison (need at least 2 per group).</div>';
@@ -3102,7 +3129,19 @@ function runCompareMeans() {
         return v.toFixed(2);
     };
 
+    // Year context banner
+    const yearBanner = statsSelectedYear !== 'all'
+        ? `<div class="stats-year-banner">
+            <span class="stats-year-badge">📅 ${yearLabel}</span>
+            ${isYearAware
+                ? `<span class="stats-year-note">Turnover counts proportionally scaled to <strong>${yearLabel}</strong> company-wide totals</span>`
+                : `<span class="stats-year-note year-note-muted">Year filter applies to turnover metrics only — this metric uses all-years data</span>`
+            }
+           </div>`
+        : '';
+
     document.getElementById('statsResults').innerHTML = `
+        ${yearBanner}
         <div class="stats-results-grid">
             <div class="stats-result-card">
                 <div class="stats-card-header">${groupLabels[0]}</div>
@@ -3135,8 +3174,8 @@ function runCompareMeans() {
         <div class="stats-interpretation">
             <h4>📝 Interpretation</h4>
             <p>${sig
-                ? `The difference in <strong>${metricKey}</strong> between <strong>${groupLabels[0]}</strong> (M = ${fmtVal(m1)}) and <strong>${groupLabels[1]}</strong> (M = ${fmtVal(m2)}) is <strong>statistically significant</strong> at the α = 0.05 level, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
-                : `The difference in <strong>${metricKey}</strong> between <strong>${groupLabels[0]}</strong> (M = ${fmtVal(m1)}) and <strong>${groupLabels[1]}</strong> (M = ${fmtVal(m2)}) is <strong>not statistically significant</strong> at the α = 0.05 level, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
+                ? `The difference in <strong>${metricKey}</strong>${statsSelectedYear !== 'all' && isYearAware ? ` (${yearLabel})` : ''} between <strong>${groupLabels[0]}</strong> (M = ${fmtVal(m1)}) and <strong>${groupLabels[1]}</strong> (M = ${fmtVal(m2)}) is <strong>statistically significant</strong> at the α = 0.05 level, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
+                : `The difference in <strong>${metricKey}</strong>${statsSelectedYear !== 'all' && isYearAware ? ` (${yearLabel})` : ''} between <strong>${groupLabels[0]}</strong> (M = ${fmtVal(m1)}) and <strong>${groupLabels[1]}</strong> (M = ${fmtVal(m2)}) is <strong>not statistically significant</strong> at the α = 0.05 level, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
             }</p>
         </div>
         <div class="stats-chart-wrap" style="position:relative;height:220px;">
@@ -3207,7 +3246,249 @@ function runCompareMeans() {
 }
 
 // --- Turnover Prediction ---
+function renderTurnoverPrediction() {
+    const container = document.getElementById('statsPredict');
+    container.innerHTML = `<div class="stats-no-data" style="padding:40px;text-align:center;color:var(--text-secondary);">Turnover Prediction is under development.</div>`;
+}
+
 // --- Engagement Analysis ---
+let engYear = 'all';
+let engGroup = 'gender';
+let engDim = 'jobSatisfaction';
+
+const ENG_GROUPS = {
+    gender:  { label: 'Gender — Men vs Women',        g1: 'Men',      g2: 'Women',     color1: COLORS.blue,   color2: COLORS.rose },
+    exempt:  { label: 'Exempt Status — Exempt vs Non-Exempt', g1: 'Exempt', g2: 'Non-Exempt', color1: COLORS.teal,   color2: COLORS.amber },
+    race:    { label: 'Race — White vs URM',           g1: 'White',    g2: 'URM',       color1: COLORS.purple, color2: COLORS.orange },
+};
+
+function getEngData(year, cat, dim) {
+    if (!window.ENGAGEMENT_BY_YEAR) return [];
+    if (year === 'all') {
+        // Pool all years
+        const pooled = [];
+        Object.values(ENGAGEMENT_BY_YEAR).forEach(yObj => {
+            if (yObj[cat] && yObj[cat][dim]) pooled.push(...yObj[cat][dim]);
+        });
+        return pooled;
+    }
+    return (ENGAGEMENT_BY_YEAR[year] && ENGAGEMENT_BY_YEAR[year][cat] && ENGAGEMENT_BY_YEAR[year][cat][dim]) || [];
+}
+
+function renderEngagementStats() {
+    const container = document.getElementById('statsEngagement');
+    const years = window.ENGAGEMENT_BY_YEAR ? Object.keys(ENGAGEMENT_BY_YEAR).sort() : [];
+    const yearOpts = [`<option value="all">All Years (2020–2026)</option>`]
+        .concat(years.map(y => `<option value="${y}"${y === engYear ? ' selected' : ''}>${y}</option>`))
+        .join('');
+    const groupOpts = Object.entries(ENG_GROUPS)
+        .map(([k,v]) => `<option value="${k}"${k === engGroup ? ' selected' : ''}>${v.label}</option>`)
+        .join('');
+    const dimOpts = (window.ENGAGEMENT_DIMS || []).map((d,i) =>
+        `<option value="${d}"${d === engDim ? ' selected' : ''}>${(window.ENGAGEMENT_DIM_LABELS||[])[i]||d}</option>`
+    ).join('');
+
+    container.innerHTML = `
+        <div class="stats-controls">
+            <div class="stats-control-group">
+                <label class="stats-ctrl-label">👥 Comparison Group</label>
+                <select id="engGroupSel" class="stats-select" onchange="onEngGroupChange()">
+                    ${groupOpts}
+                </select>
+            </div>
+            <div class="stats-control-group">
+                <label class="stats-ctrl-label">📊 Engagement Dimension</label>
+                <select id="engDimSel" class="stats-select" onchange="onEngDimChange()">
+                    ${dimOpts}
+                </select>
+            </div>
+            <div class="stats-control-group stats-year-group">
+                <label class="stats-ctrl-label">📅 Year</label>
+                <select id="engYearSel" class="stats-select stats-year-select" onchange="onEngYearChange()">
+                    ${yearOpts}
+                </select>
+            </div>
+            <button class="stats-run-btn" onclick="runEngagementTTest()">Run t-Test</button>
+        </div>
+        <div id="engResults"></div>
+        <div id="engTrendWrap" style="margin-top:24px;"></div>
+    `;
+    runEngagementTTest();
+}
+
+function onEngGroupChange() { engGroup = document.getElementById('engGroupSel').value; runEngagementTTest(); }
+function onEngDimChange()   { engDim   = document.getElementById('engDimSel').value;   runEngagementTTest(); }
+function onEngYearChange()  { engYear  = document.getElementById('engYearSel').value;  runEngagementTTest(); }
+
+function runEngagementTTest() {
+    if (!window.ENGAGEMENT_BY_YEAR) {
+        document.getElementById('engResults').innerHTML = '<div class="stats-no-data">Engagement data not loaded.</div>';
+        return;
+    }
+    const grp = ENG_GROUPS[engGroup];
+    const g1 = getEngData(engYear, grp.g1, engDim);
+    const g2 = getEngData(engYear, grp.g2, engDim);
+    const dimIdx = (window.ENGAGEMENT_DIMS || []).indexOf(engDim);
+    const dimLabel = dimIdx >= 0 ? (window.ENGAGEMENT_DIM_LABELS||[])[dimIdx] || engDim : engDim;
+    const yearLabel = engYear === 'all' ? 'All Years' : engYear;
+
+    if (g1.length < 2 || g2.length < 2) {
+        document.getElementById('engResults').innerHTML = `<div class="stats-no-data">Not enough data for ${yearLabel} / ${grp.g1} vs ${grp.g2}.</div>`;
+        return;
+    }
+
+    const m1 = mean(g1), m2 = mean(g2);
+    const sd1 = stdDev(g1), sd2 = stdDev(g2);
+    const test = welchTTest(g1, g2);
+    const d = cohensD(g1, g2);
+    const sig = test.p < 0.05;
+    const sigLabel = sig ? 'Statistically Significant' : 'Not Significant';
+    const sigClass = sig ? 'stats-sig-yes' : 'stats-sig-no';
+    const absD = Math.abs(d);
+    let effectLabel = 'Negligible';
+    if (absD >= 0.8) effectLabel = 'Large';
+    else if (absD >= 0.5) effectLabel = 'Medium';
+    else if (absD >= 0.2) effectLabel = 'Small';
+    const pDisplay = test.p < 0.001 ? '< 0.001' : test.p.toFixed(4);
+    const fmtV = v => v.toFixed(3);
+
+    const yearBanner = engYear !== 'all'
+        ? `<div class="stats-year-banner"><span class="stats-year-badge">📅 ${yearLabel}</span><span class="stats-year-note">Showing store-level scores for <strong>${yearLabel}</strong></span></div>`
+        : '';
+
+    document.getElementById('engResults').innerHTML = `
+        ${yearBanner}
+        <div class="eng-dim-title">${dimLabel}: <span class="eng-group-names">${grp.g1} vs ${grp.g2}</span></div>
+        <div class="stats-results-grid">
+            <div class="stats-result-card" style="border-top:3px solid ${grp.color1}">
+                <div class="stats-card-header" style="color:${grp.color1}">${grp.g1}</div>
+                <div class="stats-card-body">
+                    <div class="stats-stat-row"><span>n (stores)</span><strong>${g1.length}</strong></div>
+                    <div class="stats-stat-row"><span>Mean</span><strong>${fmtV(m1)}</strong></div>
+                    <div class="stats-stat-row"><span>SD</span><strong>${fmtV(sd1)}</strong></div>
+                    <div class="stats-stat-row"><span>Min</span><strong>${fmtV(Math.min(...g1))}</strong></div>
+                    <div class="stats-stat-row"><span>Max</span><strong>${fmtV(Math.max(...g1))}</strong></div>
+                </div>
+            </div>
+            <div class="stats-result-card stats-vs-card">
+                <div class="stats-vs">VS</div>
+                <div class="stats-badge ${sigClass}">${sigLabel}</div>
+                <div class="eng-diff-chip" style="color:${m1 > m2 ? grp.color1 : grp.color2}">
+                    Δ ${m1 > m2 ? '+' : ''}${fmtV(m1 - m2)}
+                </div>
+            </div>
+            <div class="stats-result-card" style="border-top:3px solid ${grp.color2}">
+                <div class="stats-card-header" style="color:${grp.color2}">${grp.g2}</div>
+                <div class="stats-card-body">
+                    <div class="stats-stat-row"><span>n (stores)</span><strong>${g2.length}</strong></div>
+                    <div class="stats-stat-row"><span>Mean</span><strong>${fmtV(m2)}</strong></div>
+                    <div class="stats-stat-row"><span>SD</span><strong>${fmtV(sd2)}</strong></div>
+                    <div class="stats-stat-row"><span>Min</span><strong>${fmtV(Math.min(...g2))}</strong></div>
+                    <div class="stats-stat-row"><span>Max</span><strong>${fmtV(Math.max(...g2))}</strong></div>
+                </div>
+            </div>
+        </div>
+        <div class="stats-test-summary">
+            <div class="stats-test-item"><span>t-statistic</span><strong>${test.t.toFixed(4)}</strong></div>
+            <div class="stats-test-item"><span>Degrees of freedom</span><strong>${test.df.toFixed(1)}</strong></div>
+            <div class="stats-test-item"><span>p-value</span><strong class="${sigClass}">${pDisplay}</strong></div>
+            <div class="stats-test-item"><span>Cohen's d</span><strong>${d.toFixed(3)} (${effectLabel})</strong></div>
+            <div class="stats-test-item"><span>Mean difference</span><strong>${fmtV(m1 - m2)}</strong></div>
+        </div>
+        <div class="stats-interpretation">
+            <h4>📝 Interpretation</h4>
+            <p>${sig
+                ? `The difference in <strong>${dimLabel}</strong> between <strong>${grp.g1}</strong> (M = ${fmtV(m1)}) and <strong>${grp.g2}</strong> (M = ${fmtV(m2)}) across ${g1.length} stores is <strong>statistically significant</strong> at α = 0.05, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
+                : `The difference in <strong>${dimLabel}</strong> between <strong>${grp.g1}</strong> (M = ${fmtV(m1)}) and <strong>${grp.g2}</strong> (M = ${fmtV(m2)}) across ${g1.length} stores is <strong>not statistically significant</strong> at α = 0.05, t(${test.df.toFixed(1)}) = ${test.t.toFixed(2)}, p = ${pDisplay}. The effect size is ${effectLabel.toLowerCase()} (d = ${d.toFixed(2)}).`
+            }</p>
+        </div>
+        <div class="stats-chart-wrap" style="position:relative;height:240px;margin-bottom:24px;">
+            <canvas id="engCompareChart"></canvas>
+        </div>
+        <div class="eng-trend-header">📈 Trend Over Time — ${dimLabel}: ${grp.g1} vs ${grp.g2}</div>
+        <div class="stats-chart-wrap" style="position:relative;height:240px;">
+            <canvas id="engTrendChart"></canvas>
+        </div>
+    `;
+
+    // Bar chart
+    if (activeCharts['engCompareChart']) activeCharts['engCompareChart'].destroy();
+    const ctx1 = document.getElementById('engCompareChart');
+    activeCharts['engCompareChart'] = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: [grp.g1, grp.g2],
+            datasets: [{
+                label: dimLabel,
+                data: [m1, m2],
+                backgroundColor: [alpha(grp.color1, 0.7), alpha(grp.color2, 0.7)],
+                borderColor: [grp.color1, grp.color2],
+                borderWidth: 2,
+                borderRadius: 6,
+                barPercentage: 0.45,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: `${dimLabel} (${yearLabel}) — ${grp.g1} vs ${grp.g2}`, color: '#e2e8f0', font: { size: 13 } },
+                tooltip: { callbacks: { afterBody: (items) => `SD: ${[sd1,sd2][items[0].dataIndex].toFixed(3)}` } }
+            },
+            scales: {
+                y: { beginAtZero: false, min: Math.max(0, Math.min(m1,m2) - 0.5), ticks: { color: '#94a3b8' }, grid: { color: 'rgba(51,65,85,0.3)' } },
+                x: { ticks: { color: '#e2e8f0', font: { size: 13, weight: 'bold' } }, grid: { display: false } }
+            }
+        },
+        plugins: [{
+            id: 'engErrorBars',
+            afterDraw(chart) {
+                const { ctx: c, scales: { x, y } } = chart;
+                [sd1, sd2].forEach((sd, i) => {
+                    const val = [m1,m2][i];
+                    const xPos = x.getPixelForValue(i);
+                    const yTop = y.getPixelForValue(val + sd);
+                    const yBot = y.getPixelForValue(val - sd);
+                    c.save(); c.strokeStyle = '#e2e8f0'; c.lineWidth = 2;
+                    c.beginPath();
+                    c.moveTo(xPos, yTop); c.lineTo(xPos, yBot);
+                    c.moveTo(xPos-6, yTop); c.lineTo(xPos+6, yTop);
+                    c.moveTo(xPos-6, yBot); c.lineTo(xPos+6, yBot);
+                    c.stroke(); c.restore();
+                });
+            }
+        }]
+    });
+
+    // Trend line chart
+    const trendYears = window.ENGAGEMENT_BY_YEAR ? Object.keys(ENGAGEMENT_BY_YEAR).sort() : [];
+    const trend1 = trendYears.map(y => { const v = getEngData(y, grp.g1, engDim); return v.length ? mean(v) : null; });
+    const trend2 = trendYears.map(y => { const v = getEngData(y, grp.g2, engDim); return v.length ? mean(v) : null; });
+    if (activeCharts['engTrendChart']) activeCharts['engTrendChart'].destroy();
+    const ctx2 = document.getElementById('engTrendChart');
+    activeCharts['engTrendChart'] = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: trendYears,
+            datasets: [
+                { label: grp.g1, data: trend1, borderColor: grp.color1, backgroundColor: alpha(grp.color1, 0.1), fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6 },
+                { label: grp.g2, data: trend2, borderColor: grp.color2, backgroundColor: alpha(grp.color2, 0.1), fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6 },
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { color: '#e2e8f0', usePointStyle: true, padding: 16 } },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw?.toFixed(3)}` } }
+            },
+            scales: {
+                y: { ticks: { color: '#94a3b8', callback: v => v.toFixed(2) }, grid: { color: 'rgba(51,65,85,0.3)' } },
+                x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+            }
+        }
+    });
+}
+
 
 // ===== CHI-SQUARE ANALYSIS =====
 
