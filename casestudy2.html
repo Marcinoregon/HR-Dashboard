@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Study 2 — Wages, Turnover & Advanced Analysis</title>
+    <meta name="description" content="An advanced, data-driven case study requiring students to run T-tests, OLS Regressions, and Logistic Regressions on the dashboard.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1221;
+            --bg2: #161a2e;
+            --bg3: #1c2140;
+            --surface: rgba(30, 36, 66, 0.7);
+            --border: rgba(255,255,255,0.08);
+            --text: #e2e8f0;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --orange: #f97316;
+            --orange-glow: rgba(249,115,22,0.15);
+            --purple: #a78bfa;
+            --teal: #2dd4bf;
+            --rose: #fb7185;
+            --green: #34d399;
+            --blue: #60a5fa;
+            --amber: #fbbf24;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* --- Top Bar --- */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 32px;
+            background: rgba(15, 18, 33, 0.92);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .topbar-brand img { width: 36px; height: 36px; border-radius: 8px; }
+        .topbar-brand span { font-weight: 700; color: var(--text); font-size: 15px; }
+        .topbar-title { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .topbar-title::before { content: '📋'; font-size: 18px; }
+        .topbar-links { display: flex; gap: 10px; }
+        .topbar-links a {
+            color: var(--text2); font-size: 13px; font-weight: 500;
+            text-decoration: none; padding: 6px 14px; border-radius: 6px;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .topbar-links a:hover { color: var(--teal); border-color: var(--teal); background: rgba(45,212,191,0.1); }
+
+        /* --- Hero --- */
+        .hero {
+            text-align: center; padding: 60px 32px 40px;
+            background: linear-gradient(180deg, rgba(45,212,191,0.06) 0%, transparent 100%);
+        }
+        .hero-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+            background: rgba(45,212,191,0.1); color: var(--teal); border: 1px solid rgba(45,212,191,0.3);
+            margin-bottom: 20px;
+        }
+        .hero h1 {
+            font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700;
+            line-height: 1.2; margin-bottom: 14px;
+            background: linear-gradient(135deg, var(--text), var(--teal));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 16px; color: var(--text2); max-width: 700px; margin: 0 auto; }
+
+        /* --- Container --- */
+        .container { max-width: 900px; margin: 0 auto; padding: 0 32px 80px; }
+
+        /* --- Section --- */
+        .case-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px 32px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(8px);
+            transition: border-color 0.3s;
+        }
+        .case-section:hover { border-color: rgba(255,255,255,0.14); }
+
+        .section-label {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            padding: 4px 12px; border-radius: 4px; margin-bottom: 16px;
+        }
+        .label-background { background: rgba(96,165,250,0.15); color: var(--blue); }
+        .label-challenge { background: rgba(249,115,22,0.15); color: var(--orange); }
+        .label-data { background: rgba(45,212,191,0.15); color: var(--teal); }
+        .label-question { background: rgba(167,139,250,0.15); color: var(--purple); }
+        .label-memo { background: rgba(251,113,133,0.15); color: var(--rose); }
+
+        .case-section h2 {
+            font-size: 22px; font-weight: 700; margin-bottom: 14px; color: var(--text);
+        }
+        .case-section h3 {
+            font-size: 17px; font-weight: 600; margin: 24px 0 10px; color: var(--text);
+        }
+        .case-section p, .case-section li {
+            font-size: 14px; color: var(--text2); margin-bottom: 10px;
+        }
+        .case-section ul, .case-section ol {
+            padding-left: 22px;
+        }
+        .case-section li { margin-bottom: 8px; }
+
+        /* --- Data Highlight --- */
+        .data-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px; margin: 20px 0;
+        }
+        .data-card {
+            background: rgba(15, 18, 33, 0.6); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; text-align: center;
+        }
+        .data-val { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+        .data-val.orange { color: var(--orange); }
+        .data-val.teal { color: var(--teal); }
+        .data-val.rose { color: var(--rose); }
+        .data-val.purple { color: var(--purple); }
+        .data-val.blue { color: var(--blue); }
+        .data-val.green { color: var(--green); }
+        .data-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* --- Discussion Questions --- */
+        .dq {
+            background: rgba(15, 18, 33, 0.5); border: 1px solid var(--border);
+            border-left: 3px solid var(--purple); border-radius: 10px;
+            padding: 20px 22px; margin-bottom: 18px;
+            counter-increment: dq-counter;
+        }
+        .dq-num {
+            display: inline-block; background: rgba(167,139,250,0.15);
+            color: var(--purple); font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 4px; margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .dq-text { font-size: 15px; color: var(--text); font-weight: 500; margin-bottom: 10px; line-height: 1.6; }
+        .dq-hint { font-size: 12px; color: var(--text3); font-style: italic; }
+        .dq-hint strong { color: var(--teal); font-style: normal; }
+
+        /* --- Quote / Memo --- */
+        .exec-quote {
+            background: linear-gradient(135deg, rgba(45,212,191,0.08), rgba(167,139,250,0.08));
+            border: 1px solid rgba(45,212,191,0.2); border-radius: 12px;
+            padding: 24px 28px; margin: 20px 0; position: relative;
+        }
+        .exec-quote::before {
+            content: '"'; position: absolute; top: -8px; left: 18px;
+            font-size: 48px; color: var(--teal); opacity: 0.4;
+            font-family: 'Playfair Display', serif;
+        }
+        .exec-quote p { font-size: 15px; color: var(--text); font-style: italic; padding-left: 8px; }
+        .exec-quote .attribution {
+            font-size: 12px; color: var(--text3); font-style: normal;
+            margin-top: 10px; padding-left: 8px;
+        }
+
+        /* --- Dashboard Link --- */
+        .dash-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--teal), #0f766e);
+            color: white; font-weight: 600; font-size: 14px;
+            padding: 12px 24px; border-radius: 10px; text-decoration: none;
+            margin: 24px 0 10px; transition: all 0.3s; box-shadow: 0 4px 20px rgba(45,212,191,0.3);
+        }
+        .dash-link:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(45,212,191,0.4); }
+
+        /* --- Instructions box --- */
+        .instructions {
+            background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px; padding: 20px 24px; margin: 20px 0;
+        }
+        .instructions h4 { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .instructions li { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+
+        /* --- Deliverable box --- */
+        .deliverable {
+            background: rgba(251,113,133,0.08); border: 1px solid rgba(251,113,133,0.2);
+            border-radius: 10px; padding: 20px 24px; margin: 20px 0;
+        }
+        .deliverable h4 { font-size: 13px; font-weight: 700; color: var(--rose); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .deliverable li { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+
+        /* --- Answer Area --- */
+        .answer-area { margin-top: 16px; }
+        .answer-area textarea {
+            width: 100%; min-height: 120px; padding: 14px 16px;
+            background: rgba(15, 18, 33, 0.8); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif;
+            font-size: 13px; line-height: 1.6; resize: vertical;
+            transition: border-color 0.3s;
+        }
+        .answer-area textarea:focus { outline: none; border-color: var(--purple); }
+        .answer-area textarea::placeholder { color: var(--text3); }
+        .answer-area textarea.submitted { border-color: var(--green); background: rgba(52,211,153,0.05); }
+        .answer-btns { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .btn-submit, .btn-feedback {
+            padding: 8px 20px; border-radius: 8px; font-size: 13px;
+            font-weight: 600; cursor: pointer; border: none;
+            transition: all 0.25s; font-family: 'Inter', sans-serif;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white; box-shadow: 0 2px 12px rgba(167,139,250,0.25);
+        }
+        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(167,139,250,0.35); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-feedback {
+            background: transparent; color: var(--teal);
+            border: 1px solid rgba(45,212,191,0.3); display: none;
+        }
+        .btn-feedback:hover { background: rgba(45,212,191,0.1); border-color: var(--teal); }
+        .btn-feedback.visible { display: inline-flex; align-items: center; gap: 6px; }
+        .saved-badge {
+            display: none; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--green); font-weight: 500; padding: 8px 0;
+        }
+        .saved-badge.visible { display: inline-flex; }
+
+        /* --- Feedback Panel --- */
+        .feedback-panel {
+            display: none; margin-top: 14px; padding: 20px;
+            background: rgba(45, 212, 191, 0.06); border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px; animation: fadeIn 0.3s ease;
+        }
+        .feedback-panel.visible { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .feedback-title {
+            font-size: 12px; font-weight: 700; color: var(--teal);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .feedback-panel ul { padding-left: 18px; margin: 0; }
+        .feedback-panel li { font-size: 13px; color: var(--text2); margin-bottom: 8px; line-height: 1.5; }
+        .feedback-panel li strong { color: var(--text); }
+        .feedback-note {
+            font-size: 12px; color: var(--text3); font-style: italic;
+            margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+        }
+
+        /* --- Progress Tracker --- */
+        .progress-tracker {
+            position: fixed; bottom: 24px; right: 24px; z-index: 99;
+            background: var(--bg3); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 20px;
+            backdrop-filter: blur(14px); box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            min-width: 180px;
+        }
+        .progress-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .progress-bar-bg { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--teal)); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+        .progress-count { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 6px; }
+
+        /* --- Responsive --- */
+        @media (max-width: 700px) {
+            .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+            .topbar-title { display: none; }
+            .hero h1 { font-size: 28px; }
+            .container { padding: 0 16px 60px; }
+            .case-section { padding: 24px 18px; }
+            .data-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <a href="index.html" class="topbar-brand">
+            <img src="https://api.dicebear.com/7.x/shapes/svg?seed=cajun&backgroundColor=2dd4bf" alt="Logo">
+            <span>Mr. Macky's</span>
+        </a>
+        <div class="topbar-title">Case Study 2</div>
+        <div class="topbar-links">
+            <a href="index.html">← Dashboard</a>
+            <a href="casestudy.html">Case Study 1</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="hero-badge">Interactive Case Study 2</div>
+        <h1>Dollars, Drivers & Disparities:<br>Advanced Statistical Analysis</h1>
+        <p>Denise Macky is preparing for a board meeting where she must defend a proposed $4 million compensation restructuring and a $1.2 million employee engagement budget. CFO Robert Chen remains skeptical. Use the dashboard's statistical tools to prove your case.</p>
+    </div>
+
+    <div class="container">
+
+        <!-- OPENING THE DASHBOARD -->
+        <div style="text-align: center; margin-bottom: 36px;">
+            <a href="index.html" class="dash-link" target="_blank">🖥️ Open the Dashboard in a New Tab</a>
+            <p style="font-size: 12px; color: var(--text3); margin-top: 8px;">Keep it open — you'll reference it throughout this case.</p>
+        </div>
+
+        <div class="instructions">
+            <h4>📌 How to Use This Case Study</h4>
+            <ol>
+                <li>Open the <strong>HR Analytics Dashboard</strong>.</li>
+                <li>Go to the bottom-left sidebar sections **Student Exercises** and **Analysis & Tools** (T-Test, OLS Regression, Logistic Regression).</li>
+                <li>Use these models to compute coefficients, t-statistics, and odds ratios to answer the questions.</li>
+                <li>Submit your answers using the text fields. They are automatically saved to your browser's local storage.</li>
+            </ol>
+        </div>
+
+        <!-- ===== PART 1: BIVARIATE WAGE EQUITY ANALYSIS ===== -->
+        <div class="case-section">
+            <span class="section-label label-background">Part 1 — Wage Equity Bivariate Check</span>
+            <h2>Testing for Gaps in Compensation</h2>
+            
+            <p>An initial audit reveals disparities in manager wages. Denise wants to know if these gaps are statistically significant or just random noise. We start with bivariate checks using the **T-Test** tool.</p>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 1</span>
+                <div class="dq-text">Run a T-test comparing manager wages by **Race (White vs URM)**. What is the average wage for White managers? What is the average wage for URM managers? What is the t-statistic? Is this gap statistically significant?</div>
+                <div class="dq-hint">Dashboard: <strong>T-Test → Grouping: Race → Metric: Manager Wage ($)</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 2</span>
+                <div class="dq-text">Run a T-test comparing manager wages by **Gender (Male vs Female)**. What is the average wage for Male managers? What is the average wage for Female managers? What is the t-statistic? Is this gap statistically significant?</div>
+                <div class="dq-hint">Dashboard: <strong>T-Test → Grouping: Gender → Metric: Manager Wage ($)</strong></div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 3</span>
+                <div class="dq-text">If we stop our analysis here, what conclusions might a regulator draw about gender equity vs. racial equity at Mr. Macky's Cajun Cuisine? Explain why bivariate comparisons (T-tests) are insufficient for proving pay discrimination.</div>
+                <div class="dq-hint">Think about: Confounding variables (e.g. experience, performance, market size) that are omitted in a simple T-test.</div>
+            </div>
+        </div>
+
+        <!-- ===== PART 2: MULTIVARIATE COMPENSATION MODEL ===== -->
+        <div class="case-section">
+            <span class="section-label label-challenge">Part 2 — OLS Regression: The Wage Structure</span>
+            <h2>OLS Regression: Controlling for Key Drivers</h2>
+
+            <p>To see if pay disparities persist after controlling for legitimate business reasons (experience, performance, market cost of living), we run a multivariate **OLS Regression**.</p>
+
+            <div class="instructions">
+                <h4>🛠️ OLS Configuration for Wage Model:</h4>
+                <ul>
+                    <li>Go to the <strong>OLS Regression</strong> tab in the sidebar.</li>
+                    <li>Select Dataset: <strong>Manager-Level (N=145)</strong></li>
+                    <li>Dependent Variable (Y): <strong>Annual Wage ($)</strong></li>
+                    <li>Check Independent Variables (IVs / X): <strong>Experience (yrs)</strong>, <strong>Performance Rating</strong>, <strong>Gender</strong>, <strong>Race/Ethnicity</strong>, <strong>Market Type</strong></li>
+                    <li>Click <strong>Run OLS Regression</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 4</span>
+                <div class="dq-text">Report the model's fit. What is the R-squared value? What percentage of the variance in manager wages is explained by your regression model?</div>
+                <div class="dq-hint">Look at the top table: <strong>R-Squared</strong>.</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 5</span>
+                <div class="dq-text">What is the coefficient for **Experience (yrs)**? What does this mean? Does gaining another year of prior experience increase or decrease a manager's salary, and by how much? Explain this paradox.</div>
+                <div class="dq-hint">Look at the coefficient for <strong>exp</strong>. Why would experienced managers be paid *less* at Mr. Macky's? Recall the "Background" narrative about expansion history.</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 6</span>
+                <div class="dq-text">What is the coefficient for **Performance Rating**? Is it statistically significant? If an employee raises their performance rating by 1.0 point, how much does their expected wage change?</div>
+                <div class="dq-hint">Check the coefficient and p-value for <strong>perf</strong>.</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 7</span>
+                <div class="dq-text">Examine the demographic coefficients for **Gender (Male vs Female)** and **Race/Ethnicity (White vs URM)**. After controlling for experience, performance, and market size, does a wage gap exist for Female or URM managers? How do these coefficients compare to the simple differences in averages you found in Part 1?</div>
+                <div class="dq-hint">Dummies: <strong>gender (Male vs Female Reference)</strong> and <strong>race (White vs URM Reference)</strong>. Note that in OLS, nominal reference categories represent the baseline.</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 8</span>
+                <div class="dq-text">Explain the coefficient for **Market Type (Large vs Medium)**. What is the premium for working in a Large Market? Does this premium appear to reflect cost-of-living differences or economic differences between the units?</div>
+                <div class="dq-hint">Look at the coefficient for <strong>market (Large vs Medium Reference)</strong>.</div>
+            </div>
+        </div>
+
+        <!-- ===== PART 3: TURNOVER & UNIT PROFITABILITY ===== -->
+        <div class="case-section">
+            <span class="section-label label-data">Part 3 — OLS Regression: The Profitability Drivers</span>
+            <h2>Business Case for HR: Modeling Net Profit</h2>
+
+            <p>Denise needs to convince the board that employee retention and engagement are not just "nice to have," but have a direct financial impact on the bottom line. We analyze this at the restaurant-unit level.</p>
+
+            <div class="instructions">
+                <h4>🛠️ OLS Configuration for Profit Model:</h4>
+                <ul>
+                    <li>Select Dataset: <strong>Restaurant-Unit Level (N=148)</strong></li>
+                    <li>Dependent Variable (Y): <strong>Net Profit ($)</strong></li>
+                    <li>Check Independent Variables (IVs / X): <strong>Turnover Rate (%)</strong>, <strong>Avg Engagement Score</strong>, <strong>Payroll Cost ($)</strong>, <strong>Market Type</strong></li>
+                    <li>Click <strong>Run OLS Regression</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 9</span>
+                <div class="dq-text">What is the coefficient for **Avg Engagement Score**? Is it statistically significant? If a manager improves their unit's average engagement score by 1.0 point (e.g. from 4.0 to 5.0), what is the estimated impact on that restaurant's net profit?</div>
+                <div class="dq-hint">Look at the coefficient and p-value for <strong>avgEngagement</strong>.</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 10</span>
+                <div class="dq-text">What is the coefficient for **Turnover Rate (%)**? Is it positive or negative? Explain why this coefficient value is highly counterintuitive. Propose a statistical or operational reason (e.g. omitted variable bias, market type interaction, or causal direction) for this paradox.</div>
+                <div class="dq-hint">Look at the coefficient for <strong>turnoverRate</strong>. Why might units with higher turnover rates also show higher profits in this linear model?</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 11</span>
+                <div class="dq-text">What is the coefficient for **Payroll Cost ($)**? What does this coefficient say about the cost structure? Does a $1.00 increase in payroll reduce profit by exactly $1.00, or by less? What does this imply about the relationship between higher wages, productivity, and sales?</div>
+                <div class="dq-hint">Look at the coefficient for <strong>payroll</strong>. (Hint: if it's -0.35, then a dollar increase in payroll only reduces profit by 35 cents because it is offset by increased sales or productivity!).</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 12</span>
+                <div class="dq-text">Using the **Explore Data** tool, filter the dataset to find the 3 units with the highest `Turnover Rate (%)`. Report their unit IDs, turnover rates, and net profits. Now find the 3 units with the lowest turnover rates and report the same. Does this simple comparison support or challenge the positive turnover coefficient in the regression?</div>
+                <div class="dq-hint">Dashboard: <strong>Explore Data → search/sort by Turnover Rate</strong>.</div>
+            </div>
+        </div>
+
+        <!-- ===== PART 4: SELECTION BIAS & LOGISTIC REGRESSION ===== -->
+        <div class="case-section">
+            <span class="section-label label-question">Part 4 — Logistic Regression: Hiring Selection Bias</span>
+            <h2>Modeling Selection Decisions</h2>
+
+            <p>The EEOC complaint centers on the hiring selection process. To determine if selection bias exists after controlling for qualifications, we use the multivariate **Logistic Regression** tool.</p>
+
+            <div class="instructions">
+                <h4>🛠️ Logistic Regression Configuration:</h4>
+                <ul>
+                    <li>Go to the <strong>Logistic Regression</strong> tab in the sidebar.</li>
+                    <li>Check Independent Variables (IVs): **Race (White vs URM)**, **Gender (Male vs Female)**, **Prior Experience (yrs)**, **First Interview Score**</li>
+                    <li>Click <strong>Run Analysis</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 13</span>
+                <div class="dq-text">What is the Odds Ratio for **First Interview Score**? Is it statistically significant? What does this tell you about the predictive power of the first interview in the hiring process?</div>
+                <div class="dq-hint">Look at the Odds Ratio (OR) and p-value for <strong>First Interview Score</strong>.</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 14</span>
+                <div class="dq-text">What is the Odds Ratio for **Race (White vs URM)**? Is it statistically significant? What does this ratio imply about the hiring chances of a White applicant compared to a URM applicant with identical interview scores and prior experience?</div>
+                <div class="dq-hint">Look at the OR for <strong>Race: White (vs URM)</strong>. An OR > 1 means White candidates are more likely to be selected.</div>
+            </div>
+
+            <div class="dq">
+                <span class="dq-num">Discussion Question 15</span>
+                <div class="dq-text">What is the Odds Ratio for **Gender (Male vs Female)**? Is it statistically significant? What does this suggest about gender equity in the selection process?</div>
+                <div class="dq-hint">Look at the OR for <strong>Gender: Male (vs Female)</strong>.</div>
+            </div>
+        </div>
+
+        <!-- ===== BOARD MEMO ===== -->
+        <div class="case-section">
+            <span class="section-label label-memo">Final Deliverable</span>
+            <h2>The Board Memo: Designing the Business Case</h2>
+
+            <p>Synthesize your findings from Parts 1–4 into a formal executive memo to Denise Macky and the Board of Directors. Support your recommendations with exact statistical outputs (R2, coefficients, p-values, odds ratios).</p>
+
+            <div class="deliverable">
+                <h4>📝 Your memo should address:</h4>
+                <ol>
+                    <li><strong>Manager Wage Equity</strong> — Is there pay discrimination at Mr. Macky's? Contrast your bivariate T-test findings with the OLS Regression results. Address why Male managers earn more and what controls reveal about URM manager pay.</li>
+                    <li><strong>The Experience-Wage Dilemma</strong> — Legally and operationally, how should the company address the negative coefficient on prior experience? Suggest a revised pay philosophy.</li>
+                    <li><strong>EEOC Hiring Exposure</strong> — What does the Logistic Regression prove about bias in the interview and selection process? How should Denise defend or alter hiring practices?</li>
+                    <li><strong>Business Case for Engagement</strong> — Use the unit profit OLS coefficients to calculate the expected financial return of a 0.5-point increase in average employee engagement. Compare this to the proposed $1.2 million budget.</li>
+                    <li><strong>Confounding Variables & Cautions</strong> — Advise the board on the turnover-profit paradox. Warn them about correlation vs. causation and explain why simply increasing turnover is not a path to profitability.</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Back links and Download -->
+        <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <h3 style="margin-bottom: 20px; color: var(--text);">Ready to submit your work?</h3>
+            <button onclick="downloadSubmission()" class="dash-link" style="background: linear-gradient(135deg, var(--teal), #0f766e); box-shadow: 0 4px 20px rgba(45,212,191,0.3); font-size: 16px; padding: 14px 32px;">
+                📥 Download Answers for Grading
+            </button>
+            <div id="unlock-section" style="display: none; margin-top: 24px; padding: 20px; background: rgba(45,212,191,0.05); border: 1px solid rgba(45,212,191,0.2); border-radius: 8px; text-align: center;">
+                <p style="margin-bottom: 12px; font-weight: 500; color: var(--text);">Enter Professor's Key to Review Answers:</p>
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                    <input type="text" id="prof-key" placeholder="Enter key..." style="padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg2); color: var(--text);">
+                    <button onclick="unlockAnswers()" class="dash-link" style="margin: 0; background: rgba(45,212,191,0.1); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); box-shadow: none;">Unlock</button>
+                </div>
+            </div>
+            <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <a href="index.html" class="dash-link" target="_blank" style="margin: 0; background: rgba(255,255,255,0.1); box-shadow: none;">🖥️ Open Dashboard</a>
+                <a href="casestudy.html" class="dash-link" style="margin: 0; background: rgba(255,255,255,0.1); box-shadow: none;">📋 Case Study 1</a>
+                <button onclick="resetProgress()" class="dash-link" style="margin: 0; background: rgba(244, 63, 94, 0.1); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.3); box-shadow: none;">🔄 Start Over</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-label">Case Progress</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="progress-count" id="progressCount" style="margin-bottom: 12px;">0 / 16 answered</div>
+        <button onclick="downloadSubmission()" class="dash-link" style="width: 100%; padding: 8px 12px; font-size: 12px; justify-content: center; margin: 0; margin-bottom: 6px; box-shadow: none;">📥 Download</button>
+        <button onclick="resetProgress()" class="dash-link" style="width: 100%; padding: 6px 12px; font-size: 11px; justify-content: center; margin: 0; background: rgba(244,63,94,0.05); color: var(--rose); box-shadow: none;">🔄 Start Over</button>
+    </div>
+
+<script>
+// Feedback data for all questions in Case Study 2
+const FB = {
+    1: {
+        placeholder: 'Report White vs URM manager averages, t-statistic, and significance...',
+        points: [
+            '<strong>White Mean Wage</strong>: $65,334.33 (N=112)',
+            '<strong>URM Mean Wage</strong>: $65,851.58 (N=33)',
+            '<strong>t-Statistic</strong>: -0.3116, <strong>df</strong>: 56.61',
+            '<strong>Significance</strong>: Not statistically significant (p > 0.05). Bivariate data shows URM managers earn slightly more on average, but it is not meaningful.'
+        ]
+    },
+    2: {
+        placeholder: 'Report Male vs Female manager averages, t-statistic, and significance...',
+        points: [
+            '<strong>Male Mean Wage</strong>: $68,412.31 (N=54)',
+            '<strong>Female Mean Wage</strong>: $63,695.41 (N=91)',
+            '<strong>t-Statistic</strong>: 2.9666, <strong>df</strong>: 85.23',
+            '<strong>Significance</strong>: Statistically significant (p < 0.01). Male managers earn on average $4,716.90 more.'
+        ]
+    },
+    3: {
+        placeholder: 'Critically analyze why simple bivariate checks are insufficient...',
+        points: [
+            'A regulator would suspect <strong>gender-based pay discrimination</strong> due to the significant gap, but see no racial gap.',
+            '<strong>Insufficiency</strong>: A bivariate comparison fails to control for experience, performance, job complexity, or geographic market (e.g. Large vs Medium cost-of-living differences).',
+            'To establish fair pay, we must compare Male vs. Female managers with <strong>identical characteristics</strong> (experience, ratings, locations).'
+        ]
+    },
+    4: {
+        placeholder: 'Report R-squared and explained variance...',
+        points: [
+            '<strong>R-Squared</strong>: 0.4098',
+            '<strong>Interpretation</strong>: Approximately <strong>41.0% of the variance</strong> in manager wages is explained by experience, performance, gender, race, and market type.',
+            'The remaining 59% is explained by other factors (e.g. college prestige, tenure at company, negotiating history, unit revenue).'
+        ]
+    },
+    5: {
+        placeholder: 'Report Experience coefficient and explain the paradox...',
+        points: [
+            '<strong>Experience (yrs) Coefficient</strong>: -275.63',
+            '<strong>Meaning</strong>: Each year of prior experience is associated with a <strong>$275.63 decrease</strong> in annual wage (holding performance and other variables constant).',
+            '<strong>Operational explanation</strong>: Newly hired managers (recruited under PE pressure) are hired at higher current market rates. Long-tenured managers with high experience are suffering from wage compression or lag, where internal salary increases do not match current external hiring rates.'
+        ]
+    },
+    6: {
+        placeholder: 'Report Performance coefficient and its impact...',
+        points: [
+            '<strong>Performance Coefficient</strong>: 1923.37',
+            '<strong>Meaning</strong>: A 1-point increase in performance rating increases the predicted wage by <strong>$1,923.37</strong>.',
+            'This is highly significant, showing that the company has a pay-for-performance element, though it is smaller than other factors like market size.'
+        ]
+    },
+    7: {
+        placeholder: 'Report demographic coefficients and compare to Part 1...',
+        points: [
+            '<strong>Gender (Male vs Female) Coefficient</strong>: 1880.81',
+            '<strong>Race (White vs URM) Coefficient</strong>: 2340.83',
+            '<strong>Implication</strong>: Controlling for experience and performance, Male managers still earn <strong>$1,880.81 more</strong>, and White managers earn <strong>$2,340.83 more</strong> than URM managers.',
+            '<strong>Comparison</strong>: In the bivariate check, URM managers earned *more*. OLS reveals that after controlling for qualifications, White managers have a wage advantage. This happens because URM managers have higher average qualifications (experience or performance) that mask the underlying bias in bivariate data.'
+        ]
+    },
+    8: {
+        placeholder: 'Report Market coefficient and interpret...',
+        points: [
+            '<strong>Market Coefficient</strong>: 10323.33',
+            '<strong>Meaning</strong>: Managers in Large Markets earn a premium of <strong>$10,323.33</strong> over Medium Markets.',
+            'This coefficient is the largest single predictor in the model, demonstrating that location and market cost structure dominate compensation decisions.'
+        ]
+    },
+    9: {
+        placeholder: 'Report Avg Engagement coefficient and calculate financial return...',
+        points: [
+            '<strong>Avg Engagement Coefficient</strong>: 101752.11',
+            '<strong>Meaning</strong>: A 1.0-point increase in average engagement is associated with a <strong>$101,752.11 increase</strong> in restaurant net profit.',
+            'This is statistically significant, providing a powerful empirical business case for investing in employee engagement.'
+        ]
+    },
+    10: {
+        placeholder: 'Report Turnover Rate coefficient and explain the paradox...',
+        points: [
+            '<strong>Turnover Rate Coefficient</strong>: 14510.84',
+            '<strong>Meaning</strong>: Each 1% increase in turnover rate is associated with a <strong>$14,510.84 increase</strong> in profit.',
+            '<strong>Paradox</strong>: Turnover is costly (separations, training), so this positive coefficient is counterintuitive.',
+            '<strong>Explanations</strong>: High-volume, highly profitable Large Market units have high natural turnover due to college labor markets. Alternatively, units that are extremely busy (high sales) have high work intensity, leading to both higher profits and higher employee burnout/turnover. Turnover is a symptom of high sales volume here.'
+        ]
+    },
+    11: {
+        placeholder: 'Report Payroll Cost coefficient and interpret cost structure...',
+        points: [
+            '<strong>Payroll Cost Coefficient</strong>: -0.35',
+            '<strong>Meaning</strong>: A $1.00 increase in payroll only reduces profit by <strong>$0.35</strong> (not $1.00).',
+            '<strong>Implication</strong>: Increasing payroll does not translate to a 1:1 profit loss. Higher wages attract better workers, reduce shrinkage, improve customer service, and increase sales. The return on payroll investment offsets 65% of its direct cost.'
+        ]
+    },
+    12: {
+        placeholder: 'Filter highest vs lowest turnover units and compare...',
+        points: [
+            '<strong>Highest Turnover Units</strong>: #32 (turnover rate = 89.2%, profit = $253,303), #33 (84.3%, $173,150). These are highly profitable Large Market units.',
+            '<strong>Lowest Turnover Units</strong>: #95 (turnover rate = 38.6%, profit = $68,440), #89 (38.8%, $75,320). These are lower-profit Medium Market units.',
+            'This comparison <strong>supports</strong> the regression findings: high-turnover units are indeed highly profitable large locations, illustrating the correlation vs. causation trap.'
+        ]
+    },
+    13: {
+        placeholder: 'Report Interview Score Odds Ratio and significance...',
+        points: [
+            '<strong>Odds Ratio</strong>: 2.11 (or similar in the browser output, typically ~2.10–2.20)',
+            '<strong>Meaning</strong>: Each 1-point increase in first interview score increases the odds of being hired by <strong>2.11 times</strong> (or ~111%).',
+            'This is highly significant, showing the interview is a powerful gatekeeper in the selection process.'
+        ]
+    },
+    14: {
+        placeholder: 'Report Race Odds Ratio and selection bias implication...',
+        points: [
+            '<strong>Odds Ratio</strong>: 2.24 (typically ~2.24 in AM applicant model output)',
+            '<strong>Meaning</strong>: Controlling for experience and interview scores, White candidates have <strong>2.24 times higher odds</strong> of being hired than URM candidates.',
+            'This indicates <strong>substantial selection bias</strong>, confirming that racial disparities in hiring cannot be explained by interview performance or experience alone.'
+        ]
+    },
+    15: {
+        placeholder: 'Report Gender Odds Ratio and significance...',
+        points: [
+            '<strong>Odds Ratio</strong>: 0.94 (or similar, close to 1.0)',
+            '<strong>Meaning</strong>: Controlling for other factors, Male candidates have 0.94 times the odds (slightly lower) of being hired, which is <strong>not statistically significant</strong>.',
+            'This suggest the hiring selection process is gender-neutral once interview scores and experience are controlled.'
+        ]
+    },
+    16: {
+        placeholder: 'Write your Board Memo, addressing wage equity, experience paradox, EEOC, and engagement return...',
+        points: [
+            '<strong>Wage Equity</strong>: Bivariate checks missed the racial gap because URM managers are highly qualified. OLS proves that holding experience constant, White managers earn $2,340.83 more, and Male managers earn $1,880.81 more.',
+            '<strong>Experience Paradox</strong>: Advise restructuring the pay scale. The negative coefficient on prior experience indicates newly hired managers are paid a premium while veterans lag behind. Recommend an internal equity adjustment.',
+            '<strong>EEOC Defense</strong>: The interview process has a massive racial bias (Odds Ratio ~2.24 for White candidates). Recommend immediate implementation of structured, panel-based interviews and objective grading rubrics.',
+            '<strong>Engagement Business Case</strong>: A 0.5-point increase in average engagement yields an estimated <strong>$50,876 per unit</strong> in profit. Across 148 units, that is <strong>$7.53 million</strong> in total profit. This dwarfs the proposed $1.2 million budget, yielding a 6x ROI.',
+            '<strong>Turnover Paradox</strong>: Caution the board that the positive coefficient on turnover is driven by market size. High turnover is still an expense; reducing it in Large Markets will unlock even higher margins.'
+        ]
+    }
+};
+
+const TOTAL = Object.keys(FB).length;
+const submitted = new Set();
+
+// Inject answer areas into all .dq elements
+document.addEventListener('DOMContentLoaded', () => {
+    const dqs = document.querySelectorAll('.dq');
+    dqs.forEach((dq, i) => {
+        const qNum = i + 1;
+        const fb = FB[qNum];
+        if (!fb) return;
+
+        const area = document.createElement('div');
+        area.className = 'answer-area';
+        area.innerHTML = `
+            <textarea id="q${qNum}" placeholder="${fb.placeholder}"></textarea>
+            <div class="answer-btns">
+                <button class="btn-submit" id="sub-${qNum}" onclick="submitAnswer(${qNum})">Submit Answer</button>
+                <span class="saved-badge" id="saved-${qNum}">✓ Saved</span>
+            </div>
+            <div class="feedback-panel" id="fb-${qNum}">
+                <div class="feedback-title">💡 Key Points to Consider</div>
+                <ul>${fb.points.map(p => `<li>${p}</li>`).join('')}</ul>
+            </div>
+        `;
+        dq.appendChild(area);
+    });
+
+    // Also add answer area for the final memo deliverable
+    const delivSection = document.querySelector('.deliverable');
+    if (delivSection) {
+        const memoArea = document.createElement('div');
+        memoArea.className = 'answer-area';
+        memoArea.style.marginTop = '20px';
+        const fb = FB[16];
+        memoArea.innerHTML = `
+            <textarea id="q16" placeholder="${fb.placeholder}" style="min-height:240px"></textarea>
+            <div class="answer-btns">
+                <button class="btn-submit" id="sub-16" onclick="submitAnswer(16)">Submit Memo</button>
+                <span class="saved-badge" id="saved-16">✓ Saved</span>
+            </div>
+            <div class="feedback-panel" id="fb-16">
+                <div class="feedback-title">💡 Key Points for a Strong Memo</div>
+                <ul>${fb.points.map(p => `<li>${p}</li>`).join('')}</ul>
+            </div>
+        `;
+        delivSection.parentNode.insertBefore(memoArea, delivSection.nextSibling);
+    }
+
+    const isUnlocked = localStorage.getItem('macky_case2_unlocked') === 'true';
+
+    // Load any saved answers from localStorage
+    for (let i = 1; i <= TOTAL; i++) {
+        const saved = localStorage.getItem(`macky_case2_q${i}`);
+        if (saved) {
+            const ta = document.getElementById(`q${i}`);
+            if (ta) { ta.value = saved; ta.classList.add('submitted'); }
+            submitted.add(i);
+            const btn = document.getElementById(`sub-${i}`);
+            if (btn) { btn.textContent = '✓ Submitted'; btn.disabled = true; }
+            const badge = document.getElementById(`saved-${i}`);
+            if (badge) badge.classList.add('visible');
+            
+            // Only auto-reveal Question 1 or if globally unlocked
+            if (i === 1 || isUnlocked) {
+                const panel = document.getElementById(`fb-${i}`);
+                if (panel) panel.classList.add('visible');
+            }
+        }
+    }
+    
+    if (isUnlocked) {
+        document.getElementById('unlock-section').style.display = 'block';
+        document.getElementById('unlock-section').innerHTML = '<p style="color: var(--teal); font-weight: bold; margin: 0;">✓ All answers unlocked for review.</p>';
+    }
+
+    updateProgress();
+});
+
+function submitAnswer(qNum) {
+    const ta = document.getElementById(`q${qNum}`);
+    if (!ta || !ta.value.trim()) { ta.style.borderColor = '#f43f5e'; setTimeout(() => ta.style.borderColor = '', 1500); return; }
+
+    ta.classList.add('submitted');
+    localStorage.setItem(`macky_case2_q${qNum}`, ta.value);
+    submitted.add(qNum);
+
+    const btn = document.getElementById(`sub-${qNum}`);
+    btn.textContent = '✓ Submitted';
+    btn.disabled = true;
+
+    const badge = document.getElementById(`saved-${qNum}`);
+    badge.classList.add('visible');
+
+    // Only auto-reveal Question 1
+    if (qNum === 1) {
+        const panel = document.getElementById(`fb-${qNum}`);
+        if (panel) panel.classList.add('visible');
+    }
+
+    updateProgress();
+}
+
+function unlockAnswers() {
+    const key = document.getElementById('prof-key').value.trim();
+    if (key === "99") {
+        for (let i = 1; i <= TOTAL; i++) {
+            const panel = document.getElementById(`fb-${i}`);
+            if (panel) panel.classList.add('visible');
+        }
+        document.getElementById('unlock-section').innerHTML = '<p style="color: var(--teal); font-weight: bold; margin: 0;">✓ All answers unlocked for review.</p>';
+        localStorage.setItem('macky_case2_unlocked', 'true');
+    } else {
+        alert("Incorrect key. Please ask your professor for the review key.");
+    }
+}
+
+function updateProgress() {
+    const pct = Math.round((submitted.size / TOTAL) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = `${submitted.size} / ${TOTAL} answered`;
+}
+
+function resetProgress() {
+    if (confirm("Are you sure you want to clear all your answers and start over? This cannot be undone.")) {
+        for (let i = 1; i <= TOTAL; i++) {
+            localStorage.removeItem(`macky_case2_q${i}`);
+        }
+        location.reload();
+    }
+}
+
+function downloadSubmission() {
+    const studentName = prompt("Please enter your full name for grading:");
+    if (!studentName) return;
+
+    let content = "Mr. Macky's HR Analytics - Case Study 2 Submission\n";
+    content += "==================================================\n\n";
+    content += "Student Name: " + studentName + "\n";
+    content += "Date: " + new Date().toLocaleString() + "\n\n";
+    
+    let answeredCount = 0;
+    for (let i = 1; i <= TOTAL; i++) {
+        const ans = localStorage.getItem(`macky_case2_q${i}`) || "No answer provided.";
+        if (ans !== "No answer provided.") answeredCount++;
+        
+        content += `--- Question ${i} ${i === 16 ? '(Executive Memo)' : ''} ---\n`;
+        content += ans + "\n\n";
+    }
+    
+    content += "==================================================\n";
+    content += `Total Answered: ${answeredCount} / ${TOTAL}\n`;
+    
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `HR_Case_Study_2_${studentName.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Reveal the secret key unlock section after they download!
+    document.getElementById('unlock-section').style.display = 'block';
+}
+</script>
+
+</body>
+</html>
