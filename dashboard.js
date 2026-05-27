@@ -6107,26 +6107,17 @@ function renderLogistic() {
     const container = document.getElementById('logitContent');
     if (!container) return;
     
-    const allYears = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-    const yearCheckboxes = allYears.map(y => {
-        const checked = logitSelectedYears.includes(y) ? 'checked' : '';
-        return `<label class="chisq-year-check">
-            <input type="checkbox" class="logit-year-cb" value="${y}" ${checked} onchange="onLogitYearChange()">
-            <span>${y}</span>
-        </label>`;
-    }).join('');
-    
     const predictors = [
         { key: 'race', label: 'Race (White vs URM)' },
         { key: 'gender', label: 'Gender (Male vs Female)' },
         { key: 'exp', label: 'Prior Experience' },
         { key: 'int1', label: 'Interview 1 Score' },
         { key: 'int2', label: 'Interview 2 Score' },
-        { key: 'year', label: 'Application Year' }
+        { key: 'year', label: 'Application Year (Dummies)' }
     ];
     
     const predictorCheckboxes = predictors.map(p => {
-        const defaultSelected = ['race', 'exp', 'int1', 'int2'];
+        const defaultSelected = ['race', 'exp', 'int1', 'int2', 'year'];
         const checked = defaultSelected.includes(p.key) ? 'checked' : '';
         return `<label class="chisq-year-check">
             <input type="checkbox" class="logit-pred-cb" value="${p.key}" ${checked} onchange="runLogistic()">
@@ -6136,13 +6127,7 @@ function renderLogistic() {
     
     container.innerHTML = `
         <div class="stats-controls" style="flex-wrap:wrap;gap:0.75rem">
-            <div class="stats-control-group" style="flex:3;min-width:260px">
-                <label class="stats-ctrl-label">📅 Year Selection
-                    <button onclick="logitToggleAllYears()" class="chisq-toggle-btn" id="logitToggleAll">Deselect All</button>
-                </label>
-                <div class="chisq-year-checks" id="logitYearChecks">${yearCheckboxes}</div>
-            </div>
-            <div class="stats-control-group" style="flex:4;min-width:320px">
+            <div class="stats-control-group" style="flex:5;min-width:320px">
                 <label class="stats-ctrl-label">⚙️ Predictor Variables (IVs)
                     <button onclick="logitToggleAllPredictors()" class="chisq-toggle-btn" id="logitTogglePreds">Select All</button>
                 </label>
@@ -6152,37 +6137,7 @@ function renderLogistic() {
         </div>
         <div id="logitResults"></div>
     `;
-    updateLogitToglBtn();
     updateLogitPredToglBtn();
-    runLogistic();
-}
-
-function updateLogitToglBtn() {
-    const btn = document.getElementById('logitToggleAll');
-    if (!btn) return;
-    const allYears = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-    btn.textContent = logitSelectedYears.length === allYears.length ? 'Deselect All' : 'Select All';
-}
-
-function logitToggleAllYears() {
-    const allYears = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-    if (logitSelectedYears.length === allYears.length) {
-        logitSelectedYears = [];
-    } else {
-        logitSelectedYears = [...allYears];
-    }
-    document.querySelectorAll('.logit-year-cb').forEach(cb => {
-        cb.checked = logitSelectedYears.includes(cb.value);
-    });
-    updateLogitToglBtn();
-    runLogistic();
-}
-
-function onLogitYearChange() {
-    logitSelectedYears = Array.from(
-        document.querySelectorAll('.logit-year-cb:checked')
-    ).map(cb => cb.value);
-    updateLogitToglBtn();
     runLogistic();
 }
 
@@ -6206,47 +6161,19 @@ function logitToggleAllPredictors() {
 }
 
 function runLogistic() {
-    const checkedYears = logitSelectedYears;
     const checkedPreds = Array.from(document.querySelectorAll('.logit-pred-cb:checked')).map(cb => cb.value);
     
     updateLogitPredToglBtn();
-    
-    if (checkedYears.length === 0) {
-        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">⚠️ Please select at least one year.</div>`;
-        return;
-    }
     
     if (checkedPreds.length === 0) {
         document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">⚠️ Please select at least one predictor variable (IV).</div>`;
         return;
     }
     
-    // Filter applicant data
-    const filteredData = APPLICANT_DATA.filter(row => checkedYears.includes(String(row.year)));
+    // Filter applicant data - no year filtering, use all 10,804 records
+    const filteredData = APPLICANT_DATA;
     if (filteredData.length === 0) {
-        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">No data available for the selected years.</div>`;
-        return;
-    }
-    
-    // Build Xdata and Ydata
-    const Ydata = filteredData.map(row => row.hired);
-    const Xdata = filteredData.map(row => {
-        const xRow = [];
-        checkedPreds.forEach(p => {
-            if (p === 'race') xRow.push(row.race === 'White' ? 1.0 : 0.0);
-            else if (p === 'gender') xRow.push(row.gender === 'Male' ? 1.0 : 0.0);
-            else if (p === 'exp') xRow.push(row.exp);
-            else if (p === 'int1') xRow.push(row.int1);
-            else if (p === 'int2') xRow.push(row.int2);
-            else if (p === 'year') xRow.push(row.year);
-        });
-        return xRow;
-    });
-    
-    const res = solveLogistic(Xdata, Ydata);
-    
-    if (res.error) {
-        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">⚠️ Error fitting model: ${res.error}</div>`;
+        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">No applicant data available.</div>`;
         return;
     }
     
@@ -6255,11 +6182,57 @@ function runLogistic() {
         gender: 'Gender (Male=1, Female=0)',
         exp: 'Prior Experience (yrs)',
         int1: 'First Interview Score',
-        int2: 'Second Interview Score',
-        year: 'Application Year'
+        int2: 'Second Interview Score'
     };
     
-    const labels = ['Intercept', ...checkedPreds.map(p => predLabels[p])];
+    // Build Xdata, Ydata, labels and mapping keys
+    const Ydata = filteredData.map(row => row.hired);
+    const Xdata = [];
+    const labels = ['Intercept'];
+    const xKeys = [];
+    
+    checkedPreds.forEach(p => {
+        if (p === 'year') {
+            const dummyYears = [2021, 2022, 2023, 2024, 2025, 2026];
+            dummyYears.forEach(yr => {
+                labels.push(`Year: ${yr} (vs 2020)`);
+                xKeys.push(`year_${yr}`);
+            });
+        } else {
+            labels.push(predLabels[p]);
+            xKeys.push(p);
+        }
+    });
+    
+    filteredData.forEach(row => {
+        const xRow = [];
+        checkedPreds.forEach(p => {
+            if (p === 'race') {
+                xRow.push(row.race === 'White' ? 1.0 : 0.0);
+            } else if (p === 'gender') {
+                xRow.push(row.gender === 'Male' ? 1.0 : 0.0);
+            } else if (p === 'exp') {
+                xRow.push(row.exp);
+            } else if (p === 'int1') {
+                xRow.push(row.int1);
+            } else if (p === 'int2') {
+                xRow.push(row.int2);
+            } else if (p === 'year') {
+                const dummyYears = [2021, 2022, 2023, 2024, 2025, 2026];
+                dummyYears.forEach(yr => {
+                    xRow.push(row.year === yr ? 1.0 : 0.0);
+                });
+            }
+        });
+        Xdata.push(xRow);
+    });
+    
+    const res = solveLogistic(Xdata, Ydata);
+    
+    if (res.error) {
+        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">⚠️ Error fitting model: ${res.error}</div>`;
+        return;
+    }
     
     const pFmt = p => p < .001 ? '< .001' : p.toFixed(4);
     const stars = p => p < .001 ? '***' : p < .01 ? '**' : p < .05 ? '*' : p < .1 ? '†' : '';
@@ -6296,7 +6269,7 @@ function runLogistic() {
     let interpPoints = '';
     res.B.forEach((b, i) => {
         if (i === 0) return; // Skip Intercept
-        const predKey = checkedPreds[i - 1];
+        const predKey = xKeys[i - 1];
         const pVal = res.pVal[i];
         const or = Math.exp(b);
         
@@ -6318,10 +6291,11 @@ function runLogistic() {
             } else if (predKey === 'int2') {
                 const pct = Math.round((or - 1) * 100);
                 desc = `Each additional point on the <strong>Second Interview Score</strong> is associated with a <strong>${pct}% increase</strong> in the odds of being hired (Odds Ratio = ${or.toFixed(2)}, p ${res.pVal[i] < 0.001 ? '< 0.001' : '= ' + res.pVal[i].toFixed(3)}).`;
-            } else if (predKey === 'year') {
-                const pct = Math.round(Math.abs(or - 1) * 100);
-                const direction = or > 1 ? 'positive' : 'negative';
-                desc = `Application year has a statistically significant <strong>${direction} trend</strong>, with odds of selection changing by a factor of <strong>${or.toFixed(3)}</strong> per year (p = ${res.pVal[i].toFixed(3)}).`;
+            } else if (predKey.startsWith('year_')) {
+                const yr = predKey.split('_')[1];
+                const comparison = or > 1 ? 'higher' : 'lower';
+                const magnitude = or > 1 ? or.toFixed(2) : (1/or).toFixed(2);
+                desc = `Controlling for other variables, applicants in <strong>${yr}</strong> had <strong>${or.toFixed(2)} times the odds</strong> (selection odds were ${magnitude}x ${comparison}) of being hired compared to the baseline year <strong>2020</strong> (p = ${res.pVal[i].toFixed(3)}).`;
             }
             interpPoints += `<li>🔹 ${desc}</li>`;
         }
@@ -6331,12 +6305,16 @@ function runLogistic() {
         interpPoints = '<li>ℹ️ No selected predictor variable is statistically significant at the α = 0.05 level.</li>';
     }
     
-    const yearLabel = logitSelectedYears.length === 7 ? 'All Years (2020–2026)' : logitSelectedYears.sort().join(', ');
-    const isAll = logitSelectedYears.length === 7;
-    
-    document.getElementById('logitResults').innerHTML = `
-        ${!isAll ? `<div class="stats-year-banner"><span class="stats-year-badge">📅 ${yearLabel}</span><span class="stats-year-note">Showing applicant data filtered for <strong>${yearLabel}</strong></span></div>` : ''}
+    const dummyNote = checkedPreds.includes('year') 
+        ? `<div class="ols-dummy-notes" style="margin-top:0.75rem">
+            <strong>📌 Dummy Variable Reference Categories</strong>
+            <ul>
+                <li><strong>Application Year</strong>: Reference = "<em>2020</em>" (coded 0 across all dummy variables)</li>
+            </ul>
+           </div>` 
+        : '';
         
+    document.getElementById('logitResults').innerHTML = `
         <div class="ols-model-summary">
             <div class="ols-summary-item">
                 <span>McFadden R²</span>
@@ -6388,6 +6366,7 @@ function runLogistic() {
             </div>
             <div class="ols-sig-legend">† p &lt; .10 &nbsp;&nbsp; * p &lt; .05 &nbsp;&nbsp; ** p &lt; .01 &nbsp;&nbsp; *** p &lt; .001 &nbsp;&nbsp;&nbsp; Intercept is baseline odds. Odds Ratios show changes in selection odds.</div>
         </div>
+        ${dummyNote}
         
         <div class="stats-interpretation">
             <h4>📝 Logistic Interpretation</h4>
@@ -6396,7 +6375,7 @@ function runLogistic() {
             </ul>
         </div>
         
-        <div class="stats-chart-wrap" style="position:relative;height:240px;margin-top:1.25rem;">
+        <div class="stats-chart-wrap" style="position:relative;height:280px;margin-top:1.25rem;">
             <canvas id="logitForestChart"></canvas>
         </div>
     `;
@@ -6404,7 +6383,7 @@ function runLogistic() {
     // Generate Forest Plot for Odds Ratios
     if (activeCharts['logitForestChart']) activeCharts['logitForestChart'].destroy();
     
-    const chartLabels = checkedPreds.map(p => predLabels[p]);
+    const chartLabels = labels.slice(1);
     const chartORs = res.B.slice(1).map(b => Math.exp(b));
     const chartCIs = res.B.slice(1).map((b, idx) => {
         const se = res.SE[idx + 1];
