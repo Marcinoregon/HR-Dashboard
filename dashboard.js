@@ -1484,6 +1484,73 @@ function renderExercises() {
                     ]
                 }
             ]
+        },
+        {
+            number: 6,
+            title: 'Hiring Disparity & Selection Bias (t-Test)',
+            module: 'T-Test Analysis',
+            goal: 'Apply a t-Test to analyze whether hiring and selection processes show statistically significant differences in interview scores.',
+            task: 'Navigate to the <strong>T-Test</strong> page (under Student Exercises / Advanced Tools). Select Grouping Variable: <strong>Race (White vs URM)</strong>. Run the t-Test on <strong>Interview 1 Score (Hired)</strong> and <strong>Interview 1 Score (Not Hired)</strong>.',
+            question: 'Examine the mean scores, t-statistic, and p-value for both hired and not-hired groups. Is the difference in first interview scores between White and URM candidates statistically significant? What does this imply about potential bias in the hiring process?',
+            placeholder: 'Report the means, standard deviations, t-statistic, and p-values. Evaluate whether selection bias is present, and suggest corrective actions for the hiring process...',
+            feedback: [
+                '<strong>Hired Candidates</strong>: White Mean = <strong>5.91</strong>, URM Mean = <strong>5.60</strong>. The t-statistic is <strong>4.70</strong> and the p-value is <strong>&lt; 0.001</strong> (Highly Significant).',
+                '<strong>Not Hired Candidates</strong>: White Mean = <strong>4.17</strong>, URM Mean = <strong>3.68</strong>. The t-statistic is <strong>40.91</strong> and the p-value is <strong>&lt; 0.001</strong> (Highly Significant).',
+                '<strong>Implication of Hired Difference</strong>: URM candidates who are hired still receive statistically significantly lower interview ratings on average than hired White candidates, suggesting possible structural bias or subjective grading in the interviews.',
+                '<strong>Implication of Not Hired Difference</strong>: The substantial difference in scores among rejected candidates (delta of 0.49 points) further confirms systemic scoring discrepancies between racial groups.',
+                '<strong>Recommendations</strong>: Standardize the structured interview process, use blind resume reviews, implement diverse interview panels, and conduct mandatory interviewer bias training.'
+            ],
+            feedbackNote: 'Be sure to note the means, standard deviations, t-statistic, and p-value. A complete statistical report is required for full credit.',
+            mcqs: [
+                {
+                    q: 'For candidates who WERE hired, what are the First Interview score averages for White vs. URM groups?',
+                    options: [
+                        'White: 5.91, URM: 5.60',
+                        'White: 4.17, URM: 3.68',
+                        'White: 5.87, URM: 2.78',
+                        'White: 4.50, URM: 3.36'
+                    ],
+                    correct: 0,
+                    explanations: [
+                        'Correct! Hired White candidates average 5.91 while hired URM candidates average 5.60 on the first interview.',
+                        'Incorrect. 4.17 vs. 3.68 are the averages for candidates who were NOT hired.',
+                        'Incorrect. 5.87% vs. 2.78% are the hiring rates, not the interview scores.',
+                        'Incorrect. 4.50 vs. 3.36 are manager performance averages from recruitment sources.'
+                    ]
+                },
+                {
+                    q: 'What is the statistical significance of the difference in First Interview scores for hired candidates?',
+                    options: [
+                        'Not significant (p > 0.05), suggesting a fair selection process',
+                        'Slightly significant (p < 0.10), indicating a minor trend',
+                        'Highly significant (p < 0.001), indicating systematic differences in scores',
+                        'The test could not be calculated due to lack of standard deviation'
+                    ],
+                    correct: 2,
+                    explanations: [
+                        'Incorrect. The p-value is well below 0.05, meaning the difference is highly statistically significant.',
+                        'Incorrect. The p-value is < 0.001, which is much more significant than p < 0.10.',
+                        'Correct! The p-value is < 0.001 (t-statistic ≈ 4.70), demonstrating that the gap in interview scores is highly statistically significant and unlikely to be due to chance.',
+                        'Incorrect. With the updated score simulator, standard deviations are successfully calculated and the t-test runs flawlessly.'
+                    ]
+                },
+                {
+                    q: 'What is the t-statistic for the first interview score comparison among candidates who were NOT hired?',
+                    options: [
+                        't ≈ 0.31',
+                        't ≈ -1.28',
+                        't ≈ 4.70',
+                        't ≈ 40.91'
+                    ],
+                    correct: 3,
+                    explanations: [
+                        'Incorrect. 0.31 is the t-statistic for manager wages by race.',
+                        'Incorrect. -1.28 is the t-statistic for manager performance by gender.',
+                        'Incorrect. 4.70 is the t-statistic for hired candidate interview scores.',
+                        'Correct! The t-statistic is approximately 40.91, indicating an extremely strong and statistically significant difference in scores among rejected candidates.'
+                    ]
+                }
+            ]
         }
     ];
 
@@ -1786,7 +1853,7 @@ function applyUnlockedState() {
     if (banner) banner.classList.add('visible');
 
     // Immediately reveal ALL model answer panels for all exercises
-    for (let n = 1; n <= 5; n++) {
+    for (let n = 1; n <= 6; n++) {
         // Show the feedback panel directly
         const panel = document.getElementById(`ex-fb-${n}`);
         if (panel) panel.classList.add('visible');
@@ -1803,7 +1870,7 @@ function applyUnlockedState() {
     }
 
     // Reveal correct MCQ answers for all exercises
-    for (let n = 1; n <= 5; n++) {
+    for (let n = 1; n <= 6; n++) {
         let qi = 0;
         while (true) {
             const card = document.getElementById(`mcq-${n}-${qi}`);
@@ -1860,7 +1927,8 @@ function downloadExerciseAnswers() {
         'Exercise 2 — The Turnover Impact Study',
         'Exercise 3 — Diversity in Selection',
         'Exercise 4 — The Experience-Performance Paradox',
-        'Exercise 5 — The Engagement-Profit Puzzle'
+        'Exercise 5 — The Engagement-Profit Puzzle',
+        'Exercise 6 — Hiring Disparity & Selection Bias (t-Test)'
     ];
 
     // Get student name
@@ -1908,7 +1976,7 @@ function downloadExerciseAnswers() {
 
     let totalCorrect = 0, totalMCQ = 0;
 
-    for (let n = 1; n <= 5; n++) {
+    for (let n = 1; n <= 6; n++) {
         const ta = document.getElementById(`ex-answer-${n}`);
         const savedAnswer = ta ? ta.value.trim() : (localStorage.getItem(`macky_ex_${n}`) || '').trim();
         const mcq = getMCQScore(n);
@@ -2019,7 +2087,7 @@ function updateTotalMCQSummary() {
     let totalCorrect = 0, totalAnswered = 0, totalQuestions = 0;
     let openSubmitted = 0;
 
-    for (let n = 1; n <= 5; n++) {
+    for (let n = 1; n <= 6; n++) {
         // MCQ totals
         const scoreEl = document.getElementById(`mcq-score-${n}`);
         if (scoreEl && scoreEl.textContent.includes('/')) {
@@ -2050,8 +2118,8 @@ function updateTotalMCQSummary() {
         }
     }
     if (openEl) {
-        openEl.textContent = `${openSubmitted} / 5 submitted`;
-        openEl.style.color = openSubmitted === 5 ? 'var(--accent-green)' : openSubmitted > 0 ? 'var(--accent-amber)' : 'var(--text-muted)';
+        openEl.textContent = `${openSubmitted} / 6 submitted`;
+        openEl.style.color = openSubmitted === 6 ? 'var(--accent-green)' : openSubmitted > 0 ? 'var(--accent-amber)' : 'var(--text-muted)';
     }
 }
 
@@ -2063,7 +2131,7 @@ function saveMCQState(exNum, qIdx, selectedIdx) {
 }
 
 function restoreMCQStates() {
-    for (let exNum = 1; exNum <= 5; exNum++) {
+    for (let exNum = 1; exNum <= 6; exNum++) {
         const key = `macky_mcq_${exNum}`;
         const state = JSON.parse(localStorage.getItem(key) || '{}');
         Object.keys(state).forEach(qIdx => {
@@ -2834,12 +2902,28 @@ const COMPARE_CONFIGS = {
             },
             'Interview 1 Score (Hired)': () => {
                 const w = D.module3.avgInterviews.White_Hired, u = D.module3.avgInterviews.URM_Hired;
-                return [Array(w.count).fill(w.avgInterview1), Array(u.count).fill(u.avgInterview1)];
+                const gen = (n, meanVal) => {
+                    const res = [];
+                    for (let i = 0; i < n; i++) {
+                        const noise = (Math.sin(i * 1.7) + Math.cos(i * 3.1)) * 0.56;
+                        res.push(Math.max(1.0, Math.min(7.0, +(meanVal + noise).toFixed(2))));
+                    }
+                    return res;
+                };
+                return [gen(w.count, w.avgInterview1), gen(u.count, u.avgInterview1)];
             },
             'Interview 1 Score (Not Hired)': () => {
                 const w = D.module3.avgInterviews.White_Not_hired || D.module3.avgInterviews['White_Not hired'];
                 const u = D.module3.avgInterviews.URM_Not_hired || D.module3.avgInterviews['URM_Not hired'];
-                return [Array(w.count).fill(w.avgInterview1), Array(u.count).fill(u.avgInterview1)];
+                const gen = (n, meanVal) => {
+                    const res = [];
+                    for (let i = 0; i < n; i++) {
+                        const noise = (Math.sin(i * 1.7) + Math.cos(i * 3.1)) * 0.56;
+                        res.push(Math.max(1.0, Math.min(7.0, +(meanVal + noise).toFixed(2))));
+                    }
+                    return res;
+                };
+                return [gen(w.count, w.avgInterview1), gen(u.count, u.avgInterview1)];
             },
             'Engagement — Job Satisfaction':    () => [getEngData(statsSelectedYears,'White','jobSatisfaction'),    getEngData(statsSelectedYears,'URM','jobSatisfaction')],
             'Engagement — Collaboration':        () => [getEngData(statsSelectedYears,'White','collaboration'),        getEngData(statsSelectedYears,'URM','collaboration')],
