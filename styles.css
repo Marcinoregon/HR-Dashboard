@@ -3745,3 +3745,65 @@ canvas {
     background: #ea580c;
     box-shadow: var(--shadow-sm);
 }
+
+/* ===== Flight Risk Methodology Card ===== */
+.methodology-card {
+    background: linear-gradient(135deg, rgba(26, 31, 53, 0.6) 0%, rgba(17, 24, 39, 0.8) 100%);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent-primary);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.methodology-card h4 {
+    color: var(--accent-primary);
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.methodology-card p {
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.methodology-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 12px;
+}
+
+.methodology-item {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.methodology-item strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.methodology-formula {
+    background: rgba(0, 0, 0, 0.2);
+    font-family: monospace;
+    padding: 6px 10px;
+    border-radius: 4px;
+    color: var(--accent-teal);
+    display: inline-block;
+    margin: 6px 0;
+    border: 1px solid rgba(45, 212, 191, 0.1);
+}
+

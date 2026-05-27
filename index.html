@@ -210,6 +210,32 @@
             </div>
             <div class="kpi-grid" id="module2KPIs"></div>
 
+            <!-- Flight Risk & Turnover Methodology explanation card -->
+            <div class="methodology-card">
+                <h4>📖 Flight Risk & Turnover Methodology</h4>
+                <p>
+                    This module analyzes employee retention and separation patterns at Mr. Macky's Cajun Cuisine. Flight risk and turnover metrics are calculated using two primary mathematical models:
+                </p>
+                <div class="methodology-card-grid">
+                    <div class="methodology-item">
+                        <strong>📊 Historical Turnover Rate (Overall & Heatmap)</strong>
+                        Calculates the percentage of separations (quits + discharges) relative to the total historical workforce size (active + separated).
+                        <div>
+                            <span class="methodology-formula">Turnover Rate = (Quits + Discharges) / (Employed + Quits + Discharges) × 100</span>
+                        </div>
+                        <span>Heatmap Colors: 🟢 Low (≤ 50%) | 🟡 Medium (> 50%) | 🔴 High (> 70%)</span>
+                    </div>
+                    <div class="methodology-item">
+                        <strong>🌡️ Predictive Flight Risk (Engagement-Based)</strong>
+                        Tracks the count of active employees flagged as potential flight risks due to showing a year-over-year declining trend in survey scores.
+                        <div>
+                            <span class="methodology-formula">Risk Impact = +min(Flagged Employees × 6, 15) points</span>
+                        </div>
+                        <span>Contributes directly to the predictive turnover risk score in the Turnover Prediction tab.</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="chart-row">
                 <div class="chart-card">
                     <div class="chart-card-header"><h3>Turnover by Year</h3></div>
