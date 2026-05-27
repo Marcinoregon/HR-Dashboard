@@ -77,7 +77,7 @@ function switchModule(moduleId, linkEl) {
         'module3': 'Module 3: Diversity & Inclusion',
         'module4': 'Module 4: Compensation & Value',
         'anomalies': 'Data Anomalies',
-        'exercises': 'Student Exercises',
+        'exercises': 'Get to Know Workforce',
         'research': 'Research Statements',
         'controls': 'Control Variables/Covariates',
         'chartbuilder': 'Chart Builder',
@@ -1182,7 +1182,7 @@ function renderAnomalies() {
     `).join('');
 }
 
-// ===== STUDENT EXERCISES =====
+// ===== GET TO KNOW WORKFORCE =====
 function renderExercises() {
     const grid = document.getElementById('exercisesGrid');
 
@@ -1900,7 +1900,7 @@ function downloadExerciseAnswers() {
     let doc = '';
     doc += '================================================================\n';
     doc += '  MR. MACKY\'S CAJUN CUISINE — HR ANALYTICS COURSE\n';
-    doc += '  Student Exercise Submission\n';
+    doc += '  Get to Know Workforce Submission\n';
     doc += '================================================================\n';
     doc += `  Student:   ${studentName}\n`;
     doc += `  Submitted: ${dateStr} at ${timeStr}\n`;
