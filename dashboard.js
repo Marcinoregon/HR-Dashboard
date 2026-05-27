@@ -56,6 +56,7 @@ function alpha(color, a) {
 let activeCharts = {};
 const D = DASHBOARD_DATA;
 let statsSelectedYears = ['2020','2021','2022','2023','2024','2025','2026']; // Year filter for T-Test Compare Means (array)
+let logitSelectedYears = ['2020','2021','2022','2023','2024','2025','2026']; // Year filter for Logistic Regression (array)
 
 // ===== Navigation =====
 function switchModule(moduleId, linkEl) {
@@ -84,6 +85,7 @@ function switchModule(moduleId, linkEl) {
         'stats': 'T-Test Analysis',
         'chisq': 'Chi-Square Analysis',
         'ols':   'OLS Regression',
+        'logit': 'Logistic Regression Analysis',
         'datadict': 'Data Dictionary',
     };
     document.getElementById('pageTitle').textContent = titles[moduleId] || 'Dashboard';
@@ -172,6 +174,7 @@ function renderModule(moduleId) {
         case 'stats': renderStats(); break;
         case 'chisq': renderChiSquare(); break;
         case 'ols':   renderOLS(); break;
+        case 'logit': renderLogistic(); break;
         case 'datadict': renderDataDictionary(); break;
     }
 }
@@ -5955,6 +5958,555 @@ window.downloadControlsResults = function() {
     link.click();
     document.body.removeChild(link);
 };
+
+// ===== LOGISTIC REGRESSION ANALYSIS =====
+
+function normalCDF(x) {
+    // Standard normal CDF approximation (Abramowitz & Stegun 26.2.17)
+    const t = 1.0 / (1.0 + 0.2316419 * Math.abs(x));
+    const d = 0.3989422804014327 * Math.exp(-x * x / 2.0);
+    const p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return x >= 0 ? 1.0 - p : p;
+}
+
+function solveLogistic(Xdata, Ydata) {
+    const n = Ydata.length;
+    if (n < 5) return { error: 'Need at least 5 observations.' };
+    
+    // Prepend intercept column
+    const X = Xdata.map(row => [1.0, ...row]);
+    const k = X[0].length;
+    if (n <= k) return { error: `More parameters (${k}) than observations (${n}).` };
+    
+    // Initialize coefficients to 0
+    let B = new Array(k).fill(0.0);
+    let converged = false;
+    const maxIter = 25;
+    let XtWXi = null;
+    
+    for (let iter = 0; iter < maxIter; iter++) {
+        // Compute probabilities p_i and weights w_i
+        const P = [];
+        const W = [];
+        for (let i = 0; i < n; i++) {
+            let z = 0.0;
+            for (let j = 0; j < k; j++) z += X[i][j] * B[j];
+            let p = 1.0 / (1.0 + Math.exp(-z));
+            // Clamp p to avoid numerical issues
+            if (p < 1e-15) p = 1e-15;
+            if (p > 1.0 - 1e-15) p = 1.0 - 1e-15;
+            P.push(p);
+            W.push(p * (1.0 - p));
+        }
+        
+        // Compute gradient U (size k x 1)
+        const U = new Array(k).fill(0.0);
+        for (let j = 0; j < k; j++) {
+            for (let i = 0; i < n; i++) {
+                U[j] += X[i][j] * (Ydata[i] - P[i]);
+            }
+        }
+        
+        // Compute Hessian H (size k x k)
+        // H = - Xt * W * X, so XtWX = -H
+        const XtWX = Array.from({length: k}, () => new Array(k).fill(0.0));
+        for (let r = 0; r < k; r++) {
+            for (let c = 0; c < k; c++) {
+                for (let i = 0; i < n; i++) {
+                    XtWX[r][c] += X[i][r] * X[i][c] * W[i];
+                }
+            }
+        }
+        
+        // Invert XtWX
+        XtWXi = matInv(XtWX);
+        if (!XtWXi) {
+            return { error: 'Matrix is singular — likely perfect multicollinearity. Try removing a predictor.' };
+        }
+        
+        // Compute delta B = XtWXi * U
+        const dB = new Array(k).fill(0.0);
+        for (let r = 0; r < k; r++) {
+            for (let c = 0; c < k; c++) {
+                dB[r] += XtWXi[r][c] * U[c];
+            }
+        }
+        
+        // Update B
+        for (let j = 0; j < k; j++) {
+            B[j] += dB[j];
+        }
+        
+        // Check convergence
+        let maxChange = 0.0;
+        for (let j = 0; j < k; j++) {
+            maxChange = Math.max(maxChange, Math.abs(dB[j]));
+        }
+        if (maxChange < 1e-6) {
+            converged = true;
+            break;
+        }
+    }
+    
+    // Final probabilities
+    const finalP = [];
+    for (let i = 0; i < n; i++) {
+        let z = 0.0;
+        for (let j = 0; j < k; j++) z += X[i][j] * B[j];
+        let p = 1.0 / (1.0 + Math.exp(-z));
+        if (p < 1e-15) p = 1e-15;
+        if (p > 1.0 - 1e-15) p = 1.0 - 1e-15;
+        finalP.push(p);
+    }
+    
+    // Compute fit statistics
+    // Log-likelihood of fitted model
+    let logL1 = 0.0;
+    for (let i = 0; i < n; i++) {
+        logL1 += Ydata[i] * Math.log(finalP[i]) + (1.0 - Ydata[i]) * Math.log(1.0 - finalP[i]);
+    }
+    
+    // Log-likelihood of null model (intercept only)
+    const yMean = Ydata.reduce((s, v) => s + v, 0.0) / n;
+    let logL0 = 0.0;
+    for (let i = 0; i < n; i++) {
+        logL0 += Ydata[i] * Math.log(yMean) + (1.0 - Ydata[i]) * Math.log(1.0 - yMean);
+    }
+    
+    const nullDev = -2.0 * logL0;
+    const resDev = -2.0 * logL1;
+    const pseudoR2 = 1.0 - resDev / nullDev;
+    const lrChi2 = nullDev - resDev;
+    const lrDF = k - 1;
+    const lrP = lrDF > 0 ? Math.max(0, 1 - chiSquareCDF(lrChi2, lrDF)) : 1.0;
+    const aic = resDev + 2.0 * k;
+    
+    // Covariance matrix of coefficients is the inverse of final XtWX
+    const finalXtWX = Array.from({length: k}, () => new Array(k).fill(0.0));
+    for (let r = 0; r < k; r++) {
+        for (let c = 0; c < k; c++) {
+            for (let i = 0; i < n; i++) {
+                finalXtWX[r][c] += X[i][r] * X[i][c] * finalP[i] * (1.0 - finalP[i]);
+            }
+        }
+    }
+    const finalCov = matInv(finalXtWX) || XtWXi;
+    
+    const SE = new Array(k).fill(0.0);
+    for (let j = 0; j < k; j++) {
+        SE[j] = Math.sqrt(Math.max(0.0, finalCov[j][j]));
+    }
+    
+    const zStat = B.map((b, j) => SE[j] > 0.0 ? b / SE[j] : 0.0);
+    const pVal = zStat.map(z => 2.0 * (1.0 - normalCDF(Math.abs(z))));
+    
+    return { B, SE, zStat, pVal, pseudoR2, nullDev, resDev, lrChi2, lrDF, lrP, aic, n, k };
+}
+
+function renderLogistic() {
+    const container = document.getElementById('logitContent');
+    if (!container) return;
+    
+    const allYears = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+    const yearCheckboxes = allYears.map(y => {
+        const checked = logitSelectedYears.includes(y) ? 'checked' : '';
+        return `<label class="chisq-year-check">
+            <input type="checkbox" class="logit-year-cb" value="${y}" ${checked} onchange="onLogitYearChange()">
+            <span>${y}</span>
+        </label>`;
+    }).join('');
+    
+    const predictors = [
+        { key: 'race', label: 'Race (White vs URM)' },
+        { key: 'gender', label: 'Gender (Male vs Female)' },
+        { key: 'exp', label: 'Prior Experience' },
+        { key: 'int1', label: 'Interview 1 Score' },
+        { key: 'int2', label: 'Interview 2 Score' },
+        { key: 'year', label: 'Application Year' }
+    ];
+    
+    const predictorCheckboxes = predictors.map(p => {
+        const defaultSelected = ['race', 'exp', 'int1', 'int2'];
+        const checked = defaultSelected.includes(p.key) ? 'checked' : '';
+        return `<label class="chisq-year-check">
+            <input type="checkbox" class="logit-pred-cb" value="${p.key}" ${checked} onchange="runLogistic()">
+            <span>${p.label}</span>
+        </label>`;
+    }).join('');
+    
+    container.innerHTML = `
+        <div class="stats-controls" style="flex-wrap:wrap;gap:0.75rem">
+            <div class="stats-control-group" style="flex:3;min-width:260px">
+                <label class="stats-ctrl-label">📅 Year Selection
+                    <button onclick="logitToggleAllYears()" class="chisq-toggle-btn" id="logitToggleAll">Deselect All</button>
+                </label>
+                <div class="chisq-year-checks" id="logitYearChecks">${yearCheckboxes}</div>
+            </div>
+            <div class="stats-control-group" style="flex:4;min-width:320px">
+                <label class="stats-ctrl-label">⚙️ Predictor Variables (IVs)
+                    <button onclick="logitToggleAllPredictors()" class="chisq-toggle-btn" id="logitTogglePreds">Select All</button>
+                </label>
+                <div class="chisq-year-checks" id="logitPredChecks">${predictorCheckboxes}</div>
+            </div>
+            <button class="stats-run-btn" onclick="runLogistic()" style="align-self:flex-end;margin-bottom:6px">Run Analysis</button>
+        </div>
+        <div id="logitResults"></div>
+    `;
+    updateLogitToglBtn();
+    updateLogitPredToglBtn();
+    runLogistic();
+}
+
+function updateLogitToglBtn() {
+    const btn = document.getElementById('logitToggleAll');
+    if (!btn) return;
+    const allYears = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+    btn.textContent = logitSelectedYears.length === allYears.length ? 'Deselect All' : 'Select All';
+}
+
+function logitToggleAllYears() {
+    const allYears = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+    if (logitSelectedYears.length === allYears.length) {
+        logitSelectedYears = [];
+    } else {
+        logitSelectedYears = [...allYears];
+    }
+    document.querySelectorAll('.logit-year-cb').forEach(cb => {
+        cb.checked = logitSelectedYears.includes(cb.value);
+    });
+    updateLogitToglBtn();
+    runLogistic();
+}
+
+function onLogitYearChange() {
+    logitSelectedYears = Array.from(
+        document.querySelectorAll('.logit-year-cb:checked')
+    ).map(cb => cb.value);
+    updateLogitToglBtn();
+    runLogistic();
+}
+
+function updateLogitPredToglBtn() {
+    const btn = document.getElementById('logitTogglePreds');
+    if (!btn) return;
+    const checkedCount = document.querySelectorAll('.logit-pred-cb:checked').length;
+    const totalCount = document.querySelectorAll('.logit-pred-cb').length;
+    btn.textContent = checkedCount === totalCount ? 'Deselect All' : 'Select All';
+}
+
+function logitToggleAllPredictors() {
+    const totalCount = document.querySelectorAll('.logit-pred-cb').length;
+    const checkedCount = document.querySelectorAll('.logit-pred-cb:checked').length;
+    const shouldCheckAll = checkedCount < totalCount;
+    document.querySelectorAll('.logit-pred-cb').forEach(cb => {
+        cb.checked = shouldCheckAll;
+    });
+    updateLogitPredToglBtn();
+    runLogistic();
+}
+
+function runLogistic() {
+    const checkedYears = logitSelectedYears;
+    const checkedPreds = Array.from(document.querySelectorAll('.logit-pred-cb:checked')).map(cb => cb.value);
+    
+    updateLogitPredToglBtn();
+    
+    if (checkedYears.length === 0) {
+        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">⚠️ Please select at least one year.</div>`;
+        return;
+    }
+    
+    if (checkedPreds.length === 0) {
+        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">⚠️ Please select at least one predictor variable (IV).</div>`;
+        return;
+    }
+    
+    // Filter applicant data
+    const filteredData = APPLICANT_DATA.filter(row => checkedYears.includes(String(row.year)));
+    if (filteredData.length === 0) {
+        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">No data available for the selected years.</div>`;
+        return;
+    }
+    
+    // Build Xdata and Ydata
+    const Ydata = filteredData.map(row => row.hired);
+    const Xdata = filteredData.map(row => {
+        const xRow = [];
+        checkedPreds.forEach(p => {
+            if (p === 'race') xRow.push(row.race === 'White' ? 1.0 : 0.0);
+            else if (p === 'gender') xRow.push(row.gender === 'Male' ? 1.0 : 0.0);
+            else if (p === 'exp') xRow.push(row.exp);
+            else if (p === 'int1') xRow.push(row.int1);
+            else if (p === 'int2') xRow.push(row.int2);
+            else if (p === 'year') xRow.push(row.year);
+        });
+        return xRow;
+    });
+    
+    const res = solveLogistic(Xdata, Ydata);
+    
+    if (res.error) {
+        document.getElementById('logitResults').innerHTML = `<div class="stats-no-data">⚠️ Error fitting model: ${res.error}</div>`;
+        return;
+    }
+    
+    const predLabels = {
+        race: 'Race (White=1, URM=0)',
+        gender: 'Gender (Male=1, Female=0)',
+        exp: 'Prior Experience (yrs)',
+        int1: 'First Interview Score',
+        int2: 'Second Interview Score',
+        year: 'Application Year'
+    };
+    
+    const labels = ['Intercept', ...checkedPreds.map(p => predLabels[p])];
+    
+    const pFmt = p => p < .001 ? '< .001' : p.toFixed(4);
+    const stars = p => p < .001 ? '***' : p < .01 ? '**' : p < .05 ? '*' : p < .1 ? '†' : '';
+    
+    // Build table rows
+    const rows = res.B.map((b, i) => {
+        const se = res.SE[i];
+        const z = res.zStat[i];
+        const pVal = res.pVal[i];
+        const sig = pVal < .05;
+        const pClass = sig ? 'stats-sig-yes' : '';
+        const or = Math.exp(b);
+        const ciLow = Math.exp(b - 1.96 * se);
+        const ciHigh = Math.exp(b + 1.96 * se);
+        
+        const fmtVal = (val) => isNaN(val) ? '—' : val.toFixed(4);
+        const fmtOR = (val) => isNaN(val) ? '—' : val.toFixed(3);
+        
+        return `<tr class="${sig ? 'ols-sig-row' : ''}">
+            <td>${labels[i]}</td>
+            <td><strong>${fmtVal(b)}</strong></td>
+            <td>${fmtVal(se)}</td>
+            <td>${z.toFixed(3)}</td>
+            <td class="${pClass}">${pFmt(pVal)} <strong>${stars(pVal)}</strong></td>
+            <td><strong>${i === 0 ? '—' : fmtOR(or)}</strong></td>
+            <td class="ols-ci">${i === 0 ? '—' : `[${fmtOR(ciLow)}, ${fmtOR(ciHigh)}]`}</td>
+        </tr>`;
+    }).join('');
+    
+    const r2Pct = (res.pseudoR2 * 100).toFixed(1);
+    const lrSigClass = res.lrP < .05 ? 'stats-sig-yes' : '';
+    
+    // Generate dynamic interpretation text
+    let interpPoints = '';
+    res.B.forEach((b, i) => {
+        if (i === 0) return; // Skip Intercept
+        const predKey = checkedPreds[i - 1];
+        const pVal = res.pVal[i];
+        const or = Math.exp(b);
+        
+        if (pVal < .05) {
+            let desc = '';
+            if (predKey === 'race') {
+                desc = `Controlling for other variables, <strong>White applicants</strong> have <strong>${or.toFixed(2)} times the odds</strong> of being hired compared to URM applicants. This indicates a statistically significant selection disparity (p ${res.pVal[i] < 0.001 ? '< 0.001' : '= ' + res.pVal[i].toFixed(3)}).`;
+            } else if (predKey === 'gender') {
+                const comparison = or > 1 ? 'higher' : 'lower';
+                const magnitude = or > 1 ? or.toFixed(2) : (1/or).toFixed(2);
+                desc = `Controlling for other variables, <strong>Male applicants</strong> have <strong>${or.toFixed(2)} times the odds</strong> of being hired compared to Female applicants (p = ${res.pVal[i].toFixed(3)}).`;
+            } else if (predKey === 'exp') {
+                const pct = Math.round(Math.abs(or - 1) * 100);
+                const direction = or > 1 ? 'increase' : 'decrease';
+                desc = `Each additional year of <strong>prior experience</strong> is associated with a <strong>${pct}% ${direction}</strong> in the odds of being hired (Odds Ratio = ${or.toFixed(2)}, p = ${res.pVal[i].toFixed(3)}).`;
+            } else if (predKey === 'int1') {
+                const pct = Math.round((or - 1) * 100);
+                desc = `Each additional point on the <strong>First Interview Score</strong> is associated with a <strong>${pct}% increase</strong> in the odds of being hired (Odds Ratio = ${or.toFixed(2)}, p ${res.pVal[i] < 0.001 ? '< 0.001' : '= ' + res.pVal[i].toFixed(3)}).`;
+            } else if (predKey === 'int2') {
+                const pct = Math.round((or - 1) * 100);
+                desc = `Each additional point on the <strong>Second Interview Score</strong> is associated with a <strong>${pct}% increase</strong> in the odds of being hired (Odds Ratio = ${or.toFixed(2)}, p ${res.pVal[i] < 0.001 ? '< 0.001' : '= ' + res.pVal[i].toFixed(3)}).`;
+            } else if (predKey === 'year') {
+                const pct = Math.round(Math.abs(or - 1) * 100);
+                const direction = or > 1 ? 'positive' : 'negative';
+                desc = `Application year has a statistically significant <strong>${direction} trend</strong>, with odds of selection changing by a factor of <strong>${or.toFixed(3)}</strong> per year (p = ${res.pVal[i].toFixed(3)}).`;
+            }
+            interpPoints += `<li>🔹 ${desc}</li>`;
+        }
+    });
+    
+    if (!interpPoints) {
+        interpPoints = '<li>ℹ️ No selected predictor variable is statistically significant at the α = 0.05 level.</li>';
+    }
+    
+    const yearLabel = logitSelectedYears.length === 7 ? 'All Years (2020–2026)' : logitSelectedYears.sort().join(', ');
+    const isAll = logitSelectedYears.length === 7;
+    
+    document.getElementById('logitResults').innerHTML = `
+        ${!isAll ? `<div class="stats-year-banner"><span class="stats-year-badge">📅 ${yearLabel}</span><span class="stats-year-note">Showing applicant data filtered for <strong>${yearLabel}</strong></span></div>` : ''}
+        
+        <div class="ols-model-summary">
+            <div class="ols-summary-item">
+                <span>McFadden R²</span>
+                <strong>${res.pseudoR2.toFixed(4)}</strong>
+                <small>${r2Pct}% pseudo-variance explained</small>
+            </div>
+            <div class="ols-summary-item">
+                <span>AIC</span>
+                <strong>${res.aic.toFixed(1)}</strong>
+                <small>Akaike Info Criterion</small>
+            </div>
+            <div class="ols-summary-item">
+                <span>LRT χ²</span>
+                <strong>${res.lrChi2.toFixed(3)}</strong>
+                <small>Likelihood Ratio (df=${res.lrDF})</small>
+            </div>
+            <div class="ols-summary-item">
+                <span>p(χ²)</span>
+                <strong class="${lrSigClass}">${pFmt(res.lrP)}</strong>
+            </div>
+            <div class="ols-summary-item">
+                <span>N (observations)</span>
+                <strong>${res.n}</strong>
+            </div>
+            <div class="ols-summary-item">
+                <span>Residual Dev.</span>
+                <strong>${res.resDev.toFixed(1)}</strong>
+                <small>Null Dev: ${res.nullDev.toFixed(1)}</small>
+            </div>
+        </div>
+        
+        <div class="ols-coef-wrap">
+            <div class="chisq-table-title">📋 Logistic Regression Coefficients (DV: Hired vs. Not Hired)</div>
+            <div style="overflow-x:auto">
+                <table class="ols-coef-table">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Coefficient (B)</th>
+                            <th>Std. Error</th>
+                            <th>z-value</th>
+                            <th>p-value</th>
+                            <th>Odds Ratio (e^B)</th>
+                            <th>95% CI for OR</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+            <div class="ols-sig-legend">† p &lt; .10 &nbsp;&nbsp; * p &lt; .05 &nbsp;&nbsp; ** p &lt; .01 &nbsp;&nbsp; *** p &lt; .001 &nbsp;&nbsp;&nbsp; Intercept is baseline odds. Odds Ratios show changes in selection odds.</div>
+        </div>
+        
+        <div class="stats-interpretation">
+            <h4>📝 Logistic Interpretation</h4>
+            <ul style="margin: 0; padding-left: 1.2rem; line-height: 1.5; color: #e2e8f0; font-size: 0.88rem;">
+                ${interpPoints}
+            </ul>
+        </div>
+        
+        <div class="stats-chart-wrap" style="position:relative;height:240px;margin-top:1.25rem;">
+            <canvas id="logitForestChart"></canvas>
+        </div>
+    `;
+    
+    // Generate Forest Plot for Odds Ratios
+    if (activeCharts['logitForestChart']) activeCharts['logitForestChart'].destroy();
+    
+    const chartLabels = checkedPreds.map(p => predLabels[p]);
+    const chartORs = res.B.slice(1).map(b => Math.exp(b));
+    const chartCIs = res.B.slice(1).map((b, idx) => {
+        const se = res.SE[idx + 1];
+        return [Math.exp(b - 1.96 * se), Math.exp(b + 1.96 * se)];
+    });
+    
+    // Clip chart limits to avoid massive values stretching the scale
+    const allCIValues = chartCIs.flat();
+    const maxVal = Math.min(20, Math.max(...allCIValues, 3.0));
+    
+    const ctx = document.getElementById('logitForestChart').getContext('2d');
+    activeCharts['logitForestChart'] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Odds Ratio (95% CI)',
+                data: chartCIs,
+                backgroundColor: 'rgba(45, 212, 191, 0.25)',
+                borderColor: '#2dd4bf',
+                borderWidth: 1.5,
+                borderRadius: 4,
+                borderSkipped: false,
+                barPercentage: 0.4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: { 
+                    display: true, 
+                    text: 'Odds Ratio Estimates with 95% Confidence Intervals', 
+                    color: '#e2e8f0', 
+                    font: { size: 14, weight: 'bold' } 
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (item) => {
+                            const orVal = chartORs[item.dataIndex];
+                            const ciRange = chartCIs[item.dataIndex];
+                            return `Odds Ratio: ${orVal.toFixed(3)} (95% CI: [${ciRange[0].toFixed(3)}, ${ciRange[1].toFixed(3)}])`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    beginAtZero: false,
+                    suggestedMin: 0.1,
+                    suggestedMax: maxVal,
+                    title: { display: true, text: 'Odds Ratio (Ref: OR = 1.0)', color: '#cbd5e1' },
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: 'rgba(51, 65, 85, 0.3)' }
+                },
+                y: {
+                    ticks: { color: '#e2e8f0', font: { weight: 'bold', size: 11 } },
+                    grid: { display: false }
+                }
+            }
+        },
+        plugins: [{
+            id: 'refLine',
+            afterDraw(chart) {
+                const { ctx, scales: { x, y } } = chart;
+                const xVal = x.getPixelForValue(1.0);
+                ctx.save();
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)'; // red reference line
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(xVal, y.top);
+                ctx.lineTo(xVal, y.bottom);
+                ctx.stroke();
+                
+                // Draw point estimates
+                chart.data.labels.forEach((_, idx) => {
+                    const meta = chart.getDatasetMeta(0);
+                    const bar = meta.data[idx];
+                    if (bar) {
+                        const yVal = bar.y;
+                        const xORVal = x.getPixelForValue(chartORs[idx]);
+                        
+                        ctx.fillStyle = '#2dd4bf';
+                        ctx.beginPath();
+                        ctx.arc(xORVal, yVal, 5, 0, 2 * Math.PI);
+                        ctx.fill();
+                        
+                        ctx.strokeStyle = '#0d9488';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                    }
+                });
+                
+                ctx.restore();
+            }
+        }]
+    });
+}
 
 // Sync Student Name inputs across tabs
 document.addEventListener('input', (e) => {

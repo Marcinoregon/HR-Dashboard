@@ -82,6 +82,10 @@
                 <span class="nav-icon">β</span>
                 <span class="nav-label">OLS Regression</span>
             </a>
+            <a href="#" class="nav-link" data-module="logit" onclick="switchModule('logit', this)">
+                <span class="nav-icon">σ</span>
+                <span class="nav-label">Logistic Regression</span>
+            </a>
             <a href="#" class="nav-link" data-module="datadict" onclick="switchModule('datadict', this)">
                 <span class="nav-icon">📖</span>
                 <span class="nav-label">Data Dictionary</span>
@@ -494,6 +498,17 @@
             <div id="olsContent"></div>
         </section>
 
+        <section class="module-section" id="section-logit">
+            <div class="section-header">
+                <div class="section-icon">σ</div>
+                <div>
+                    <h2>Logistic Regression Analysis</h2>
+                    <p>Model the binary selection outcome (Hired vs. Not Hired) for Assistant Manager applicants using demographic variables, prior experience, and interview scores</p>
+                </div>
+            </div>
+            <div id="logitContent"></div>
+        </section>
+
         <section class="module-section" id="section-datadict">
             <div class="section-header">
                 <div class="section-icon">📖</div>
@@ -607,6 +622,7 @@
 
     <script src="data.js"></script>
     <script src="engagement_data.js"></script>
+    <script src="applicant_data.js"></script>
     <script src="dashboard.js"></script>
 </body>
 </html>
