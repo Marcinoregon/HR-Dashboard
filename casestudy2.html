@@ -314,6 +314,18 @@
             </ol>
         </div>
 
+        <!-- Student Info Bar -->
+        <div class="student-info-bar" style="background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px;">👤 Student Information</h4>
+                <p style="font-size: 12px; color: var(--text3); margin-top: 4px;">Enter your name — it will be included in your grading submission.</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <input type="text" id="student-first-name" placeholder="First Name" style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 18, 33, 0.8); color: var(--text); font-family: inherit; font-size: 13px;" oninput="saveStudentName()">
+                <input type="text" id="student-last-name" placeholder="Last Name" style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 18, 33, 0.8); color: var(--text); font-family: inherit; font-size: 13px;" oninput="saveStudentName()">
+            </div>
+        </div>
+
         <!-- ===== PART 1: BIVARIATE WAGE EQUITY ANALYSIS ===== -->
         <div class="case-section">
             <span class="section-label label-background">Part 1 — Wage Equity Bivariate Check</span>
@@ -703,6 +715,12 @@ document.addEventListener('DOMContentLoaded', () => {
         delivSection.parentNode.insertBefore(memoArea, delivSection.nextSibling);
     }
 
+    // Load student names
+    const savedFN = localStorage.getItem('macky_case2_first_name') || '';
+    const savedLN = localStorage.getItem('macky_case2_last_name') || '';
+    document.getElementById('student-first-name').value = savedFN;
+    document.getElementById('student-last-name').value = savedLN;
+
     const isUnlocked = localStorage.getItem('macky_case2_unlocked') === 'true';
 
     // Load any saved answers from localStorage
@@ -786,9 +804,24 @@ function resetProgress() {
     }
 }
 
+function saveStudentName() {
+    const fn = document.getElementById('student-first-name').value;
+    const ln = document.getElementById('student-last-name').value;
+    localStorage.setItem('macky_case2_first_name', fn);
+    localStorage.setItem('macky_case2_last_name', ln);
+}
+
 function downloadSubmission() {
-    const studentName = prompt("Please enter your full name for grading:");
-    if (!studentName) return;
+    const firstName = document.getElementById('student-first-name').value.trim();
+    const lastName = document.getElementById('student-last-name').value.trim();
+    if (!firstName || !lastName) {
+        alert("Please enter both your First Name and Last Name in the Student Information bar at the top before downloading your answers.");
+        const inputs = document.querySelectorAll('.student-info-bar input');
+        inputs.forEach(i => i.style.borderColor = '#f43f5e');
+        setTimeout(() => inputs.forEach(i => i.style.borderColor = ''), 2000);
+        return;
+    }
+    const studentName = firstName + " " + lastName;
 
     let content = "Mr. Macky's HR Analytics - Case Study 2 Submission\n";
     content += "==================================================\n\n";
