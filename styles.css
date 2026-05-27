@@ -215,6 +215,16 @@ body {
     margin: 8px 14px;
 }
 
+.nav-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 14px 14px 4px 14px;
+}
+
+
 .nav-link-external {
     opacity: 0.85;
 }
