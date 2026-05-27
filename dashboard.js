@@ -78,7 +78,7 @@ function switchModule(moduleId, linkEl) {
         'module4': 'Module 4: Compensation & Value',
         'anomalies': 'Data Anomalies',
         'exercises': 'Get to Know Workforce',
-        'research': 'Research Statements',
+        'research': 'Research Questions',
         'controls': 'Control Variables/Covariates',
         'chartbuilder': 'Chart Builder',
         'explore': 'Explore Data',
@@ -5824,7 +5824,7 @@ window.answerControlQuestion = function(qId, selectedIndex) {
 
 // ===== RESET & DOWNLOAD RESULTS =====
 window.resetResearchQuiz = function() {
-    if (confirm("Are you sure you want to reset your Research Statements quiz answers?")) {
+    if (confirm("Are you sure you want to reset your Research Questions quiz answers?")) {
         window.researchQuizState = {
             answers: {},
             correctCount: 0,
@@ -5851,7 +5851,7 @@ window.downloadResearchResults = function() {
     text += "       HR ANALYTICS CASE STUDY - GRADED REPORT     \n";
     text += "==================================================\n\n";
     text += `Student Name: ${studentName}\n`;
-    text += `Module:       Research Statements Quiz\n`;
+    text += `Module:       Research Questions Quiz\n`;
     text += `Date/Time:    ${new Date().toLocaleString()}\n`;
     text += `Score:        ${state.correctCount} / ${list.length} correct (${list.length > 0 ? Math.round(state.correctCount/list.length*100) : 0}%)\n`;
     text += `Progress:     ${state.answeredCount} of ${list.length} answered\n\n`;
