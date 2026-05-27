@@ -735,8 +735,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const badge = document.getElementById(`saved-${i}`);
             if (badge) badge.classList.add('visible');
             
-            // Only auto-reveal Question 1 or if globally unlocked
-            if (i === 1 || isUnlocked) {
+            // Only reveal if globally unlocked
+            if (isUnlocked) {
                 const panel = document.getElementById(`fb-${i}`);
                 if (panel) panel.classList.add('visible');
             }
@@ -766,18 +766,12 @@ function submitAnswer(qNum) {
     const badge = document.getElementById(`saved-${qNum}`);
     badge.classList.add('visible');
 
-    // Only auto-reveal Question 1
-    if (qNum === 1) {
-        const panel = document.getElementById(`fb-${qNum}`);
-        if (panel) panel.classList.add('visible');
-    }
-
     updateProgress();
 }
 
 function unlockAnswers() {
     const key = document.getElementById('prof-key').value.trim();
-    if (key === "99") {
+    if (key === "97") {
         for (let i = 1; i <= TOTAL; i++) {
             const panel = document.getElementById(`fb-${i}`);
             if (panel) panel.classList.add('visible');
