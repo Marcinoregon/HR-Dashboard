@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Study A — Workforce & Demographic Audit</title>
+    <meta name="description" content="A demographic and workforce analytics case study based on Mr. Macky's Cajun Cuisine HR Analytics Rubric.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1221;
+            --bg2: #161a2e;
+            --bg3: #1c2140;
+            --surface: rgba(30, 36, 66, 0.7);
+            --border: rgba(255,255,255,0.08);
+            --text: #e2e8f0;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --orange: #f97316;
+            --orange-glow: rgba(249,115,22,0.15);
+            --purple: #a78bfa;
+            --teal: #2dd4bf;
+            --rose: #fb7185;
+            --green: #34d399;
+            --blue: #60a5fa;
+            --amber: #fbbf24;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* --- Top Bar --- */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 32px;
+            background: rgba(15, 18, 33, 0.92);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .topbar-brand img { width: 36px; height: 36px; border-radius: 8px; }
+        .topbar-brand span { font-weight: 700; color: var(--text); font-size: 15px; font-family: 'Outfit', sans-serif; }
+        .topbar-title { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; }
+        .topbar-title::before { content: '📋'; font-size: 18px; }
+        .topbar-links { display: flex; gap: 10px; }
+        .topbar-links a {
+            color: var(--text2); font-size: 13px; font-weight: 500;
+            text-decoration: none; padding: 6px 14px; border-radius: 6px;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .topbar-links a:hover { color: var(--orange); border-color: var(--orange); background: var(--orange-glow); }
+
+        /* --- Hero --- */
+        .hero {
+            text-align: center; padding: 60px 32px 40px;
+            background: linear-gradient(180deg, rgba(249,115,22,0.06) 0%, transparent 100%);
+        }
+        .hero-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+            background: var(--orange-glow); color: var(--orange); border: 1px solid rgba(249,115,22,0.3);
+            margin-bottom: 20px;
+        }
+        .hero h1 {
+            font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700;
+            line-height: 1.2; margin-bottom: 14px;
+            background: linear-gradient(135deg, var(--text), var(--orange));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 16px; color: var(--text2); max-width: 700px; margin: 0 auto; }
+
+        /* --- Container --- */
+        .container { max-width: 900px; margin: 0 auto; padding: 0 32px 80px; }
+
+        /* --- Section --- */
+        .case-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px 32px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(8px);
+            transition: border-color 0.3s;
+        }
+        .case-section:hover { border-color: rgba(255,255,255,0.14); }
+
+        .section-label {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            padding: 4px 12px; border-radius: 4px; margin-bottom: 16px;
+        }
+        .label-background { background: rgba(96,165,250,0.15); color: var(--blue); }
+        .label-challenge { background: rgba(249,115,22,0.15); color: var(--orange); }
+        .label-data { background: rgba(45,212,191,0.15); color: var(--teal); }
+        .label-question { background: rgba(167,139,250,0.15); color: var(--purple); }
+        .label-memo { background: rgba(251,113,133,0.15); color: var(--rose); }
+
+        .case-section h2 {
+            font-size: 22px; font-weight: 700; margin-bottom: 14px; color: var(--text); font-family: 'Outfit', sans-serif;
+        }
+        .case-section h3 {
+            font-size: 17px; font-weight: 600; margin: 24px 0 10px; color: var(--text); font-family: 'Outfit', sans-serif;
+        }
+        .case-section p, .case-section li {
+            font-size: 14px; color: var(--text2); margin-bottom: 10px;
+        }
+        .case-section ul, .case-section ol {
+            padding-left: 22px;
+        }
+        .case-section li { margin-bottom: 8px; }
+
+        /* --- Data Highlight --- */
+        .data-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px; margin: 20px 0;
+        }
+        .data-card {
+            background: rgba(15, 18, 33, 0.6); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; text-align: center;
+        }
+        .data-val { font-size: 28px; font-weight: 800; margin-bottom: 4px; font-family: 'Outfit', sans-serif; }
+        .data-val.orange { color: var(--orange); }
+        .data-val.teal { color: var(--teal); }
+        .data-val.rose { color: var(--rose); }
+        .data-val.purple { color: var(--purple); }
+        .data-val.blue { color: var(--blue); }
+        .data-val.green { color: var(--green); }
+        .data-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* --- MCQ Layout --- */
+        .mcq-container {
+            margin: 24px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .mcq-card {
+            background: rgba(15, 18, 33, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        .mcq-card:hover {
+            border-color: rgba(255,255,255,0.12);
+        }
+        .mcq-question {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .mcq-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        @media (min-width: 600px) {
+            .mcq-options {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .mcq-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(30, 36, 66, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text2);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mcq-option:hover {
+            background: rgba(30, 36, 66, 0.7);
+            border-color: var(--orange);
+            color: var(--text);
+        }
+        .mcq-option.selected {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: var(--orange);
+            color: var(--orange);
+            box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
+        }
+        .mcq-letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text3);
+            font-weight: 700;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .mcq-option.selected .mcq-letter {
+            background: var(--orange);
+            color: white;
+        }
+        /* Correct / Incorrect Reveal Styles */
+        .mcq-option.reveal-correct {
+            border-color: var(--green) !important;
+            background: rgba(52, 211, 153, 0.1) !important;
+            color: var(--green) !important;
+            cursor: default;
+        }
+        .mcq-option.reveal-correct .mcq-letter {
+            background: var(--green) !important;
+            color: white !important;
+        }
+        .mcq-option.reveal-incorrect {
+            border-color: var(--rose) !important;
+            background: rgba(251, 113, 133, 0.08) !important;
+            color: var(--rose) !important;
+            cursor: default;
+        }
+        .mcq-option.reveal-incorrect .mcq-letter {
+            background: var(--rose) !important;
+            color: white !important;
+        }
+        .mcq-option.disabled-state {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .mcq-explanation-panel {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: rgba(15, 18, 33, 0.6);
+            border-left: 3px solid var(--orange);
+            border-radius: 0 8px 8px 0;
+            font-size: 12.5px;
+            color: var(--text2);
+            line-height: 1.5;
+        }
+        .mcq-explanation-panel.visible {
+            display: block;
+        }
+        .mcq-correct-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--green);
+            margin-bottom: 6px;
+        }
+
+        /* --- Answer Area --- */
+        .answer-area { margin-top: 20px; }
+        .answer-area textarea {
+            width: 100%; min-height: 130px; padding: 14px 16px;
+            background: rgba(15, 18, 33, 0.8); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif;
+            font-size: 13px; line-height: 1.6; resize: vertical;
+            transition: border-color 0.3s;
+        }
+        .answer-area textarea:focus { outline: none; border-color: var(--purple); }
+        .answer-area textarea::placeholder { color: var(--text3); }
+        .answer-area textarea.submitted { border-color: var(--green); background: rgba(52,211,153,0.05); }
+        .answer-btns { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+        
+        .btn-submit, .btn-feedback {
+            padding: 8px 20px; border-radius: 8px; font-size: 13px;
+            font-weight: 600; cursor: pointer; border: none;
+            transition: all 0.25s; font-family: 'Inter', sans-serif;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white; box-shadow: 0 2px 12px rgba(167,139,250,0.25);
+        }
+        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(167,139,250,0.35); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .saved-badge {
+            display: none; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--green); font-weight: 500; padding: 8px 0;
+        }
+        .saved-badge.visible { display: inline-flex; }
+
+        /* --- Feedback Panel --- */
+        .feedback-panel {
+            display: none; margin-top: 14px; padding: 20px;
+            background: rgba(45, 212, 191, 0.06); border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px; animation: fadeIn 0.3s ease;
+        }
+        .feedback-panel.visible { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .feedback-title {
+            font-size: 12px; font-weight: 700; color: var(--teal);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .feedback-panel ul { padding-left: 18px; margin: 0; }
+        .feedback-panel li { font-size: 13px; color: var(--text2); margin-bottom: 8px; line-height: 1.5; }
+        .feedback-panel li strong { color: var(--text); }
+        .feedback-note {
+            font-size: 12px; color: var(--text3); font-style: italic;
+            margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+        }
+
+        /* --- Quote / Memo --- */
+        .exec-quote {
+            background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(167,139,250,0.08));
+            border: 1px solid rgba(249,115,22,0.2); border-radius: 12px;
+            padding: 24px 28px; margin: 20px 0; position: relative;
+        }
+        .exec-quote::before {
+            content: '"'; position: absolute; top: -8px; left: 18px;
+            font-size: 48px; color: var(--orange); opacity: 0.4;
+            font-family: 'Playfair Display', serif;
+        }
+        .exec-quote p { font-size: 14.5px; color: var(--text); font-style: italic; padding-left: 8px; }
+        .exec-quote .attribution {
+            font-size: 12px; color: var(--text3); font-style: normal;
+            margin-top: 10px; padding-left: 8px;
+        }
+
+        /* --- Dashboard Link --- */
+        .dash-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--orange), #ea580c);
+            color: white; font-weight: 600; font-size: 14px;
+            padding: 12px 24px; border-radius: 10px; text-decoration: none;
+            margin: 24px 0 10px; transition: all 0.3s; box-shadow: 0 4px 20px rgba(249,115,22,0.3);
+            border: none; cursor: pointer; font-family: inherit;
+        }
+        .dash-link:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(249,115,22,0.4); }
+
+        /* --- Instructions box --- */
+        .instructions {
+            background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px; padding: 20px 24px; margin: 20px 0;
+        }
+        .instructions h4 { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Outfit', sans-serif; }
+        .instructions li { font-size: 13.5px; color: var(--text2); margin-bottom: 6px; }
+
+        /* --- Progress Tracker --- */
+        .progress-tracker {
+            position: fixed; bottom: 24px; right: 24px; z-index: 99;
+            background: var(--bg3); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 20px;
+            backdrop-filter: blur(14px); box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            min-width: 190px;
+        }
+        .progress-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .progress-bar-bg { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--teal)); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+        .progress-count { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 6px; }
+
+        /* --- Responsive --- */
+        @media (max-width: 700px) {
+            .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+            .topbar-title { display: none; }
+            .hero h1 { font-size: 28px; }
+            .container { padding: 0 16px 60px; }
+            .case-section { padding: 24px 18px; }
+            .data-grid { grid-template-columns: repeat(2, 1fr); }
+            .progress-tracker { bottom: 16px; right: 16px; min-width: 160px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <a href="index.html" class="topbar-brand">
+            <img src="https://api.dicebear.com/7.x/shapes/svg?seed=cajun&backgroundColor=f97316" alt="Logo">
+            <span>Mr. Macky's</span>
+        </a>
+        <div class="topbar-title">Case Study A</div>
+        <div class="topbar-links">
+            <a href="index.html">← Dashboard</a>
+            <a href="resources.html">Learn More</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="hero-badge">Interactive Case Study A</div>
+        <h1>Workforce & Demographic Audit:<br>Data, Demographics & Decisions</h1>
+        <p>Denise Macky, CEO of Mr. Macky's Cajun Cuisine, has commissioned a workforce audit. Using the live data from the HR Analytics Dashboard, complete the multiple-choice questions and audit memos below to verify findings against the official grading rubric.</p>
+    </div>
+
+    <div class="container">
+
+        <!-- OPENING THE DASHBOARD -->
+        <div style="text-align: center; margin-bottom: 36px;">
+            <a href="index.html" class="dash-link" target="_blank">🖥️ Open the Dashboard in a New Tab</a>
+            <p style="font-size: 12px; color: var(--text3); margin-top: 8px;">Keep it open — you'll reference the modules as you complete the case.</p>
+        </div>
+
+        <!-- Student Info Bar -->
+        <div class="student-info-bar" style="background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif;">👤 Student Information</h4>
+                <p style="font-size: 12px; color: var(--text3); margin-top: 4px;">Enter your name — it will be included in your grading submission file.</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <input type="text" id="student-first-name" placeholder="First Name" style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 18, 33, 0.8); color: var(--text); font-family: inherit; font-size: 13px;" oninput="saveStudentName()">
+                <input type="text" id="student-last-name" placeholder="Last Name" style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 18, 33, 0.8); color: var(--text); font-family: inherit; font-size: 13px;" oninput="saveStudentName()">
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h4>📌 Audit Instructions</h4>
+            <ol>
+                <li>Review the HR Analytics Dashboard and locate the specific metrics indicated in the hints.</li>
+                <li>For each section, answer the **3 Knowledge Checks (MCQs)** and write a **Written Response** in the textbox.</li>
+                <li>Press **Submit Answer** on written prompts to save them locally. Answers persist across browser reloads.</li>
+                <li>When finished, click **Download Answers for Grading** to download your completed `.txt` grading submission.</li>
+            </ol>
+        </div>
+
+        <!-- RENDERED SECTIONS CONTAINER -->
+        <div id="sections-container"></div>
+
+        <!-- PROFESSOR REVIEW & FOOTER ACTION PANELS -->
+        <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <h3 style="margin-bottom: 20px; color: var(--text); font-family: 'Outfit', sans-serif;">Ready to submit your work?</h3>
+            <button onclick="downloadSubmission()" class="dash-link" style="background: linear-gradient(135deg, var(--teal), #0f766e); box-shadow: 0 4px 20px rgba(45,212,191,0.3); font-size: 16px; padding: 14px 32px;">
+                📥 Download Answers for Grading
+            </button>
+            <div id="unlock-section" style="display: block; margin-top: 24px; padding: 20px; background: rgba(45,212,191,0.05); border: 1px solid rgba(45,212,191,0.2); border-radius: 8px; text-align: center;">
+                <p style="margin-bottom: 12px; font-weight: 500; color: var(--text);">Enter Review Key to Reveal Solutions:</p>
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                    <input type="text" id="prof-key" placeholder="Enter key..." style="padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg2); color: var(--text);">
+                    <button onclick="unlockAnswers()" class="dash-link" style="margin: 0; background: rgba(45,212,191,0.1); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); box-shadow: none;">Unlock</button>
+                </div>
+            </div>
+            <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <a href="index.html" class="dash-link" target="_blank" style="margin: 0; background: rgba(255,255,255,0.1); box-shadow: none;">🖥️ Open Dashboard</a>
+                <a href="resources.html" class="dash-link" style="margin: 0; background: rgba(255,255,255,0.1); box-shadow: none;">📚 Learn More Tutorials</a>
+                <button onclick="resetProgress()" class="dash-link" style="margin: 0; background: rgba(244, 63, 94, 0.1); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.3); box-shadow: none;">🔄 Start Over</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Progress Tracker Fixed Panel -->
+    <div class="progress-tracker">
+        <div class="progress-label">Case Progress</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="progress-count" id="progressCount" style="margin-bottom: 12px;">0 / 20 answered</div>
+        <button onclick="downloadSubmission()" class="dash-link" style="width: 100%; padding: 8px 12px; font-size: 12px; justify-content: center; margin: 0; margin-bottom: 6px; box-shadow: none;">📥 Download</button>
+        <button onclick="resetProgress()" class="dash-link" style="width: 100%; padding: 6px 12px; font-size: 11px; justify-content: center; margin: 0; background: rgba(244,63,94,0.05); color: var(--rose); box-shadow: none;">🔄 Start Over</button>
+    </div>
+
+<script>
+// The 5 Audit segments matching the rubric
+const PARTS = [
+    {
+        part: 1,
+        partTitle: 'Part 1: The "New Hire" Audit',
+        partLabel: 'Part 1 — Recruitment Strategy',
+        hint: 'Dashboard: Module 1 → Avg Performance by Recruitment Source, totalHeadcount, and Job distribution.',
+        narrative: `You have been asked to analyze the hiring and recruitment data. Marcus Thibodaux built the restaurant on his grandmother's cast-iron pot and a family-first philosophy. But under Private Equity pressure, Mr. Macky's has grown rapidly, and recruitment practices have become highly transactional. Your task is to investigate if the current recruitment channels align with the "Old Family Recipe" culture or are simply selecting for quantity over quality.`,
+        dataPoints: [
+            { val: '6,559', label: 'Current Headcount' },
+            { val: '4.50', label: 'Marquis U. Avg Perf', color: 'teal' },
+            { val: '36 Hires', label: 'Sung Urban Volume', color: 'orange' },
+            { val: '3.36', label: 'National U. Avg Perf', color: 'rose' }
+        ],
+        mcqs: [
+            {
+                id: 1,
+                q: 'According to the dashboard, which recruitment source produces managers with the highest average performance?',
+                options: ['Sung Urban Camp', 'Marquis University', 'National University', 'Hitherdale CC'],
+                correct: 'B',
+                explanation: 'Marquis University leads with a 4.50 average manager performance rating. Although it produces fewer managers, they are of the highest caliber, highlighting a potential area for strategic reinvestment.'
+            },
+            {
+                id: 2,
+                q: "What is the total current headcount at Mr. Macky's Cajun Cuisine?",
+                options: ['2,729', '6,562', '5,471', '4,103'],
+                correct: 'B',
+                explanation: 'The dashboard displays 6,562 active employees (while the live dataset contains 6,559). Select B (6,562) to align with dashboard checks.'
+            },
+            {
+                id: 3,
+                q: 'Which job role has the highest headcount in the organization?',
+                options: ['Manager', 'Line cook', 'Bus Person', 'Wait staff'],
+                correct: 'D',
+                explanation: 'Wait staff accounts for 2,729 employees (approximately 41.6% of the workforce), dominating the organizational headcount.'
+            }
+        ],
+        oe: {
+            id: 1,
+            title: 'Open-Ended Q1 — The Recruitment Audit',
+            prompt: 'Is our current recruitment strategy maintaining the "Old Family Recipe" culture? Are we recruiting from sources that produce the best performers, or are we relying on quantity over quality?',
+            placeholder: 'Identify specific recruitment sources, their avg performance ratings, and whether the strategy aligns with company culture...',
+            points: [
+                'Identify <strong>Marquis University</strong> as the top-performing source (avg performance: <strong>4.50</strong>).',
+                'Contrast high-volume sources with high-quality sources, noting <strong>Sung Urban Camp</strong> (36 managers, avg 4.00) and <strong>Hitherdale CC</strong> (26 managers, avg 3.54).',
+                'Name a low-performing source with data: <strong>National University</strong> averages <strong>3.36</strong>.',
+                'Connect findings to culture ("Old Family Recipe"), arguing that volume recruitment undermines relational mentorship and consistency.',
+                'Make a concrete recommendation, e.g. redirect recruitment budget from low performers to Marquis University partnerships.'
+            ],
+            note: 'Strong answers demonstrate data literacy by explicitly contrasting quality (avg performance) with recruitment volume.'
+        }
+    },
+    {
+        part: 2,
+        partTitle: 'Part 2: The Turnover Impact Study',
+        partLabel: 'Part 2 — Flight Risk & Financial Costs',
+        hint: 'Dashboard: Module 2 → Turnover trends, separation totals, and Avg Performance by Status.',
+        narrative: `CFO Robert Chen notes that Mr. Macky's experiences ~5,700 separations annually. In the restaurant business, turnover is a constant drain on cash. You need to analyze the direct financial cost of these separations and determine if higher turnover leads to lower profits, specifically inspecting high-turnover units like Units 32 and 33.`,
+        dataPoints: [
+            { val: '29,661', label: 'Total Quits (all years)', color: 'rose' },
+            { val: '10,151', label: 'Total Discharges', color: 'orange' },
+            { val: '2.98', label: 'Avg Perf (Discharged)', color: 'teal' },
+            { val: '2.67', label: 'Avg Perf (Quit)', color: 'rose' }
+        ],
+        mcqs: [
+            {
+                id: 4,
+                q: 'In the Flight Risk module, which type of separation is more common company-wide?',
+                options: ['Discharged (involuntary)', 'Quit (voluntary)', 'Retirement', 'They are equal'],
+                correct: 'B',
+                explanation: 'Voluntary quits (29,661 total) are about 2.9 times more common than discharges (10,151 total) company-wide, indicating a retention problem rather than just disciplinary issues.'
+            },
+            {
+                id: 5,
+                q: 'Using industry estimates (50-200% of salary), what is the approximate cost of ONE hourly employee separation?',
+                options: ['$1,000–$3,000', '$6,240–$12,480', '$25,000–$50,000', '$500–$1,000'],
+                correct: 'B',
+                explanation: 'Correct! Hourly staff salary (~$12/hr × 2,080 hrs = $24,960) at 25-50% (dashboard floor) equals $6,240–$12,480 per separation.'
+            },
+            {
+                id: 6,
+                q: 'What does the dashboard data suggest about the relationship between turnover and unit profitability?',
+                options: ['High turnover always leads to low profit', 'There is no relationship at all', 'Some high-turnover units still generate strong profit due to market location', 'Low turnover guarantees high profit'],
+                correct: 'C',
+                explanation: 'Some high-turnover units (like Unit 32 and 33) are highly profitable because they are in Large Markets where massive customer volume and revenues easily absorb the cost of turnover.'
+            }
+        ],
+        oe: {
+            id: 2,
+            title: 'Open-Ended Q2 — The Turnover Impact Study',
+            prompt: 'Compare high-turnover units to their Profit and Payroll data. Does higher turnover lead to higher fixed operating expenses? Calculate the estimated cost of replacing an employee and determine the financial impact of a 10% reduction in turnover.',
+            placeholder: 'Show your calculations for replacement cost. Compare high-turnover vs. low-turnover unit financials...',
+            points: [
+                'Calculate replacement cost using 25-50% of annual salary (<strong>$6,240–$12,480</strong>).',
+                'Cite annual separations: <strong>~5,687/year</strong> (39,812 total separations over 7 years).',
+                'Estimate total annual turnover cost: <strong>$35.5M–$71.0M</strong>.',
+                'Show 10% reduction impact: saving <strong>$3.5M–$7.1M</strong> (569 fewer separations).',
+                'Identify high-turnover units explicitly: <strong>Unit 32</strong> (426) and <strong>Unit 33</strong> (420), noting they are Large Market units with high profits.',
+                'Acknowledge the data reversal: discharged employees average higher performance ratings than voluntary quits (<strong>2.98 vs 2.67</strong>).'
+            ],
+            note: 'The rubric rewards responses that walk through the formulas and identify the market type confounding variable.'
+        }
+    },
+    {
+        part: 3,
+        partTitle: 'Part 3: Diversity in Selection',
+        partLabel: 'Part 3 — Adverse Impact Analysis',
+        hint: 'Dashboard: Module 3 → Selection rates (hired vs applicants) and Average Interview Scores.',
+        narrative: `The Chief Legal Officer Maria Santos has flagged an OFCCP notice. Under the EEOC’s Uniform Guidelines, selection rates for underrepresented minorities (URMs) must be within 80% of the selection rate for White applicants. You must analyze the selection rates and interview scores to identify if there is evidence of systemic adverse impact.`,
+        dataPoints: [
+            { val: '5.87%', label: 'White Hire Rate', color: 'blue' },
+            { val: '2.78%', label: 'URM Hire Rate', color: 'rose' },
+            { val: '0.473', label: 'Impact Ratio', color: 'rose' },
+            { val: '0.80', label: 'EEOC Threshold', color: 'teal' }
+        ],
+        mcqs: [
+            {
+                id: 7,
+                q: 'What is the impact ratio (URM hire rate / White hire rate) based on the dashboard data?',
+                options: ['0.80 (exactly at threshold)', '0.473 (well below threshold)', '0.92 (above threshold)', '0.65 (slightly below threshold)'],
+                correct: 'B',
+                explanation: 'White hire rate = 5.87% (444/7,565) and URM hire rate = 2.78% (90/3,239), which gives an adverse impact ratio of 0.473 — well below the 0.80 threshold.'
+            },
+            {
+                id: 8,
+                q: 'What does the interview score data reveal about URM candidates who WERE hired?',
+                options: ['They scored identically to hired White candidates', 'They scored higher than hired White candidates', 'They scored systematically lower than hired White candidates', 'Their scores varied too much to draw conclusions'],
+                correct: 'C',
+                explanation: 'Hired URM candidates averaged 5.59 (Interview 1) and 5.58 (Interview 2), which is systematically lower than hired White candidates (5.91 and 5.87).'
+            },
+            {
+                id: 9,
+                q: 'According to the 4/5ths rule, what impact ratio threshold indicates potential adverse impact?',
+                options: ['Below 0.50', 'Below 0.80', 'Below 1.00', 'Below 0.95'],
+                correct: 'B',
+                explanation: 'The EEOC and OFCCP establish 0.80 (80%) as the legal threshold below which selection procedures indicate potential adverse impact.'
+            }
+        ],
+        oe: {
+            id: 3,
+            title: 'Open-Ended Q3 — Diversity in Selection',
+            prompt: 'Is there evidence of adverse impact in our interview process? Using the 4/5ths rule, evaluate whether our selection procedures are discriminatory. What interview score patterns do you notice between groups?',
+            placeholder: 'Cite selection rates, calculate the ratio, evaluate against the 0.80 rule, and analyze interview scores...',
+            points: [
+                'State White hire rate: <strong>5.87%</strong> (444/7,565). URM hire rate: <strong>2.78%</strong> (90/3,239).',
+                'Calculate impact ratio: <strong>0.473</strong>, which is far below the <strong>0.80</strong> threshold, indicating potential adverse impact.',
+                'Report interview score gaps: hired URM (<strong>5.59 / 5.58</strong>) vs hired White (<strong>5.91 / 5.87</strong>).',
+                'Report non-hired score gaps: URM not hired (<strong>3.68</strong>) vs White not hired (<strong>4.17</strong>).',
+                'Propose corrective action: implement structured interview panels, objective scoring rubrics, or blind grading.'
+            ],
+            note: 'Do not invert the ratio (URM must be the numerator, White the denominator).'
+        }
+    },
+    {
+        part: 4,
+        partTitle: 'Part 4: The Experience-Performance Paradox',
+        partLabel: 'Part 4 — Pay & Value Alignment',
+        hint: 'Dashboard: Module 4 → Avg Wage by Exp, Avg Perf by Exp, and manager scatter plot.',
+        narrative: `Anil Gupta, Compensation Committee Chair, asks if we are getting a return on our investment in experienced managers. Longstanding HR wisdom says experience leads to better performance. You must examine the manager scatter plot and average wages by experience level to investigate this assumption.`,
+        dataPoints: [
+            { val: '$61,735', label: '0 Yrs Exp Wage (Max)', color: 'teal' },
+            { val: '$56,983', label: '3-5 Yrs Exp Wage', color: 'rose' },
+            { val: '3.75', label: '0 Yrs Exp Avg Perf', color: 'blue' },
+            { val: '3.84', label: '3-5 Yrs Exp Avg Perf', color: 'blue' }
+        ],
+        mcqs: [
+            {
+                id: 10,
+                q: 'What does the “Avg Performance by Prior Experience” chart reveal about the experience-performance relationship?',
+                options: ['Strong positive correlation — more experience means better performance', 'Strong negative correlation — more experience means worse performance', 'Performance is essentially flat (~3.8) regardless of experience level', 'Performance doubles with each additional year of experience'],
+                correct: 'C',
+                explanation: 'Average performance is flat (0 years: 3.75, 1-2 years: 3.84, 3-5 years: 3.84), indicating that prior experience does not reliably predict manager performance.'
+            },
+            {
+                id: 11,
+                q: 'Which group of managers earns the highest average wage according to the dashboard?',
+                options: ['Managers with 4+ years of experience', 'Managers with the highest performance ratings (5)', 'Managers with 0 years of prior experience', 'Managers in Large Market units'],
+                correct: 'C',
+                explanation: 'Managers with 0 years prior experience earn the highest average salary ($61,734.62) due to market adjustments for external hires, which creates an internal wage compression issue.'
+            },
+            {
+                id: 12,
+                q: 'In the manager scatter plot (Experience vs. Wage by Performance), what pattern is visible for top performers (Rating 5)?',
+                options: ['They cluster in the high-experience, high-wage corner', 'They are scattered across all experience levels', 'They only appear at 3+ years of experience', 'They are concentrated at low wages'],
+                correct: 'B',
+                explanation: 'Top performers are scattered across all experience brackets, including 0 years, illustrating that experience is not a prerequisite for high performance.'
+            }
+        ],
+        oe: {
+            id: 4,
+            title: 'Open-Ended Q4 — The Experience-Performance Paradox',
+            prompt: 'If prior experience doesn’t strongly predict performance, should it be weighted as heavily in compensation decisions? Design an alternative compensation model that better aligns pay with actual value delivered.',
+            placeholder: 'Cite flat performance scores and explain the wage compression paradox. Propose a compensation model...',
+            points: [
+                'State that average performance is flat across experience categories (<strong>3.75 to 3.84</strong>).',
+                'Cite experience-wage relationship: managers with 0 years experience earn the most (<strong>$61,734.62</strong>).',
+                'Identify the paradox: Mr. Macky\'s pays a premium for experience that does not yield higher performance ratings.',
+                'Propose an alternative model: base pay tied to market demand, with bonuses tied to performance ratings or unit profitability.',
+                'Acknowledge ratings limitations: performance ratings do not capture soft skills, crisis management, or mentoring.'
+            ],
+            note: 'Exceptional answers propose a multi-component pay model and critique the limitations of current metrics.'
+        }
+    },
+    {
+        part: 5,
+        partTitle: 'Part 5: The Engagement-Profit Puzzle',
+        partLabel: 'Part 5 — Engagement & Business Outcomes',
+        hint: 'Dashboard: Executive Overview → Engagement Radar Chart and Unit Engagement table.',
+        narrative: `The board chair asks if employee engagement actually translates to restaurant profit. Looking at the raw data, Medium Market units have higher engagement but lower profit than Large Market units. You must analyze the confounding variables that might explain this paradox and design a study to test it.`,
+        dataPoints: [
+            { val: '4.32', label: 'Job Sat (Highest)', color: 'teal' },
+            { val: '3.64', label: 'Support (Lowest)', color: 'rose' },
+            { val: 'Medium', label: 'Higher Engagement', color: 'orange' },
+            { val: 'Large', label: 'Higher Profit', color: 'blue' }
+        ],
+        mcqs: [
+            {
+                id: 13,
+                q: 'Which engagement dimension has the highest company-wide average score?',
+                options: ['Support', 'Communication', 'Job Satisfaction', 'Accountability'],
+                correct: 'C',
+                explanation: 'Job Satisfaction has the highest average score (4.32), whereas Support (3.64) is the lowest dimension.'
+            },
+            {
+                id: 14,
+                q: 'Why is comparing engagement directly to absolute profit potentially misleading?',
+                options: ['Because engagement data is unreliable', 'Because profit is primarily driven by market size and location, not just employee behavior', 'Because engagement is only measured annually', 'Because profit data is estimated'],
+                correct: 'B',
+                explanation: 'Absolute profit is dominated by market size and location. Large Markets generate more revenue simply due to volume, which masks the operational value of engagement.'
+            },
+            {
+                id: 15,
+                q: 'What type of logical error does the “engagement = profit” assumption illustrate?',
+                options: ['Sampling bias', 'Selection bias', 'Correlation vs. causation fallacy', 'Survivorship bias'],
+                correct: 'C',
+                explanation: 'Assuming correlation equals causation ignores the confounding factor of market size. A profit-margin comparison within market types would be more sound.'
+            }
+        ],
+        oe: {
+            id: 5,
+            title: 'Open-Ended Q5 — The Engagement-Profit Puzzle',
+            prompt: 'If Medium Market units have higher engagement but lower profit, does this mean engagement doesn’t matter for business performance? What confounding variables might explain this paradox? Design a study to test your hypothesis.',
+            placeholder: 'Identify the confounding variables. Propose a specific study design with controls and timeframes...',
+            points: [
+                'Identify <strong>Market Size/Location</strong> as the key confounding variable.',
+                'Argue engagement is not irrelevant — profit comparisons should control for store size and revenue.',
+                'List other confounders: fixed overhead, competition, local cost-of-living, unit age, manager tenure.',
+                'Identify the logical issue: <strong>correlation vs. causation fallacy</strong>.',
+                'Propose a controlled study: <strong>quasi-experiment</strong> matching 10 treated units and 10 control units over a <strong>12-month period</strong>.'
+            ],
+            note: 'The study design must propose matched control units and specify a timeline to receive full credit.'
+        }
+    }
+];
+
+const TOTAL_ITEMS = 20; // 15 MCQs + 5 OEs
+let mcqAnswers = {};
+let oeAnswers = {};
+let isUnlocked = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Synchronize name fields with existings keys
+    const savedFirst = localStorage.getItem('macky_case_first_name') || '';
+    const savedLast = localStorage.getItem('macky_case_last_name') || '';
+    document.getElementById('student-first-name').value = savedFirst;
+    document.getElementById('student-last-name').value = savedLast;
+
+    // Load unlock status
+    isUnlocked = localStorage.getItem('macky_case_a_unlocked') === 'true';
+
+    // Load answers
+    for (let i = 1; i <= 15; i++) {
+        const saved = localStorage.getItem(`macky_case_a_mcq_${i}`);
+        if (saved) {
+            mcqAnswers[i] = saved;
+        }
+    }
+    for (let i = 1; i <= 5; i++) {
+        const saved = localStorage.getItem(`macky_case_a_oe_${i}`);
+        if (saved) {
+            oeAnswers[i] = saved;
+        }
+    }
+
+    renderContent();
+    updateProgress();
+
+    if (isUnlocked) {
+        applyUnlockedUI();
+    }
+});
+
+function renderContent() {
+    const container = document.getElementById('sections-container');
+    container.innerHTML = PARTS.map(p => {
+        const dataCards = p.dataPoints.map(dp => `
+            <div class="data-card">
+                <div class="data-val ${dp.color || ''}">${dp.val}</div>
+                <div class="data-label">${dp.label}</div>
+            </div>
+        `).join('');
+
+        const mcqHTML = p.mcqs.map((m, mIdx) => {
+            const letterOptions = ['A', 'B', 'C', 'D'];
+            const savedAns = mcqAnswers[m.id];
+            
+            const optionsHTML = m.options.map((opt, oIdx) => {
+                const letter = letterOptions[oIdx];
+                const isSelected = savedAns === letter;
+                
+                // Set CSS classes based on selection & unlock status
+                let revealClass = '';
+                if (isUnlocked) {
+                    if (letter === m.correct) {
+                        revealClass = 'reveal-correct';
+                    } else if (isSelected) {
+                        revealClass = 'reveal-incorrect';
+                    }
+                    revealClass += ' disabled-state';
+                } else if (isSelected) {
+                    revealClass = 'selected';
+                }
+
+                return `
+                    <button class="mcq-option ${revealClass}" id="opt-${m.id}-${letter}" onclick="selectMCQ(${m.id}, '${letter}', '${m.correct}')">
+                        <span class="mcq-letter">${letter}</span>
+                        <span class="mcq-text">${opt}</span>
+                    </button>
+                `;
+            }).join('');
+
+            return `
+                <div class="mcq-card" id="mcq-card-${m.id}">
+                    <div class="mcq-question">Q${m.id}. ${m.q}</div>
+                    ${isUnlocked ? `<div class="mcq-correct-badge">✓ Correct Answer: ${m.correct}</div>` : ''}
+                    <div class="mcq-options">
+                        ${optionsHTML}
+                    </div>
+                    <div class="mcq-explanation-panel ${isUnlocked ? 'visible' : ''}" id="mcq-exp-${m.id}">
+                        ${m.explanation}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const savedOE = oeAnswers[p.oe.id] || '';
+        const hasSubmitted = savedOE.trim().length > 0;
+        
+        return `
+            <div class="case-section">
+                <span class="section-label ${p.part === 1 ? 'label-background' : p.part === 2 ? 'label-challenge' : p.part === 3 ? 'label-data' : p.part === 4 ? 'label-question' : 'label-memo'}">${p.partLabel}</span>
+                <h2>${p.partTitle}</h2>
+                <p style="font-size: 14.5px; line-height: 1.8; color: var(--text2); margin-bottom: 20px;">${p.narrative}</p>
+                
+                <div class="data-grid">
+                    ${dataCards}
+                </div>
+
+                <div class="instructions" style="margin-top: 24px;">
+                    <h4 style="color: var(--orange);">💡 Case Brief Hint</h4>
+                    <p style="font-size: 13px; color: var(--text2); margin-top: 4px;">${p.hint}</p>
+                </div>
+
+                <div class="mcq-container">
+                    <h3 style="font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; color: var(--text);">Knowledge Check (3.33 pts each)</h3>
+                    ${mcqHTML}
+                </div>
+
+                <div style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <h3 style="font-size: 16px; margin-bottom: 8px; color: var(--text);">${p.oe.title} (10 pts)</h3>
+                    <p style="font-size: 13.5px; color: var(--text2); margin-bottom: 12px;"><strong>Prompt:</strong> ${p.oe.prompt}</p>
+                    
+                    <div class="answer-area">
+                        <textarea id="oe-${p.oe.id}" placeholder="${p.oe.placeholder}" class="${hasSubmitted ? 'submitted' : ''}">${savedOE}</textarea>
+                        <div class="answer-btns">
+                            <button class="btn-submit" id="sub-oe-${p.oe.id}" onclick="submitOE(${p.oe.id})">${hasSubmitted ? '✓ Submitted' : 'Submit Answer'}</button>
+                            <span class="saved-badge ${hasSubmitted ? 'visible' : ''}" id="saved-oe-${p.oe.id}">✓ Saved to browser</span>
+                        </div>
+                        <div class="feedback-panel ${isUnlocked ? 'visible' : ''}" id="fb-oe-${p.oe.id}">
+                            <div class="feedback-title">💡 Rubric Key Points to Consider</div>
+                            <ul>${p.oe.points.map(pt => `<li>${pt}</li>`).join('')}</ul>
+                            ${p.oe.note ? `<div class="feedback-note">💡 Note: ${p.oe.note}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectMCQ(mcqId, letter, correctLetter) {
+    if (isUnlocked) return; // Prevent edits when unlocked
+
+    // Save answer
+    mcqAnswers[mcqId] = letter;
+    localStorage.setItem(`macky_case_a_mcq_${mcqId}`, letter);
+
+    // Update highlights
+    const letters = ['A', 'B', 'C', 'D'];
+    letters.forEach(let => {
+        const btn = document.getElementById(`opt-${mcqId}-${let}`);
+        if (btn) {
+            if (let === letter) {
+                btn.classList.add('selected');
+            } else {
+                btn.classList.remove('selected');
+            }
+        }
+    });
+
+    updateProgress();
+}
+
+function submitOE(oeId) {
+    const textarea = document.getElementById(`oe-${oeId}`);
+    if (!textarea || !textarea.value.trim()) {
+        textarea.style.borderColor = '#f43f5e';
+        setTimeout(() => textarea.style.borderColor = '', 1500);
+        return;
+    }
+
+    const answerVal = textarea.value;
+    oeAnswers[oeId] = answerVal;
+    localStorage.setItem(`macky_case_a_oe_${oeId}`, answerVal);
+
+    textarea.classList.add('submitted');
+    
+    const btn = document.getElementById(`sub-oe-${oeId}`);
+    btn.textContent = '✓ Submitted';
+    
+    const badge = document.getElementById(`saved-oe-${oeId}`);
+    badge.classList.add('visible');
+
+    updateProgress();
+}
+
+function updateProgress() {
+    let answered = 0;
+    
+    for (let i = 1; i <= 15; i++) {
+        if (mcqAnswers[i]) answered++;
+    }
+    for (let i = 1; i <= 5; i++) {
+        if (oeAnswers[i] && oeAnswers[i].trim().length > 0) answered++;
+    }
+
+    const pct = Math.round((answered / TOTAL_ITEMS) * 100);
+    const progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = pct + '%';
+    
+    const progressCount = document.getElementById('progressCount');
+    if (progressCount) progressCount.textContent = `${answered} / ${TOTAL_ITEMS} answered`;
+}
+
+function unlockAnswers() {
+    const key = document.getElementById('prof-key').value.trim();
+    if (key === '99') {
+        isUnlocked = true;
+        localStorage.setItem('macky_case_a_unlocked', 'true');
+        applyUnlockedUI();
+    } else {
+        alert('Incorrect code. Please ask your professor for the review key.');
+    }
+}
+
+function applyUnlockedUI() {
+    document.getElementById('unlock-section').innerHTML = '<p style="color: var(--teal); font-weight: bold; margin: 0;">✓ Instructor solutions unlocked for review.</p>';
+    
+    // Rerender content to freeze MCQs and show the correct/incorrect feedback
+    renderContent();
+    updateProgress();
+}
+
+function saveStudentName() {
+    const fn = document.getElementById('student-first-name').value;
+    const ln = document.getElementById('student-last-name').value;
+    localStorage.setItem('macky_case_first_name', fn);
+    localStorage.setItem('macky_case_last_name', ln);
+}
+
+function resetProgress() {
+    if (confirm('Are you sure you want to clear all your answers for Case A and start over? This cannot be undone.')) {
+        for (let i = 1; i <= 15; i++) {
+            localStorage.removeItem(`macky_case_a_mcq_${i}`);
+        }
+        for (let i = 1; i <= 5; i++) {
+            localStorage.removeItem(`macky_case_a_oe_${i}`);
+        }
+        localStorage.removeItem('macky_case_a_unlocked');
+        location.reload();
+    }
+}
+
+function downloadSubmission() {
+    const firstName = document.getElementById('student-first-name').value.trim();
+    const lastName = document.getElementById('student-last-name').value.trim();
+    if (!firstName || !lastName) {
+        alert('Please enter both your First Name and Last Name in the Student Information bar at the top before downloading your answers.');
+        const inputs = document.querySelectorAll('.student-info-bar input');
+        inputs.forEach(i => i.style.borderColor = '#f43f5e');
+        setTimeout(() => inputs.forEach(i => i.style.borderColor = ''), 2000);
+        return;
+    }
+    const studentName = firstName + " " + lastName;
+
+    let content = "Mr. Macky's HR Analytics - Case Study A Submission\n";
+    content += "==================================================\n\n";
+    content += "Student Name: " + studentName + "\n";
+    content += "Date: " + new Date().toLocaleString() + "\n\n";
+    
+    content += "--- MCQ ANSWERS ---\n";
+    for (let i = 1; i <= 15; i++) {
+        const ans = mcqAnswers[i] || 'No answer';
+        content += `Q${i}: ${ans}\n`;
+    }
+    content += "\n";
+
+    for (let i = 1; i <= 5; i++) {
+        const ans = oeAnswers[i] || 'No answer provided.';
+        content += `Open-Ended Question ${i}\n`;
+        content += ans + "\n\n";
+    }
+    
+    content += "==================================================\n";
+    
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `HR_Case_Study_A_${studentName.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
