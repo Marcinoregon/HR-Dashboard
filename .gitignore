@@ -1,4 +1,23 @@
+# macOS
 .DS_Store
+
+# Editor
 .vscode/
+
+# Office lock files
 ~$*.xlsx
+~$*.docx
+
+# Sensitive instructor files — DO NOT DEPLOY
 *Answer_Key.docx
+*Workbook*.docx
+*Rubric*.docx
+*.xlsx
+
+# Developer-only files
+verify_answers.mjs
+
+# Docker / server config (not needed for static deploy)
+Dockerfile
+.dockerignore
+nginx.conf

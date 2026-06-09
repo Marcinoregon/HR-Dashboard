@@ -1,0 +1,99 @@
+# ─── Netlify Configuration ────────────────────────────────────────────────────
+# HR Analytics Dashboard — static site deployment
+
+[build]
+  # No build command — pure static HTML/CSS/JS
+  publish = "."
+
+# ─── Redirects ────────────────────────────────────────────────────────────────
+# Let Netlify serve _redirects file (already handled automatically when present)
+
+# ─── Headers ──────────────────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Frame-Options            = "SAMEORIGIN"
+    X-Content-Type-Options     = "nosniff"
+    Referrer-Policy            = "strict-origin-when-cross-origin"
+    Permissions-Policy         = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  # Aggressive caching for large JS data files (they rarely change)
+  for = "/applicant_data.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/employee_data.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/engagement_data.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/data.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/dashboard.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/styles.css"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
+
+[[headers]]
+  # Images and slide assets — long cache
+  for = "/slides/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, immutable"
+
+# ─── Redirects ────────────────────────────────────────────────────────────────
+[[redirects]]
+  # Block direct access to sensitive files
+  from  = "/*.docx"
+  to    = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from  = "/*.xlsx"
+  to    = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from  = "/verify_answers.mjs"
+  to    = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from  = "/Dockerfile"
+  to    = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from  = "/nginx.conf"
+  to    = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  # Fallback — serve index.html for unknown routes (SPA-style)
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

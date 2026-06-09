@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Case — Statistical Tools Walkthrough | Mr. Macky's HR Analytics</title>
+    <meta name="description" content="A guided, low-stakes practice case to prepare students for Case Study 2. Covers T-tests, OLS Regression, and Logistic Regression with full worked explanations.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1221;
+            --bg2: #161a2e;
+            --bg3: #1c2140;
+            --surface: rgba(30, 36, 66, 0.7);
+            --border: rgba(255,255,255,0.08);
+            --text: #e2e8f0;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --orange: #f97316;
+            --orange-glow: rgba(249,115,22,0.15);
+            --purple: #a78bfa;
+            --teal: #2dd4bf;
+            --rose: #fb7185;
+            --green: #34d399;
+            --blue: #60a5fa;
+            --amber: #fbbf24;
+            --practice: #818cf8; /* indigo — distinct from Case 2's teal */
+            --practice-glow: rgba(129,140,248,0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* ---- Practice Banner ---- */
+        .practice-banner {
+            background: linear-gradient(90deg, rgba(129,140,248,0.2), rgba(129,140,248,0.08));
+            border-bottom: 1px solid rgba(129,140,248,0.3);
+            padding: 10px 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--practice);
+            font-weight: 600;
+        }
+        .practice-banner span { opacity: 0.7; font-weight: 400; color: var(--text2); }
+
+        /* ---- Top Bar ---- */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 32px;
+            background: rgba(15, 18, 33, 0.95);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .topbar-brand img { width: 36px; height: 36px; border-radius: 8px; }
+        .topbar-brand span { font-weight: 700; color: var(--text); font-size: 15px; }
+        .topbar-title { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; color: var(--practice); }
+        .topbar-title::before { content: '🎓'; font-size: 18px; }
+        .topbar-links { display: flex; gap: 10px; }
+        .topbar-links a {
+            color: var(--text2); font-size: 13px; font-weight: 500;
+            text-decoration: none; padding: 6px 14px; border-radius: 6px;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .topbar-links a:hover { color: var(--practice); border-color: var(--practice); background: var(--practice-glow); }
+
+        /* ---- Hero ---- */
+        .hero {
+            text-align: center; padding: 60px 32px 40px;
+            background: linear-gradient(180deg, rgba(129,140,248,0.07) 0%, transparent 100%);
+        }
+        .hero-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+            background: var(--practice-glow); color: var(--practice); border: 1px solid rgba(129,140,248,0.3);
+            margin-bottom: 20px;
+        }
+        .hero h1 {
+            font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 700;
+            line-height: 1.2; margin-bottom: 14px;
+            background: linear-gradient(135deg, var(--text), var(--practice));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 16px; color: var(--text2); max-width: 720px; margin: 0 auto; }
+
+        /* ---- Container ---- */
+        .container { max-width: 900px; margin: 0 auto; padding: 0 32px 80px; }
+
+        /* ---- Section ---- */
+        .case-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px 32px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(8px);
+            transition: border-color 0.3s;
+        }
+        .case-section:hover { border-color: rgba(255,255,255,0.14); }
+
+        .section-label {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            padding: 4px 12px; border-radius: 4px; margin-bottom: 16px;
+        }
+        .label-background { background: rgba(96,165,250,0.15); color: var(--blue); }
+        .label-challenge  { background: rgba(249,115,22,0.15); color: var(--orange); }
+        .label-data       { background: rgba(45,212,191,0.15); color: var(--teal); }
+        .label-question   { background: rgba(167,139,250,0.15); color: var(--purple); }
+        .label-practice   { background: rgba(129,140,248,0.15); color: var(--practice); }
+
+        .case-section h2 { font-size: 22px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+        .case-section h3 { font-size: 17px; font-weight: 600; margin: 24px 0 10px; color: var(--text); }
+        .case-section p, .case-section li { font-size: 14px; color: var(--text2); margin-bottom: 10px; }
+        .case-section ul, .case-section ol { padding-left: 22px; }
+        .case-section li { margin-bottom: 8px; }
+
+        /* ---- Discussion Questions ---- */
+        .dq {
+            background: rgba(15, 18, 33, 0.5); border: 1px solid var(--border);
+            border-left: 3px solid var(--practice); border-radius: 10px;
+            padding: 20px 22px; margin-bottom: 18px;
+        }
+        .dq-num {
+            display: inline-block; background: var(--practice-glow);
+            color: var(--practice); font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 4px; margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .dq-text { font-size: 15px; color: var(--text); font-weight: 500; margin-bottom: 10px; line-height: 1.6; }
+        .dq-hint { font-size: 12px; color: var(--text3); font-style: italic; }
+        .dq-hint strong { color: var(--teal); font-style: normal; }
+
+        /* ---- Instructions box ---- */
+        .instructions {
+            background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px; padding: 20px 24px; margin: 20px 0;
+        }
+        .instructions h4 { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .instructions li { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+
+        /* ---- Concept Box ---- */
+        .concept-box {
+            background: rgba(129,140,248,0.07); border: 1px solid rgba(129,140,248,0.25);
+            border-radius: 10px; padding: 20px 24px; margin: 20px 0;
+        }
+        .concept-box h4 { font-size: 13px; font-weight: 700; color: var(--practice); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .concept-box p, .concept-box li { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+        .concept-box ul { padding-left: 18px; }
+
+        /* ---- Dash Link ---- */
+        .dash-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--practice), #6366f1);
+            color: white; font-weight: 600; font-size: 14px;
+            padding: 12px 24px; border-radius: 10px; text-decoration: none;
+            margin: 24px 0 10px; transition: all 0.3s; box-shadow: 0 4px 20px rgba(129,140,248,0.3);
+        }
+        .dash-link:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(129,140,248,0.45); }
+
+        /* ---- Answer Area ---- */
+        .answer-area { margin-top: 16px; }
+        .answer-area textarea {
+            width: 100%; min-height: 110px; padding: 14px 16px;
+            background: rgba(15, 18, 33, 0.8); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif;
+            font-size: 13px; line-height: 1.6; resize: vertical; transition: border-color 0.3s;
+        }
+        .answer-area textarea:focus { outline: none; border-color: var(--practice); }
+        .answer-area textarea::placeholder { color: var(--text3); }
+        .answer-area textarea.submitted { border-color: var(--green); background: rgba(52,211,153,0.05); }
+
+        .answer-btns { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+        .btn-submit {
+            padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.25s; font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--practice), #6366f1);
+            color: white; box-shadow: 0 2px 12px rgba(129,140,248,0.25);
+        }
+        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(129,140,248,0.35); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-reveal {
+            padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; border: 1px solid rgba(251,191,36,0.35);
+            background: rgba(251,191,36,0.08); color: var(--amber);
+            transition: all 0.25s; font-family: 'Inter', sans-serif;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-reveal:hover { background: rgba(251,191,36,0.14); border-color: var(--amber); }
+
+        .saved-badge {
+            display: none; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--green); font-weight: 500; padding: 8px 0;
+        }
+        .saved-badge.visible { display: inline-flex; }
+
+        /* ---- Feedback Panel ---- */
+        .feedback-panel {
+            display: none; margin-top: 14px; padding: 22px 24px;
+            background: rgba(45, 212, 191, 0.06); border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px; animation: fadeIn 0.3s ease;
+        }
+        .feedback-panel.visible { display: block; }
+
+        /* ---- Worked Answer Panel (always-revealable) ---- */
+        .worked-panel {
+            display: none; margin-top: 14px; padding: 24px;
+            background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.2);
+            border-radius: 10px; animation: fadeIn 0.3s ease;
+        }
+        .worked-panel.visible { display: block; }
+        .worked-title {
+            font-size: 12px; font-weight: 700; color: var(--amber);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .worked-section { margin-bottom: 14px; }
+        .worked-section h5 {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--teal); margin-bottom: 8px;
+        }
+        .worked-section p, .worked-section li { font-size: 13px; color: var(--text2); margin-bottom: 6px; line-height: 1.6; }
+        .worked-section ul { padding-left: 18px; }
+        .worked-section strong { color: var(--text); }
+        .worked-number {
+            display: inline-block; background: rgba(45,212,191,0.12); color: var(--teal);
+            padding: 2px 10px; border-radius: 4px; font-size: 13px; font-weight: 700;
+            font-family: 'Courier New', monospace; margin: 2px 2px;
+        }
+        .worked-note {
+            font-size: 12px; color: var(--text3); font-style: italic;
+            margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+        }
+        .case2-link {
+            font-size: 12px; font-weight: 600; color: var(--practice);
+            background: var(--practice-glow); padding: 6px 12px; border-radius: 6px;
+            border: 1px solid rgba(129,140,248,0.25); display: inline-block; margin-top: 8px;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .feedback-title {
+            font-size: 12px; font-weight: 700; color: var(--teal);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .feedback-panel ul { padding-left: 18px; margin: 0; }
+        .feedback-panel li { font-size: 13px; color: var(--text2); margin-bottom: 8px; line-height: 1.5; }
+        .feedback-panel li strong { color: var(--text); }
+
+        /* ---- Skill Map ---- */
+        .skill-map {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0;
+        }
+        .skill-card {
+            background: rgba(15,18,33,0.6); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; text-align: center;
+        }
+        .skill-card .skill-icon { font-size: 24px; margin-bottom: 8px; }
+        .skill-card .skill-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+        .skill-card .skill-desc { font-size: 11px; color: var(--text3); }
+        .skill-card.active { border-color: rgba(129,140,248,0.4); background: rgba(129,140,248,0.06); }
+
+        /* ---- Progress Tracker ---- */
+        .progress-tracker {
+            position: fixed; bottom: 24px; right: 24px; z-index: 99;
+            background: var(--bg3); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 20px;
+            backdrop-filter: blur(14px); box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            min-width: 180px;
+        }
+        .progress-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .progress-bar-bg { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--practice), var(--teal)); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+        .progress-count { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 6px; }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 700px) {
+            .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+            .topbar-title { display: none; }
+            .hero h1 { font-size: 26px; }
+            .container { padding: 0 16px 60px; }
+            .case-section { padding: 24px 18px; }
+            .skill-map { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Practice Banner -->
+    <div class="practice-banner">
+        🎓 PRACTICE MODE — Ungraded &nbsp;|&nbsp;
+        <span>Full answer explanations are available at any time. Use this to prepare for Case Study 2.</span>
+    </div>
+
+    <div class="topbar">
+        <a href="index.html" class="topbar-brand">
+            <img src="https://api.dicebear.com/7.x/shapes/svg?seed=cajun&backgroundColor=818cf8" alt="Logo">
+            <span>Mr. Macky's</span>
+        </a>
+        <div class="topbar-title">Practice Case</div>
+        <div class="topbar-links">
+            <a href="index.html">← Dashboard</a>
+            <a href="casestudy2.html">📊 Case Study 2</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="hero-badge">🎓 Guided Practice — Ungraded</div>
+        <h1>Statistical Tools:<br>A Guided Walkthrough</h1>
+        <p>Before tackling Case Study 2, work through these guided exercises. Every question includes a full worked explanation you can reveal at any time — <em>no grade, no pressure, just practice.</em></p>
+    </div>
+
+    <div class="container">
+
+        <!-- Dashboard Link -->
+        <div style="text-align: center; margin-bottom: 36px;">
+            <a href="index.html" class="dash-link" target="_blank">🖥️ Open the Dashboard in a New Tab</a>
+            <p style="font-size: 12px; color: var(--text3); margin-top: 8px;">Keep it open — navigate to the <strong>T-Test</strong>, <strong>OLS Regression</strong>, and <strong>Logistic Regression</strong> tabs in the sidebar.</p>
+        </div>
+
+        <!-- Student Info Bar -->
+        <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px;">👤 Your Name (optional)</h4>
+                <p style="font-size: 12px; color: var(--text3); margin-top: 4px;">Not graded — but entering your name personalizes the experience.</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <input type="text" id="student-first-name" placeholder="First Name" style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 18, 33, 0.8); color: var(--text); font-family: inherit; font-size: 13px;" oninput="saveStudentName()">
+                <input type="text" id="student-last-name" placeholder="Last Name" style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 18, 33, 0.8); color: var(--text); font-family: inherit; font-size: 13px;" oninput="saveStudentName()">
+            </div>
+        </div>
+
+        <!-- What you'll practice -->
+        <div class="case-section">
+            <span class="section-label label-practice">Overview</span>
+            <h2>What You'll Practice</h2>
+            <p>Case Study 2 requires you to run three types of statistical analyses using the dashboard's built-in tools. This practice case walks you through each one with a guided question and a complete worked answer.</p>
+
+            <div class="skill-map">
+                <div class="skill-card active">
+                    <div class="skill-icon">📊</div>
+                    <div class="skill-name">T-Test</div>
+                    <div class="skill-desc">Compare means between two groups. Is the difference statistically significant?</div>
+                </div>
+                <div class="skill-card active">
+                    <div class="skill-icon">📈</div>
+                    <div class="skill-name">OLS Regression</div>
+                    <div class="skill-desc">Model a continuous outcome (wage, profit) using multiple predictors simultaneously.</div>
+                </div>
+                <div class="skill-card active">
+                    <div class="skill-icon">🎯</div>
+                    <div class="skill-name">Logistic Regression</div>
+                    <div class="skill-desc">Model a binary outcome (hired vs. not hired) and interpret Odds Ratios.</div>
+                </div>
+            </div>
+
+            <div class="concept-box">
+                <h4>💡 How to Use This Practice Case</h4>
+                <ul>
+                    <li>Read each question and run the tool in the dashboard.</li>
+                    <li>Type your answer in the text box — or just think through it.</li>
+                    <li>Click <strong style="color: var(--amber);">📖 Reveal Full Answer</strong> at any time to see the complete worked explanation with expected numbers and interpretation guidance.</li>
+                    <li>Each explanation also tells you exactly where the skill appears in Case Study 2.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ===== PART 1: T-TEST ===== -->
+        <div class="case-section">
+            <span class="section-label label-background">Part 1 — The T-Test</span>
+            <h2>Comparing Two Groups: Is the Difference Real?</h2>
+
+            <p>A T-test answers one question: <em>Is the difference in average values between two groups statistically meaningful, or could it be explained by random chance?</em> The key output is the <strong>t-statistic</strong> and its associated <strong>p-value</strong>. When p &lt; 0.05, we say the difference is statistically significant.</p>
+
+            <div class="concept-box">
+                <h4>📐 Reading a T-Test Output</h4>
+                <ul>
+                    <li><strong>Group Means:</strong> The average value for each group (e.g., Large vs. Medium market).</li>
+                    <li><strong>Difference:</strong> Group A mean − Group B mean.</li>
+                    <li><strong>t-Statistic:</strong> How many standard errors the difference is from zero. Larger absolute value = stronger evidence of a real gap.</li>
+                    <li><strong>p-Value:</strong> Probability the gap occurred by chance. p &lt; 0.05 = statistically significant; p &gt; 0.05 = not significant.</li>
+                </ul>
+            </div>
+
+            <div class="instructions">
+                <h4>🛠️ T-Test Setup — Practice Question 1:</h4>
+                <ul>
+                    <li>Go to the <strong>T-Test</strong> tab in the sidebar.</li>
+                    <li>Grouping Variable: <strong>Market Type (Large vs. Medium)</strong></li>
+                    <li>Metric: <strong>Avg Engagement Score</strong></li>
+                    <li>Click <strong>Run T-Test</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="dq" id="dq-1">
+                <span class="dq-num">Practice Question 1</span>
+                <div class="dq-text">Run a T-test comparing the average employee engagement score between Large Market units and Medium Market units. What is the average engagement for each market type? What is the t-statistic and is the difference statistically significant? What does this tell you about the relationship between market size and employee engagement?</div>
+                <div class="dq-hint">Dashboard: <strong>T-Test → Grouping: Market Type → Metric: Avg Engagement Score</strong></div>
+            </div>
+
+            <div class="instructions">
+                <h4>🛠️ T-Test Setup — Practice Question 2:</h4>
+                <ul>
+                    <li>Grouping Variable: <strong>Market Type (Large vs. Medium)</strong></li>
+                    <li>Metric: <strong>Turnover Rate (%)</strong></li>
+                    <li>Click <strong>Run T-Test</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="dq" id="dq-2">
+                <span class="dq-num">Practice Question 2</span>
+                <div class="dq-text">Run a T-test comparing turnover rates between Large Market and Medium Market units. Is the difference statistically significant? If Large Market units have both higher engagement <em>and</em> higher turnover (compared to Medium), what does that paradox suggest about the limits of using a single metric to assess unit health?</div>
+                <div class="dq-hint">Dashboard: <strong>T-Test → Grouping: Market Type → Metric: Turnover Rate (%)</strong></div>
+            </div>
+        </div>
+
+        <!-- ===== PART 2: OLS REGRESSION ===== -->
+        <div class="case-section">
+            <span class="section-label label-challenge">Part 2 — OLS Regression</span>
+            <h2>Controlling for Multiple Factors at Once</h2>
+
+            <p>OLS (Ordinary Least Squares) Regression lets you model a continuous outcome — like wages or profit — using several predictors at the same time. Unlike a T-test, it <em>controls for confounders</em>, isolating the independent effect of each variable.</p>
+
+            <div class="concept-box">
+                <h4>📐 Reading an OLS Output</h4>
+                <ul>
+                    <li><strong>R-Squared (R²):</strong> The share of variance in the outcome explained by your model. 0.41 = 41% explained.</li>
+                    <li><strong>Coefficient (β):</strong> The change in the outcome for a one-unit increase in that predictor, <em>holding all other variables constant</em>.</li>
+                    <li><strong>p-Value:</strong> Whether that coefficient is significantly different from zero (p &lt; 0.05 = significant).</li>
+                    <li><strong>Dummy variables:</strong> For categorical predictors (Gender, Race, Market), one category is the "reference group." The coefficient shows the gap relative to that reference.</li>
+                </ul>
+            </div>
+
+            <div class="instructions">
+                <h4>🛠️ OLS Setup — Practice Questions 3 & 4:</h4>
+                <ul>
+                    <li>Go to the <strong>OLS Regression</strong> tab in the sidebar.</li>
+                    <li>Dataset: <strong>Manager-Level (N=145)</strong></li>
+                    <li>Dependent Variable (Y): <strong>Annual Wage ($)</strong></li>
+                    <li>Independent Variables (X): <strong>Performance Rating</strong> and <strong>Market Type</strong> only (just these two to start).</li>
+                    <li>Click <strong>Run OLS Regression</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="dq" id="dq-3">
+                <span class="dq-num">Practice Question 3</span>
+                <div class="dq-text">Using only Performance Rating and Market Type as predictors of Annual Wage, what is the R-squared value? What does it mean in plain English — what share of the variation in manager wages does this simple model explain? Is that considered a strong model fit or a weak one for social science data?</div>
+                <div class="dq-hint">Look at the <strong>R-Squared</strong> value at the top of the OLS output table.</div>
+            </div>
+
+            <div class="dq" id="dq-4">
+                <span class="dq-num">Practice Question 4</span>
+                <div class="dq-text">In this same two-predictor model, what is the coefficient for Performance Rating? What does it mean? If a manager improves their performance rating from 3 to 4, by how much does this model predict their annual wage will increase? Is this coefficient statistically significant?</div>
+                <div class="dq-hint">Look at the coefficient and p-value for <strong>perf</strong> in the results table.</div>
+            </div>
+
+            <div class="instructions">
+                <h4>🛠️ OLS Setup — Practice Questions 5 & 6 (Profit Model):</h4>
+                <ul>
+                    <li>Switch Dataset to: <strong>Restaurant-Unit Level (N=148)</strong></li>
+                    <li>Dependent Variable (Y): <strong>Net Profit ($)</strong></li>
+                    <li>Independent Variables (X): <strong>Avg Engagement Score</strong> and <strong>Payroll Cost ($)</strong> only.</li>
+                    <li>Click <strong>Run OLS Regression</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="dq" id="dq-5">
+                <span class="dq-num">Practice Question 5</span>
+                <div class="dq-text">What is the coefficient for Avg Engagement Score? Is it positive or negative? Is it statistically significant? Using this coefficient, calculate the estimated profit impact if a restaurant manager raises their unit's engagement score by 0.5 points (a realistic short-term improvement goal). Show your math.</div>
+                <div class="dq-hint">Look at the coefficient for <strong>avgEngagement</strong>. Multiply the coefficient by 0.5 to get the estimated impact.</div>
+            </div>
+
+            <div class="dq" id="dq-6">
+                <span class="dq-num">Practice Question 6</span>
+                <div class="dq-text">What is the coefficient for Payroll Cost ($)? A naive assumption is that every dollar spent on payroll reduces profit by $1.00. Does the data support this? What does the actual coefficient suggest about the relationship between higher labor costs and restaurant revenue? What might explain why a $1 increase in payroll costs less than $1 in profit?</div>
+                <div class="dq-hint">Look at the coefficient for <strong>payroll</strong>. If it's -0.35, then $1 in payroll only reduces profit by $0.35 — because higher wages generate offsetting revenue gains.</div>
+            </div>
+        </div>
+
+        <!-- ===== PART 3: LOGISTIC REGRESSION ===== -->
+        <div class="case-section">
+            <span class="section-label label-question">Part 3 — Logistic Regression</span>
+            <h2>Modeling a Yes/No Outcome: Who Gets Hired?</h2>
+
+            <p>When your outcome variable is binary (hired = 1 / not hired = 0), OLS isn't appropriate. Logistic Regression models the <em>probability</em> of the outcome and outputs <strong>Odds Ratios</strong> — the key metric for interpreting selection bias.</p>
+
+            <div class="concept-box">
+                <h4>📐 Reading Odds Ratios (OR)</h4>
+                <ul>
+                    <li><strong>OR = 1.0:</strong> No difference in odds between the two groups.</li>
+                    <li><strong>OR &gt; 1.0:</strong> The group is <em>more likely</em> to be hired than the reference group. OR = 2.0 means twice the odds.</li>
+                    <li><strong>OR &lt; 1.0:</strong> The group is <em>less likely</em> to be hired than the reference group.</li>
+                    <li><strong>p-Value:</strong> Whether the OR is statistically distinguishable from 1.0 (p &lt; 0.05 = significant bias).</li>
+                    <li><strong>Important:</strong> Odds Ratios are not the same as probability ratios. An OR of 2.0 does not mean "twice as likely" — it means twice the <em>odds</em>, which is a related but distinct concept.</li>
+                </ul>
+            </div>
+
+            <div class="instructions">
+                <h4>🛠️ Logistic Regression Setup — Practice Questions 7 & 8:</h4>
+                <ul>
+                    <li>Go to the <strong>Logistic Regression</strong> tab in the sidebar.</li>
+                    <li>Independent Variables: <strong>First Interview Score</strong> and <strong>Race (White vs URM)</strong> only.</li>
+                    <li>Click <strong>Run Analysis</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="dq" id="dq-7">
+                <span class="dq-num">Practice Question 7</span>
+                <div class="dq-text">What is the Odds Ratio for First Interview Score? Is it statistically significant? Interpret this number in plain English: what does it tell you about how much the interview score influences hiring decisions? Would you expect a higher or lower OR for a well-run, merit-based hiring process?</div>
+                <div class="dq-hint">Look at the OR for <strong>First Interview Score</strong>. A well-designed interview should have a high OR — meaning high scorers are substantially more likely to get hired.</div>
+            </div>
+
+            <div class="dq" id="dq-8">
+                <span class="dq-num">Practice Question 8</span>
+                <div class="dq-text">What is the Odds Ratio for Race (White vs URM)? Is it statistically significant? In plain language, what does this OR mean for a White applicant compared to a URM applicant who has the same interview score? Does this constitute evidence of hiring discrimination? What would Mr. Macky's attorneys need to argue in response to this finding?</div>
+                <div class="dq-hint">OR &gt; 1 for White applicants means they have higher odds of selection than URM applicants with identical qualifications. This is the core of the EEOC exposure.</div>
+            </div>
+        </div>
+
+        <!-- ===== NEXT STEPS ===== -->
+        <div class="case-section">
+            <span class="section-label label-practice">What's Next</span>
+            <h2>You're Ready for Case Study 2</h2>
+            <p>Case Study 2 builds directly on every skill you just practiced. Here's how they map:</p>
+
+            <div style="background: rgba(15,18,33,0.5); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 16px 0;">
+                <table style="width:100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <th style="text-align:left; padding: 8px 12px; color: var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; font-size:11px;">Practice Skill</th>
+                            <th style="text-align:left; padding: 8px 12px; color: var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; font-size:11px;">Case Study 2 Questions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                            <td style="padding: 10px 12px; color: var(--text);">T-Test: Group comparison + significance</td>
+                            <td style="padding: 10px 12px; color: var(--text2);">Questions 1 & 2 (Wage equity by Race and Gender)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                            <td style="padding: 10px 12px; color: var(--text);">OLS: R-squared interpretation</td>
+                            <td style="padding: 10px 12px; color: var(--text2);">Question 4 (Wage model fit)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                            <td style="padding: 10px 12px; color: var(--text);">OLS: Coefficient interpretation</td>
+                            <td style="padding: 10px 12px; color: var(--text2);">Questions 5, 6, 7, 8, 9, 10, 11 (wage + profit models)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 12px; color: var(--text);">Logistic: Odds Ratio interpretation</td>
+                            <td style="padding: 10px 12px; color: var(--text2);">Questions 13, 14, 15 (Hiring selection bias)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="text-align: center; margin-top: 28px;">
+                <a href="casestudy2.html" class="dash-link" style="font-size: 16px; padding: 14px 32px;">
+                    📊 Proceed to Case Study 2 →
+                </a>
+                <p style="font-size: 12px; color: var(--text3); margin-top: 10px;">Case Study 2 is a graded assignment. Your answers will be downloaded for submission.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-label">Practice Progress</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="progress-count" id="progressCount">0 / 8 attempted</div>
+    </div>
+
+<script>
+// ===== WORKED ANSWER DATA =====
+const WORKED = {
+    1: {
+        placeholder: 'Report average engagement for each market type, the t-statistic, and your interpretation...',
+        steps: [
+            {
+                heading: 'Expected Output',
+                points: [
+                    '<strong>Large Market avg engagement:</strong> <span class="worked-number">~3.86</span>',
+                    '<strong>Medium Market avg engagement:</strong> <span class="worked-number">~3.66</span>',
+                    '<strong>Difference:</strong> <span class="worked-number">~+0.20</span> in favor of Large Markets',
+                    '<strong>t-Statistic:</strong> approximately <span class="worked-number">2.79</span>',
+                    '<strong>p-Value:</strong> ~0.006 — <strong>statistically significant</strong> (p &lt; 0.01)'
+                ]
+            },
+            {
+                heading: 'How to Interpret This',
+                points: [
+                    'The gap in engagement between Large and Medium markets is real — it\'s not random variation. Large market employees consistently score higher across the 9 core engagement dimensions.',
+                    'Possible reasons: Larger units may have more resources, better training infrastructure, more experienced managers, and stronger career development pathways.',
+                    'Important caveat: statistical significance does not mean the gap is <em>large</em> enough to matter operationally. A ~0.20-point difference on a scale where scores cluster between 3–4 is modest, even if reliable.'
+                ]
+            },
+            {
+                heading: 'What This Paradox Sets Up',
+                points: [
+                    'In Practice Question 2, you\'ll find that Large Market units also have <em>higher turnover</em>. If engagement drives retention, why do more-engaged large-market employees leave at higher rates?',
+                    'The answer points to confounding: large markets employ more college-age workers with higher natural turnover regardless of engagement. This is a classic omitted variable problem.'
+                ]
+            }
+        ],
+        case2ref: '🔗 In Case Study 2: T-tests for wage equity (Questions 1 & 2) use the same logic — run, read the means, check p < 0.05.'
+    },
+    2: {
+        placeholder: 'Report average turnover rate for each market type, t-statistic, significance, and your interpretation of the paradox...',
+        steps: [
+            {
+                heading: 'Expected Output',
+                points: [
+                    '<strong>Large Market avg turnover rate:</strong> <span class="worked-number">~85–86%</span>',
+                    '<strong>Medium Market avg turnover rate:</strong> <span class="worked-number">~85–86%</span>',
+                    '<strong>t-Statistic:</strong> approximately <span class="worked-number">−1.1</span>',
+                    '<strong>p-Value:</strong> ~0.26 — <strong>not statistically significant</strong>'
+                ]
+            },
+            {
+                heading: 'What the Result Reveals',
+                points: [
+                    'Unlike engagement, turnover rates are nearly <em>identical</em> between Large and Medium market units (~85–86% each). The t-test finds no significant difference between the two groups.',
+                    'This is itself a meaningful finding: despite having higher average engagement, Large Market units do <em>not</em> show meaningfully lower turnover — suggesting engagement alone does not drive retention differences at the market level.',
+                    'This points to confounding: labor market composition, job type, and seasonal patterns likely dominate turnover behavior across all markets, making market type a weak predictor of turnover rates.'
+                ]
+            },
+            {
+                heading: 'Key Takeaway for Case 2',
+                points: [
+                    'A non-significant result is still informative. It tells us that market type does <em>not</em> predict turnover — even though it does predict engagement.',
+                    'This motivates multivariate OLS: to control for unit-level factors (payroll, headcount, engagement) that may predict turnover better than market type alone.'
+                ]
+            }
+        ],
+        case2ref: '🔗 In Case Study 2: The turnover-profit paradox in the OLS model (Question 10) is the same phenomenon — large markets drive both metrics simultaneously.'
+    },
+    3: {
+        placeholder: 'Report the R-squared value and explain what it means in plain language. Is this a good fit?',
+        steps: [
+            {
+                heading: 'Expected Output',
+                points: [
+                    '<strong>R-Squared (2-predictor model):</strong> approximately <span class="worked-number">0.38 – 0.39</span>',
+                    'This means performance rating and market type together explain roughly <strong>38–39% of the variation</strong> in manager wages.',
+                    'The remaining ~61% is explained by factors not in this model (experience, tenure, negotiating history, school attended, etc.)'
+                ]
+            },
+            {
+                heading: 'Is This Good?',
+                points: [
+                    'For social science / HR data, an R² of 0.38–0.39 is <strong>moderate-to-good</strong> for a 2-variable model. Two predictors capturing nearly 40% of wage variance is meaningful.',
+                    'When you add more variables (experience, gender, race), R² rises further in Case Study 2 — a meaningfully better fit.',
+                    'R² is a measure of <em>explanatory power</em>, not of whether coefficients are accurate. A model with moderate R² can still have highly significant, valid coefficients.'
+                ]
+            },
+            {
+                heading: 'Common Mistake to Avoid',
+                points: [
+                    'R² is a measure of <em>explanatory power</em>, not of whether the model\'s coefficients are accurate. A model with R² = 0.10 can still have highly significant, valid coefficients.',
+                    'Focus on R² for comparing models. Focus on p-values for evaluating individual predictors.'
+                ]
+            }
+        ],
+        case2ref: '🔗 In Case Study 2: Question 4 asks you to report R² for the full 5-variable wage model (~0.41). You now know how to interpret it.'
+    },
+    4: {
+        placeholder: 'Report the performance coefficient, its sign and magnitude, and whether it\'s significant. Calculate the wage impact of a 1-point rating increase.',
+        steps: [
+            {
+                heading: 'Expected Output',
+                points: [
+                    '<strong>Performance Rating Coefficient:</strong> approximately <span class="worked-number">+$1,800 – $2,100</span>',
+                    '<strong>p-Value:</strong> &lt; 0.01 — <strong>statistically significant</strong>',
+                    '<strong>Interpretation:</strong> Holding market type constant, each 1-point increase in performance rating is associated with approximately $1,900 more in annual wages.'
+                ]
+            },
+            {
+                heading: 'How to Use This',
+                points: [
+                    'Coefficient = $1,923 (from full Case 2 model). A manager rated 4 vs. 3 earns ~$1,923 more per year, all else equal.',
+                    'A manager rated 5 vs. 3 earns ~$3,846 more — the coefficient scales linearly.',
+                    'This means the company does reward performance — but the pay-for-performance premium (~$2K) is small relative to market type ($10K premium for Large markets).'
+                ]
+            },
+            {
+                heading: 'What "Holding Constant" Means',
+                points: [
+                    'The coefficient tells you the effect of performance <em>among managers in the same market type</em>. This is what makes multivariate OLS powerful: it isolates the unique contribution of each variable.',
+                    'If you ran a simple T-test of high-performers vs. low-performers, market type would confound the result (high-performing managers might cluster in large markets which pay more anyway).'
+                ]
+            }
+        ],
+        case2ref: '🔗 In Case Study 2: Question 6 asks you to interpret the performance coefficient from the full wage model. You\'ve now done it with a simpler version first.'
+    },
+    5: {
+        placeholder: 'Report the engagement coefficient, significance, and calculate the profit impact of a 0.5-point improvement. Show your math.',
+        steps: [
+            {
+                heading: 'Expected Output',
+                points: [
+                    '<strong>Avg Engagement Coefficient:</strong> approximately <span class="worked-number">+$100,300</span> per unit',
+                    '<strong>p-Value:</strong> ~0.037 — <strong>statistically significant at α = 0.05</strong>',
+                    '<strong>Calculation for 0.5-point improvement:</strong> $100,300 × 0.5 = <span class="worked-number">~$50,150 per unit</span>'
+                ]
+            },
+            {
+                heading: 'Business Translation',
+                points: [
+                    'A 0.5-point improvement in engagement (e.g., from 3.7 to 4.2 average across all employees at a unit) is associated with ~$50,150 in additional annual profit at that restaurant.',
+                    'Across all 148 units: $50,150 × 148 = <strong>approximately $7.4 million</strong> in company-wide profit improvement.',
+                    'This creates a powerful financial case: if a $1.2M engagement budget generates a 0.5-point improvement, the ROI is ~6x.'
+                ]
+            },
+            {
+                heading: 'Important Caveat',
+                points: [
+                    'Correlation ≠ causation. The model shows that high-engagement units tend to be more profitable — but we cannot prove that <em>raising</em> engagement <em>causes</em> profit to rise.',
+                    'Profitable units may simply have better conditions (good managers, high sales) that independently drive both engagement and profits.',
+                    'This is why the board memo in Case 2 asks you to discuss confounding variables alongside the financial case.'
+                ]
+            }
+        ],
+        case2ref: '🔗 In Case Study 2: Question 9 asks you to interpret the engagement coefficient from the full profit model (same coefficient, more variables added). The Board Memo asks you to calculate the 0.5-point ROI — you\'ve done it here first.'
+    },
+    6: {
+        placeholder: 'Report the payroll coefficient, explain whether it\'s -$1.00 or something different, and explain why higher wages don\'t reduce profit dollar-for-dollar.',
+        steps: [
+            {
+                heading: 'Expected Output',
+                points: [
+                    '<strong>Payroll Cost Coefficient:</strong> approximately <span class="worked-number">−0.23</span>',
+                    '<strong>p-Value:</strong> ~0.002 — <strong>statistically significant</strong> (p &lt; 0.01)',
+                    '<strong>Interpretation:</strong> A $1.00 increase in payroll reduces net profit by only about <strong>$0.23</strong> — not $1.00.'
+                ]
+            },
+            {
+                heading: 'Why Isn\'t It -$1.00?',
+                points: [
+                    'If payroll were purely a cost with no benefit, every dollar spent would reduce profit by exactly $1.00 (coefficient = -1.0).',
+                    'The fact that the coefficient is only -0.23 implies that every dollar of wages generates approximately <strong>$0.77 in offsetting revenue or efficiency gains</strong>.',
+                    'Higher wages attract better workers → better service → higher sales → partially offsetting the cost increase.'
+                ]
+            },
+            {
+                heading: 'HR Implication',
+                points: [
+                    'This is the economic argument for a living wage: increasing hourly pay is not a pure expense — a significant portion is recovered through higher productivity, lower turnover (fewer replacement costs), and better customer experience.',
+                    'The data does not prove this definitively (the coefficient combines multiple effects), but it is consistent with this hypothesis.'
+                ]
+            }
+        ],
+        case2ref: '🔗 In Case Study 2: Question 11 asks you to interpret this exact coefficient from the full profit model. You\'ve now worked through the logic.'
+    },
+    7: {
+        placeholder: 'Report the Odds Ratio for First Interview Score, its significance, and explain what it means for hiring decisions.',
+        steps: [
+            {
+                heading: 'Expected Output',
+                points: [
+                    '<strong>Odds Ratio (First Interview Score):</strong> approximately <span class="worked-number">3.50</span>',
+                    '<strong>p-Value:</strong> &lt; 0.001 — <strong>highly significant</strong>',
+                    '<strong>Interpretation:</strong> Each 1-point increase in first interview score increases the odds of being hired by approximately <strong>3.5 times</strong> — a very strong effect.'
+                ]
+            },
+            {
+                heading: 'What This Means',
+                points: [
+                    'A candidate scoring 6 on the interview has roughly 3.5× the odds of being hired compared to a candidate scoring 5 — a very large effect on selection probability.',
+                    'This is a strong and highly significant result. It tells us that the structured interview is doing its job as a selection tool: higher scores are powerfully associated with hire decisions.',
+                    'For a <em>fair</em> process, we would want interview score to be the dominant predictor — and racial/gender identity to have an OR close to 1.0 (no effect). The high interview OR is a positive sign; see Q8 for whether race still matters after controlling for score.'
+                ]
+            },
+            {
+                heading: 'Odds vs. Probability',
+                points: [
+                    'OR = 2.1 does <strong>not</strong> mean candidates with higher scores are "twice as likely" to be hired in percentage terms.',
+                    'Odds = P(hired) / P(not hired). If baseline hire rate is 5%, baseline odds = 0.053. Multiplying by 2.1 gives 0.111, which translates to ~10% hire probability.',
+                    'For Case Study 2, you do not need to convert — just interpret direction, magnitude, and significance.'
+                ]
+            }
+        ],
+        case2ref: '🔗 In Case Study 2: Question 13 asks you to interpret this exact OR from the full logistic model (with more predictors). The interpretation logic is identical.'
+    },
+    8: {
+        placeholder: 'Report the Odds Ratio for Race (White vs URM), significance, and explain what it means. Does this constitute evidence of discrimination?',
+        steps: [
+            {
+                heading: 'Expected Output',
+                points: [
+                    '<strong>Odds Ratio (White vs URM):</strong> approximately <span class="worked-number">1.24</span>',
+                    '<strong>p-Value:</strong> ~0.09 — <strong>not statistically significant</strong> at the standard α = 0.05 threshold',
+                    '<strong>Interpretation:</strong> Controlling for interview score only, White applicants have about 24% higher odds of being hired than URM applicants — but this difference <em>does not reach statistical significance</em> in this 2-predictor model.'
+                ]
+            },
+            {
+                heading: 'Does This Prove Discrimination?',
+                points: [
+                    'In this simple 2-predictor model, race is not a statistically significant predictor of hiring once interview score is controlled.',
+                    'The marginal OR of 1.24 suggests a small, positive advantage for White applicants — but with p≈0.09, we cannot rule out that this is due to random variation.',
+                    'Important: this model only controls for <em>one</em> variable (interview score). Adding experience, second interview scores, and year controls may change the race OR substantially.'
+                ]
+            },
+            {
+                heading: 'What This Sets Up for Case Study 2',
+                points: [
+                    'The strength of this 2-variable model is its simplicity — it isolates whether race matters beyond interview score alone.',
+                    'In Case Study 2, you will run a fuller logistic model (with experience, interview 2, year dummies) that provides a more complete picture of potential hiring bias.',
+                    'The analytical logic is identical — you are building toward the more comprehensive analysis by first understanding the core relationship between race and selection.'
+                ]
+            }
+        ],
+        case2ref: '🔗 In Case Study 2: Question 14 asks you to interpret the Race OR from the full logistic model (which also includes Gender and Experience). You\'ve now worked through the core interpretation logic.'
+    }
+};
+
+const TOTAL = Object.keys(WORKED).length;
+const submitted = new Set();
+const revealed = new Set();
+
+function saveStudentName() {
+    const fn = document.getElementById('student-first-name').value;
+    const ln = document.getElementById('student-last-name').value;
+    localStorage.setItem('pc_student_name', JSON.stringify({fn, ln}));
+}
+
+function updateProgress() {
+    const attempted = new Set([...submitted, ...revealed]).size;
+    const pct = Math.round((attempted / TOTAL) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = `${attempted} / ${TOTAL} attempted`;
+}
+
+function submitAnswer(qNum) {
+    const ta = document.getElementById(`ta-${qNum}`);
+    const val = ta.value.trim();
+    if (!val) return;
+
+    ta.classList.add('submitted');
+    document.getElementById(`sub-${qNum}`).disabled = true;
+    const badge = document.getElementById(`saved-${qNum}`);
+    badge.classList.add('visible');
+
+    submitted.add(qNum);
+    localStorage.setItem(`pc_ans_${qNum}`, val);
+    updateProgress();
+}
+
+function toggleWorked(qNum) {
+    const panel = document.getElementById(`worked-${qNum}`);
+    const btn = document.getElementById(`reveal-${qNum}`);
+    const isVisible = panel.classList.contains('visible');
+    if (isVisible) {
+        panel.classList.remove('visible');
+        btn.textContent = '📖 Reveal Full Answer';
+    } else {
+        panel.classList.add('visible');
+        btn.innerHTML = '🔼 Hide Answer';
+        revealed.add(qNum);
+        updateProgress();
+    }
+}
+
+// Build all answer areas
+document.addEventListener('DOMContentLoaded', () => {
+    // Restore name
+    const savedName = localStorage.getItem('pc_student_name');
+    if (savedName) {
+        try {
+            const {fn, ln} = JSON.parse(savedName);
+            document.getElementById('student-first-name').value = fn || '';
+            document.getElementById('student-last-name').value = ln || '';
+        } catch(e) {}
+    }
+
+    Object.entries(WORKED).forEach(([qNumStr, data]) => {
+        const qNum = parseInt(qNumStr);
+        const dq = document.getElementById(`dq-${qNum}`);
+        if (!dq) return;
+
+        // Build worked steps HTML
+        const stepsHTML = data.steps.map(s => `
+            <div class="worked-section">
+                <h5>${s.heading}</h5>
+                <ul>${s.points.map(p => `<li>${p}</li>`).join('')}</ul>
+            </div>
+        `).join('');
+
+        const area = document.createElement('div');
+        area.className = 'answer-area';
+        area.innerHTML = `
+            <textarea id="ta-${qNum}" placeholder="${data.placeholder}"></textarea>
+            <div class="answer-btns">
+                <button class="btn-submit" id="sub-${qNum}" onclick="submitAnswer(${qNum})">Save My Answer</button>
+                <button class="btn-reveal" id="reveal-${qNum}" onclick="toggleWorked(${qNum})">📖 Reveal Full Answer</button>
+                <span class="saved-badge" id="saved-${qNum}">✓ Saved</span>
+            </div>
+            <div class="worked-panel" id="worked-${qNum}">
+                <div class="worked-title">📖 Worked Explanation — Practice Question ${qNum}</div>
+                ${stepsHTML}
+                <div class="case2-link">${data.case2ref}</div>
+            </div>
+        `;
+        dq.appendChild(area);
+
+        // Restore saved answer
+        const saved = localStorage.getItem(`pc_ans_${qNum}`);
+        if (saved) {
+            document.getElementById(`ta-${qNum}`).value = saved;
+            document.getElementById(`ta-${qNum}`).classList.add('submitted');
+            document.getElementById(`sub-${qNum}`).disabled = true;
+            document.getElementById(`saved-${qNum}`).classList.add('visible');
+            submitted.add(qNum);
+        }
+    });
+
+    updateProgress();
+});
+</script>
+</body>
+</html>
